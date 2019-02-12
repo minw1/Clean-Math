@@ -7,11 +7,12 @@ import json
 # Initialize the game engine
 pygame.init()
 
-FONT = pygame.freetype.Font("Futura.ttf", 24)
+FONT = pygame.freetype.Font("tnr.ttf", 24)
 
-digits = ["0","1","2","3","4","5","6","7","8","9"]
-
+allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^"]
+show_dimensions = False
  
+
 # Define the colors we will use in RGB format
 BLACK = (  0,   0,   0)
 WHITE = (255, 255, 255)
@@ -58,9 +59,10 @@ clock = pygame.time.Clock()
  
 while not done:
  
-    # This limits the while loop to a max of 10 times per second.
+    # This limits the while loop to a max of 20 times per second.
     # Leave this out and we will use all CPU we can.
-    clock.tick(10)
+    clock.tick(20)
+    keys = pygame.key.get_pressed();#returns dict with keys, pygame keys and values as bools if pressed
 
     celldimensions = [math.ceil(float(width)/20),math.ceil(float(height)/20)]
      
@@ -69,30 +71,40 @@ while not done:
             done=True # Flag that we are done so we exit this loop
         if event.type == pygame.VIDEORESIZE:
             # There's some code to add back window content here.
-            surface = pygame.display.set_mode((event.w, event.h),
-                                              pygame.RESIZABLE)
+            surface = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
             width = event.w
             height = event.h
-        if event.type == pygame.KEYDOWN:
-
-            #on keyboard arrow inputs, adjust the coordinates of the selected cell as needed
-
-            if event.key == pygame.K_LEFT:
+        if event.type == pygame.KEYDOWN:#if a key is entered
+            if event.unicode in allowed_symbols:# which is one of the digits
+                symbolcontainer[json.dumps(selectedcell)] = event.unicode #put it in the symbolcontainer
+                selectedcell['x']+=1 #so that the selected cell moves right with each data entry
+            if event.key == pygame.K_BACKSPACE:
                 if (selectedcell['x'] > 0):
                     selectedcell['x']-=1
-            if event.key == pygame.K_RIGHT:
+                symbolcontainer.pop(json.dumps(selectedcell),None)
+            if event.key == pygame.K_SPACE:
                 selectedcell['x']+=1
-            if event.key == pygame.K_UP:
-                if (selectedcell['y'] > 0):
-                    selectedcell['y']-=1
-            if event.key == pygame.K_DOWN:
-                selectedcell['y']+=1
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            (x,y) = pygame.mouse.get_pos()
+            selectedcell['x']= math.floor(x/boxSideLength)
+            selectedcell['y']= math.floor(y/boxSideLength)
 
-            else:#if a key is entered
-                if pygame.key.name(event.key) in digits:# which is one of the digits
-                    symbolcontainer[json.dumps(selectedcell)] = pygame.key.name(event.key) #put it in the symbolcontainer
-                    selectedcell['x']+=1 #so that the selected cell moves right with each data entry
-            #it's going to get hairy with plus symbols etc. because they use key modifiers (shift and equals, for example)
+
+
+    #use keys to navigate selected cell
+    #the reason these aren't in the event loop is that we want them to be able to be held, and for the function to be able to be copied each frame
+    #in the event loop, for example, the space bar must be tapped twice to get two spaces. 
+
+    if keys[pygame.K_LEFT]:
+        if (selectedcell['x'] > 0):
+            selectedcell['x']-=1
+    if keys[pygame.K_RIGHT]:
+        selectedcell['x']+=1
+    if keys[pygame.K_UP]:
+        if (selectedcell['y'] > 0):
+            selectedcell['y']-=1
+    if keys[pygame.K_DOWN]:
+        selectedcell['y']+=1
 
 
                 
@@ -123,26 +135,30 @@ while not done:
           horLineOrigin += boxSideLength
 
 
-    #draw the dimensions
-    #the render function returns a surface(basically an image) into the text variable, and a rectange object for that into rect
-    #the rect variable is not used
+    if show_dimensions:
+        #draw the dimensions
+        #the render function returns a surface(basically an image) into the text variable, and a rectange object for that into rect
+        #the rect variable is not used
  
-    text,rect = FONT.render("CELL DIMENSIONS: ({},{})".format(celldimensions[0],celldimensions[1]),WHITE,BLACK)
+        text,rect = FONT.render("CELL DIMENSIONS: ({},{})".format(celldimensions[0],celldimensions[1]),WHITE,BLACK)
 
-    #for some reason, you can't set the alpha on a surface created with pygame freetype, 
-    #so I have to copy it to a buffer and then set the alpha 
-    buffersurface = pygame.Surface([rect.width,rect.height])
-    buffersurface.blit(text,(0,0)) #blit copies from text to buffersurface
-    buffersurface.set_alpha(50)
-    screen.blit(buffersurface,(0,0))#and blit then copies from buffersurface to the real screen
+        #for some reason, you can't set the alpha on a surface created with pygame freetype, 
+        #so I have to copy it to a buffer and then set the alpha 
+        buffersurface = pygame.Surface([rect.width,rect.height])
+        buffersurface.blit(text,(0,0)) #blit copies from text to buffersurface
+        buffersurface.set_alpha(50)
+        screen.blit(buffersurface,(0,0))#and blit then copies from buffersurface to the real screen
 
 
     for key, value in symbolcontainer.items():  #here, we look through each entry in our symbol containser
         keydict = json.loads(key)  
         text, rect = FONT.render(value,BLACK)   #create a surface
-        scaled = pygame.transform.scale(text,(boxSideLength,boxSideLength))# stretch it into our box size
-        screen.blit(text,(keydict['x']*boxSideLength,keydict['y']*boxSideLength)) #then blit it onto the screen (it is important this comes) before we paint the cell SELECTED_CELL_COLOR, other wise, it would paint over the number
-
+        screen.blit(text,(
+            (keydict['x']+0.5)*boxSideLength - rect.width/2
+            ,(keydict['y']+0.5)*boxSideLength - rect.height/2)
+        ) #then blit it onto the screen (it is important this comes) before we paint the cell SELECTED_CELL_COLOR, other wise, it would paint over the number
+        #The reason I do all this stuff with adding a half a cell and then subtracting the rectangle width
+        #is so that the center of the symbol is aligned with the center of the cell
 
     # Go ahead and update the screen with what we've drawn.
     # This MUST happen after all the other drawing commands.
