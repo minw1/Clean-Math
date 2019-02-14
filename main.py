@@ -18,7 +18,7 @@ exitmsg, rexitmsg = FONT.render("Please use the console to exit.", st.RED,st.WHI
 showmExitMsg = False
 
 
-allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(","("]+list(string.ascii_lowercase)
+allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(",")"]+list(string.ascii_lowercase)
 
 width = 400
 height = 300
@@ -84,9 +84,11 @@ while st.programIsRunning:
                 st.symbolcontainer[json.dumps(selectedcell)] = event.unicode #put it in the symbolcontainer
                 selectedcell['x']+=1 #so that the selected cell moves right with each data entry
             if event.key == pygame.K_BACKSPACE:
-                if (selectedcell['x'] > 0):
+                if (selectedcell['x'] > 0 and json.dumps(selectedcell) not in st.symbolcontainer):
                     selectedcell['x']-=1
                 st.symbolcontainer.pop(json.dumps(selectedcell),None)
+
+
             if event.key == pygame.K_SPACE:
                 selectedcell['x']+=1
         if event.type == pygame.MOUSEBUTTONDOWN:

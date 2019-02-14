@@ -3,6 +3,7 @@ import cmdColors as cc
 import json
 import settings as st
 import os
+import sys
 
 
 def toggleGrid():
@@ -25,6 +26,25 @@ def setGridColor(color):
 	st.lock.acquire()
 	st.boxStrokeColor = color
 	st.lock.release()
+def isMac():
+	return sys.platform == "darwin"
+
+def warn(text):
+	if(not isMac()):
+		print(text)
+	else:
+		print(cc.WARNING + text + cc.ENDC)
+def fail(text):
+	if(not isMac()):
+		print(text)
+	else:
+		print(cc.FAIL + text + cc.ENDC)
+def ok(text):
+	if(not isMac()):
+		print(text)
+	else:
+		print(cc.OKBLUE + text + cc.ENDC)
+
 
 
 class PanelThread (threading.Thread):
@@ -55,38 +75,38 @@ class PanelThread (threading.Thread):
 			x = input();
 			if(x=="tg"):
 				toggleGrid()
-				print(cc.OKBLUE + "gridlines toggled" + cc.ENDC)
+				ok("gridlines toggled")
 
 			elif(x[:2]=="bw"):
 				try:
 					if int(x[3:]) >= 20:
 						setBoxWidth(int(x[3:]))
-						print(cc.OKBLUE + "box width changed" + cc.ENDC)
+						ok("box width changed")
 					else:
-						print(cc.WARNING + "Sorry, box length must be at least 20" + cc.ENDC)
+						warn("Sorry, box length must be at least 20")
 
 				except ValueError:
-					print(cc.FAIL + "Sorry, the integer you entered was not valid. Enter 'bw' followed by a space and then an integer" + cc.ENDC)
+					fail("Sorry, the integer you entered was not valid. Enter 'bw' followed by a space and then an integer")
 			elif(x[:2] =="fc"):
 				if x[3:].upper() in st.colorMap:
 					setFontColor(st.colorMap[x[3:].upper()])
-					print(cc.OKBLUE + "font color changed" + cc.ENDC)
+					ok("font color changed")
 				else:
-					print(cc.WARNING + "Sorry, we don't have that color." + cc.ENDC)
+					warn("Sorry, we don't have that color.")
 			elif(x[:2] =="bc"):
 				if x[3:].upper() in st.colorMap:
 					setBackgroundColor(st.colorMap[x[3:].upper()])
-					print(cc.OKBLUE + "background color changed" + cc.ENDC)
+					ok("background color changed")
 				else:
-					print(cc.WARNING + "Sorry, we don't have that color." + cc.ENDC)
+					warn("Sorry, we don't have that color.")
 			elif(x[:2] =="gc"):
 				if x[3:].upper() in st.colorMap:
 					setGridColor(st.colorMap[x[3:].upper()])
-					print(cc.OKBLUE + "grid color changed" + cc.ENDC)
+					ok("grid color changed")
 					if(not st.show_grid):
 						print("gridlines must be toggled on to see the grid")
 				else:
-					print(cc.WARNING + "Sorry, we don't have that color." + cc.ENDC)
+					warn("Sorry, we don't have that color.")
 
 			elif(x[:4] == "save"):
 				try:
@@ -95,9 +115,9 @@ class PanelThread (threading.Thread):
 					file.write(json.dumps(st.symbolcontainer))
 					st.lock.release()
 					file.close()
-					print(cc.OKBLUE + "file saved as '" + x[5:] + "'" + cc.ENDC)
+					ok("file saved as '" + x[5:] + "'")
 				except:
-					print(cc.FAIL +"There was an error saving your file." + cc.ENDC)
+					fail("There was an error saving your file.")
 			elif(x[:4]=="open"):
 				if x[-3:] == ".cm":
 					x = x[:-3]
@@ -106,11 +126,11 @@ class PanelThread (threading.Thread):
 					st.lock.acquire()
 					st.symbolcontainer = json.loads(file.readline())
 					st.lock.release()
-					print(cc.OKBLUE + "file opened successfully" + cc.ENDC)
+					ok("file opened successfully")
 				except FileNotFoundError:
-					print(cc.FAIL +"File could not be found."+ cc.ENDC)
+					fail("File could not be found.")
 				except:
-					print(cc.FAIL +"There was an error opening your file."+ cc.ENDC)
+					fail("There was an error opening your file.")
 
 			elif(x=="list"):
 				print("Saved CM files:")
@@ -122,5 +142,5 @@ class PanelThread (threading.Thread):
 			elif(x=="exit"):
 				st.programIsRunning = False
 			else:
-				print(cc.FAIL + "Sorry, your command wasn't recognized." + cc.ENDC)
+				fail("Sorry, your command wasn't recognized.")
 				
