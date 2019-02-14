@@ -15,7 +15,6 @@ boxStrokeWidth = 1
 boxStrokeColor = BLUE
 backgroundColor = WHITE
 fontColor = BLACK
-show_dimensions = False
 show_grid = True
 
 lock = threading.RLock()

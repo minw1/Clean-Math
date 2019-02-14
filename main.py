@@ -14,7 +14,7 @@ pygame.init()
 FONT = pygame.freetype.Font("tnr.ttf", 24)
 iFONT = pygame.freetype.Font("tnri.ttf",24)
 
-exitmsg, rexitmsg = FONT.render("Please use the console to exit.", st.RED)
+exitmsg, rexitmsg = FONT.render("Please use the console to exit.", st.RED,st.WHITE)
 showmExitMsg = False
 
 
@@ -23,24 +23,24 @@ allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","
 width = 400
 height = 300
 
-celldimensions = [math.ceil(float(width)/20),math.ceil(float(height)/20)]#the current dimensions of the cell grid
-
-
 
 
 selectedcell = {'x':0,"y":0}#dictionary representing the currently selected cell
 
 
-
-
+scrollLocation = [0,0]
+pixelsToGrid = [400,300] #keeps track of the farthest pixel locations that need to be loaded
+#in the loop, this will be calculated with
+#[width+scrollLocation[0], height + scrollLocation[1]]
 
 
 # Set the height and width of the screen
 size = [width, height]
+
+
 screen = pygame.display.set_mode(size, pygame.RESIZABLE)
 
-pygame.display.set_caption("Math Grid")
- 
+pygame.display.set_caption("Clean Math")
  
 
 clock = pygame.time.Clock()
@@ -61,8 +61,16 @@ while st.programIsRunning:
     clock.tick(20)
     keys = pygame.key.get_pressed();#returns dict with keys, pygame keys and values as bools if pressed
 
-    celldimensions = [math.ceil(float(width)/20),math.ceil(float(height)/20)]
-     
+
+    pixelsToGrid[0]= width+scrollLocation[0]
+    pixelsToGrid[1]= height+scrollLocation[1]
+
+
+    intermediate_scrollblock = pygame.Surface((pixelsToGrid[0],pixelsToGrid[1]))
+    #this surface is what everything is painted on. Then, we paint it onto the screen so that it shows a location relative to the  scrolllocation
+
+
+    
     for event in pygame.event.get(): # User did something
         if event.type == pygame.QUIT: # If user clicked close
         	showmExitMsg = True
@@ -86,8 +94,8 @@ while st.programIsRunning:
 
           
 
-            selectedcell['x']= math.floor(x/st.boxSideLength)
-            selectedcell['y']= math.floor(y/st.boxSideLength)
+            selectedcell['x']= math.floor((x + scrollLocation[0])/st.boxSideLength)
+            selectedcell['y']= math.floor((y + scrollLocation[1])/st.boxSideLength)
 
 
 
@@ -107,70 +115,70 @@ while st.programIsRunning:
         selectedcell['y']+=1
 
 
-                
+    
+    (mousePX, mousePY) = pygame.mouse.get_pos()
+
+    #adjusting the scroll corner depeneding on user's mouse location.
+    if mousePX < 30 and mousePX > 0:
+        scrollLocation[0] = max(scrollLocation[0]-7,0)
+    if mousePX > width-30 and mousePX  < width-1:
+        scrollLocation[0] += 7
+    if mousePY < 30 and mousePY > 0:
+        scrollLocation[1] = max(scrollLocation[1]-7,0)
+    if mousePY > height - 30 and mousePY < height-1:
+        scrollLocation[1] += 7
+
+
+
  
     # All drawing code happens after the for loop and but
     # inside the main while done==False loop.
      
-    # Clear the screen and set the screen background
-    screen.fill(st.backgroundColor)
+    # Clear the scrollblock and set the background
+    intermediate_scrollblock.fill(st.backgroundColor)
 
     #color in the selected cell
 
     selRect = pygame.Rect(st.boxSideLength*selectedcell['x'],st.boxSideLength*selectedcell['y'],st.boxSideLength,st.boxSideLength)
-    screen.fill(st.SELECTED_CELL_COLOR,selRect)
+    intermediate_scrollblock.fill(st.SELECTED_CELL_COLOR,selRect)
 
 
  
     if st.show_grid:
         #draw vertical lines
         vertLineOrigin = 0
-        while(vertLineOrigin < width):
-            pygame.draw.line(screen, st.boxStrokeColor, [vertLineOrigin, 0], [vertLineOrigin,height],st.boxStrokeWidth)
+        while(vertLineOrigin < pixelsToGrid[0]):
+            pygame.draw.line(intermediate_scrollblock, st.boxStrokeColor, [vertLineOrigin, 0], [vertLineOrigin,pixelsToGrid[1]],st.boxStrokeWidth)
             vertLineOrigin += st.boxSideLength
 
         #use same process to draw horizontal lines
         horLineOrigin = 0
-        while(horLineOrigin < height):
-            pygame.draw.line(screen, st.boxStrokeColor, [0, horLineOrigin], [width,horLineOrigin],st.boxStrokeWidth)
+        while(horLineOrigin < pixelsToGrid[1]):
+            pygame.draw.line(intermediate_scrollblock, st.boxStrokeColor, [0, horLineOrigin], [pixelsToGrid[0],horLineOrigin],st.boxStrokeWidth)
             horLineOrigin += st.boxSideLength
 
-
-    if st.show_dimensions:
-        #draw the dimensions
-        #the render function returns a surface(basically an image) into the text variable, and a rectange object for that into rect
-        #the rect variable is not used
- 
-        text,rect = FONT.render("CELL DIMENSIONS: ({},{})".format(celldimensions[0],celldimensions[1]),st.WHITE,st.BLACK)
-
-        #for some reason, you can't set the alpha on a surface created with pygame freetype, 
-        #so I have to copy it to a buffer and then set the alpha 
-        buffersurface = pygame.Surface([rect.width,rect.height])
-        buffersurface.blit(text,(0,0)) #blit copies from text to buffersurface
-        buffersurface.set_alpha(50)
-        screen.blit(buffersurface,(0,0))#and blit then copies from buffersurface to the real screen
 
 
     for key, value in st.symbolcontainer.items():  #here, we look through each entry in our symbol container
         keydict = json.loads(key)
         if value in list(string.ascii_lowercase):
-        	text, rect = iFONT.render(value,st.fontColor)   #create a surface
+        	text, rect = iFONT.render(value,st.fontColor)   #create a surface with the character in italic font
         else:
-        	text, rect = FONT.render(value,st.fontColor)   #create a surface
-        screen.blit(
-            text,
-            (
-            (keydict['x']+0.5)*st.boxSideLength - rect.width/2
-            ,(keydict['y']+0.5)*st.boxSideLength - rect.height/2
-            )
-        ) 
+        	text, rect = FONT.render(value,st.fontColor)   #create a surface with the character in normal font
+        intermediate_scrollblock.blit(text,((keydict['x']+0.5)*st.boxSideLength - rect.width/2
+            ,(keydict['y']+0.5)*st.boxSideLength - rect.height/2)) 
 
-        #then blit it onto the screen (it is important this comes) before we paint the cell SELECTED_CELL_COLOR, other wise, it would paint over the number
+        #then blit it onto the scrollblock (it is important this comes) after we paint the cell SELECTED_CELL_COLOR, other wise, it would paint over the number
         #The reason I do all this stuff with adding a half a cell and then subtracting the rectangle width
         #is so that the center of the symbol is aligned with the center of the cell
 
+    
+
+
+    screen.blit(intermediate_scrollblock,(-scrollLocation[0],-scrollLocation[1]))#bop the scrollbox somewhere to the up-left of the actual screen
+
     if(showmExitMsg):
-    	screen.blit(exitmsg,(0,0))
+        screen.blit(exitmsg,(0,0)) #lets leave this message unscrollable
 
     st.lock.release()
 

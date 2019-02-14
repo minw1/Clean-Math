@@ -2,7 +2,7 @@ import threading
 import cmdColors as cc
 import json
 import settings as st
-
+import os
 
 
 def toggleGrid():
@@ -41,11 +41,13 @@ class PanelThread (threading.Thread):
 		print("    gc {COLOR} -> changes grid color to a given color")
 
 		print("Files:")
+		print("    list -> lists all .cm files in the current directory")
 		print("    save {FILENAME} -> saves work as a .cm file with given filename. Overwrites if filename is taken")
 		print("    open {FILENAME} -> opens a .cm file. Does not save current work.")
 		print("Other:")
 
 		print("    exit -> exits the program. does not save")
+		print("    do not type the curly braces in the command line. for example a valid command is 'fc red'")
 		while st.programIsRunning:
 			
 
@@ -110,10 +112,15 @@ class PanelThread (threading.Thread):
 				except:
 					print(cc.FAIL +"There was an error opening your file."+ cc.ENDC)
 
+			elif(x=="list"):
+				print("Saved CM files:")
+				files = os.listdir()
+				for file in files:
+					if file[-3:] == ".cm":
+						print ("    " + file)
+
 			elif(x=="exit"):
 				st.programIsRunning = False
 			else:
 				print(cc.FAIL + "Sorry, your command wasn't recognized." + cc.ENDC)
-
-
-
+				
