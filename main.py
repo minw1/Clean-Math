@@ -10,7 +10,13 @@ import panel as pnl
 # Initialize the game engine
 pygame.init()
 
+#load the fonts
 FONT = pygame.freetype.Font("tnr.ttf", 24)
+iFONT = pygame.freetype.Font("tnri.ttf",24)
+
+exitmsg, rexitmsg = FONT.render("Please use the console to exit.", st.RED)
+showmExitMsg = False
+
 
 allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(","("]+list(string.ascii_lowercase)
 
@@ -27,12 +33,6 @@ selectedcell = {'x':0,"y":0}#dictionary representing the currently selected cell
 
 
 
-#dictionary for storing what symbols have text in them
-#the key is actually the string representation of a dictionary which holds the cell coordinates (in the format of selectedcell)
-#(you can't use pure dictionaries as keys)
-# i use json's dumps() function to turn dicts to strings, which is nice because i can use json's loads() function to turn the strings right back into dicts
-#the value is a string representing the digit in the cell represented by the key.
-symbolcontainer = {}
 
 
 # Set the height and width of the screen
@@ -65,7 +65,7 @@ while st.programIsRunning:
      
     for event in pygame.event.get(): # User did something
         if event.type == pygame.QUIT: # If user clicked close
-            st.programIsRunning = False # Flag that we are done so we exit this loop
+        	showmExitMsg = True
         if event.type == pygame.VIDEORESIZE:
             # There's some code to add back window content here.
             surface = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
@@ -73,12 +73,12 @@ while st.programIsRunning:
             height = event.h
         if event.type == pygame.KEYDOWN:#if a key is entered
             if event.unicode in allowed_symbols:# which is one of the digits
-                symbolcontainer[json.dumps(selectedcell)] = event.unicode #put it in the symbolcontainer
+                st.symbolcontainer[json.dumps(selectedcell)] = event.unicode #put it in the symbolcontainer
                 selectedcell['x']+=1 #so that the selected cell moves right with each data entry
             if event.key == pygame.K_BACKSPACE:
                 if (selectedcell['x'] > 0):
                     selectedcell['x']-=1
-                symbolcontainer.pop(json.dumps(selectedcell),None)
+                st.symbolcontainer.pop(json.dumps(selectedcell),None)
             if event.key == pygame.K_SPACE:
                 selectedcell['x']+=1
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -113,7 +113,7 @@ while st.programIsRunning:
     # inside the main while done==False loop.
      
     # Clear the screen and set the screen background
-    screen.fill(st.WHITE)
+    screen.fill(st.backgroundColor)
 
     #color in the selected cell
 
@@ -151,9 +151,12 @@ while st.programIsRunning:
         screen.blit(buffersurface,(0,0))#and blit then copies from buffersurface to the real screen
 
 
-    for key, value in symbolcontainer.items():  #here, we look through each entry in our symbol container
-        keydict = json.loads(key)  
-        text, rect = FONT.render(value,st.fontColor)   #create a surface
+    for key, value in st.symbolcontainer.items():  #here, we look through each entry in our symbol container
+        keydict = json.loads(key)
+        if value in list(string.ascii_lowercase):
+        	text, rect = iFONT.render(value,st.fontColor)   #create a surface
+        else:
+        	text, rect = FONT.render(value,st.fontColor)   #create a surface
         screen.blit(
             text,
             (
@@ -166,6 +169,8 @@ while st.programIsRunning:
         #The reason I do all this stuff with adding a half a cell and then subtracting the rectangle width
         #is so that the center of the symbol is aligned with the center of the cell
 
+    if(showmExitMsg):
+    	screen.blit(exitmsg,(0,0))
 
     st.lock.release()
 
