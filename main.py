@@ -18,15 +18,15 @@ exitmsg, rexitmsg = FONT.render("Please use the console to exit.", st.RED,st.WHI
 showmExitMsg = False
 
 
-allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(",")"]+list(string.ascii_lowercase)
+allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(",")","."]+list(string.ascii_lowercase)
 
 width = 400
 height = 300
 
 
-
 selectedcell = {'x':0,"y":0}#dictionary representing the currently selected cell
 
+currentlyScrolling = False
 
 scrollLocation = [0,0]
 pixelsToGrid = [400,300] #keeps track of the farthest pixel locations that need to be loaded
@@ -53,6 +53,8 @@ panelthread.start()
 
  
 while st.programIsRunning:
+
+    currentlyScrolling = False
  
     st.lock.acquire()
 
@@ -123,13 +125,30 @@ while st.programIsRunning:
     #adjusting the scroll corner depeneding on user's mouse location.
     if mousePX < 30 and mousePX > 0:
         scrollLocation[0] = max(scrollLocation[0]-7,0)
+        currentlyScrolling = True
     if mousePX > width-30 and mousePX  < width-1:
         scrollLocation[0] += 7
+        currentlyScrolling = True
     if mousePY < 30 and mousePY > 0:
+        currentlyScrolling = True
         scrollLocation[1] = max(scrollLocation[1]-7,0)
     if mousePY > height - 30 and mousePY < height-1:
         scrollLocation[1] += 7
+        currentlyScrolling = True
 
+
+
+    if selectedcell['x']*st.boxSideLength > pixelsToGrid[0] - 3*st.boxSideLength:
+        if currentlyScrolling:
+            selectedcell['x']-=1
+        else:
+            scrollLocation[0] += st.boxSideLength
+
+    if selectedcell['y']*st.boxSideLength > pixelsToGrid[1] - 3*st.boxSideLength:
+        if currentlyScrolling:
+            selectedcell['y']-=1
+        else:
+            scrollLocation[1] += st.boxSideLength
 
 
  
