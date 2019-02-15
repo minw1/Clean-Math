@@ -4,7 +4,7 @@ import json
 import settings as st
 import os
 import sys
-
+from shutil import copyfile
 
 def toggleGrid():
 	st.lock.acquire()
@@ -64,6 +64,7 @@ class PanelThread (threading.Thread):
 		print("    list -> lists all .cm files in the current directory")
 		print("    save {FILENAME} -> saves work as a .cm file with given filename. Overwrites if filename is taken")
 		print("    open {FILENAME} -> opens a .cm file. Does not save current work.")
+		print("    exp {FILENAME} {NEWFILEPATH} -> takes a cm file from local application folder and sends it out into the big world of your computer")
 		print("Other:")
 
 		print("    exit -> exits the program. does not save")
@@ -110,7 +111,7 @@ class PanelThread (threading.Thread):
 
 			elif(x[:4] == "save"):
 				try:
-					file = open(x[5:] + ".cm","w")
+					file = open(st.resource_path(x[5:] + ".cm"),"w")
 					st.lock.acquire()
 					file.write(json.dumps(st.symbolcontainer))
 					st.lock.release()
@@ -122,7 +123,7 @@ class PanelThread (threading.Thread):
 				if x[-3:] == ".cm":
 					x = x[:-3]
 				try:
-					file = open(x[5:] + ".cm","r")
+					file = open(st.resource_path(x[5:] + ".cm"),"r")
 					st.lock.acquire()
 					st.symbolcontainer = json.loads(file.readline())
 					st.lock.release()
@@ -131,10 +132,22 @@ class PanelThread (threading.Thread):
 					fail("File could not be found.")
 				except:
 					fail("There was an error opening your file.")
+			elif(x[:3]=="exp"):
+				tokens = x.split()
+				if not tokens[1][-3:] == ".cm":
+					tokens[1]+= ".cm"
+				if not tokens[2][-3:] == ".cm":
+					tokens[2]+= ".cm"
+				try:
+					copyfile(st.resource_path(tokens[1]),tokens[2])
+					ok("file exported successfully")
+				except:
+					fail("There was an error exporting your file.")
+
 
 			elif(x=="list"):
 				print("Saved CM files:")
-				files = os.listdir()
+				files = os.listdir(st.resource_path(""))
 				for file in files:
 					if file[-3:] == ".cm":
 						print ("    " + file)

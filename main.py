@@ -6,13 +6,15 @@ import numpy as np
 import json
 import string
 import panel as pnl
- 
+import os
+
+
 # Initialize the game engine
 pygame.init()
 
 #load the fonts
-FONT = pygame.freetype.Font("tnr.ttf", 24)
-iFONT = pygame.freetype.Font("tnri.ttf",24)
+FONT = pygame.freetype.Font(st.resource_path("tnr.ttf"), 24)
+iFONT = pygame.freetype.Font(st.resource_path("tnri.ttf"),24)
 
 exitmsg, rexitmsg = FONT.render("Please use the console to exit.", st.RED,st.WHITE)
 showmExitMsg = False
@@ -49,6 +51,7 @@ clock = pygame.time.Clock()
 #this is starting the thread that controls the command line controls
 panelthread = pnl.PanelThread("panel 1")
 panelthread.start()
+
 
 
  
