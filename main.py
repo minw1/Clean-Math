@@ -107,6 +107,10 @@ while st.programIsRunning:
             isHighlighting = False
             highlightedRegion=[[None,None],[None,None]]
 
+            if event.button==4:
+                scrollLocation[1] = max(scrollLocation[1]-7,0)
+            if event.button==5:
+                scrollLocation[1] += 7
 
 
     #use keys to navigate selected cell
@@ -180,15 +184,17 @@ while st.programIsRunning:
         isHighlighting = True
         minCellX = min(selectedcell['x'],currentcell['x'])
         minCellY = min(selectedcell['y'],currentcell['y'])
-        maxCellX = max(selectedcell['x'],currentcell['x'])+1
-        maxCellY = max(selectedcell['y'],currentcell['y'])+1
+        maxCellX = max(selectedcell['x'],currentcell['x'])
+        maxCellY = max(selectedcell['y'],currentcell['y'])
         highlightedRegion = [[minCellX,maxCellX],[minCellY,maxCellY]]
+
     if isHighlighting:
         minCellX,maxCellX=highlightedRegion[0]
         minCellY,maxCellY=highlightedRegion[1]
-        highlightRect = pygame.Rect(st.boxSideLength*minCellX,st.boxSideLength*minCellY,st.boxSideLength*(maxCellX-minCellX),st.boxSideLength*(maxCellY-minCellY))
+        highlightRect = pygame.Rect(st.boxSideLength*minCellX,st.boxSideLength*minCellY,st.boxSideLength*(maxCellX-minCellX+1),st.boxSideLength*(maxCellY-minCellY+1))
         intermediate_scrollblock.fill(st.HIGHLIGHTED_CELL_COLOR,highlightRect)
     intermediate_scrollblock.fill(st.SELECTED_CELL_COLOR,selRect)
+
 
  
     if st.show_grid:
