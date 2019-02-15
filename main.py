@@ -136,7 +136,17 @@ while st.programIsRunning:
     if mousePY > height - 30 and mousePY < height-1:
         scrollLocation[1] += 7
         currentlyScrolling = True
+    if selectedcell['x']*st.boxSideLength > pixelsToGrid[0] - 3*st.boxSideLength:
+        if currentlyScrolling:
+            selectedcell['x']-=1
+        else:
+            scrollLocation[0] += st.boxSideLength
 
+    if selectedcell['y']*st.boxSideLength > pixelsToGrid[1] - 3*st.boxSideLength:
+        if currentlyScrolling:
+            selectedcell['y']-=1
+        else:
+            scrollLocation[1] += st.boxSideLength
 
 
     if selectedcell['x']*st.boxSideLength > pixelsToGrid[0] - 3*st.boxSideLength:
