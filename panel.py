@@ -156,4 +156,3 @@ class PanelThread (threading.Thread):
 				st.programIsRunning = False
 			else:
 				fail("Sorry, your command wasn't recognized.")
-				

@@ -19,7 +19,6 @@ iFONT = pygame.freetype.Font(st.resource_path("tnri.ttf"),24)
 exitmsg, rexitmsg = FONT.render("Please use the console to exit.", st.RED,st.WHITE)
 showmExitMsg = False
 
-
 allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(",")","."]+list(string.ascii_lowercase)
 
 width = 400
@@ -27,11 +26,12 @@ height = 300
 
 
 selectedcell = {'x':0,"y":0}#dictionary representing the currently selected cell
+currentcell = {'x':0,"y":0}#dictionary representing the cell the cursor is currently in
 
 currentlyScrolling = False
 
 scrollLocation = [0,0]
-pixelsToGrid = [400,300] #keeps track of the farthest pixel locations that need to be loaded
+pixelsToGrid = [width,height] #keeps track of the farthest pixel locations that need to be loaded
 #in the loop, this will be calculated with
 #[width+scrollLocation[0], height + scrollLocation[1]]
 
@@ -53,6 +53,9 @@ panelthread = pnl.PanelThread("panel 1")
 panelthread.start()
 
 
+isHighlighting = False
+#[[minX, minY],[maxX,maxY]]
+highlightedRegion = [[None,None],[None,None]]
 
  
 while st.programIsRunning:
@@ -74,7 +77,9 @@ while st.programIsRunning:
     intermediate_scrollblock = pygame.Surface((pixelsToGrid[0],pixelsToGrid[1]))
     #this surface is what everything is painted on. Then, we paint it onto the screen so that it shows a location relative to the  scrolllocation
 
-
+    (x,y) = pygame.mouse.get_pos()
+    currentcell['x']= math.floor((x + scrollLocation[0])/st.boxSideLength)
+    currentcell['y']= math.floor((y + scrollLocation[1])/st.boxSideLength)
     
     for event in pygame.event.get(): # User did something
         if event.type == pygame.QUIT: # If user clicked close
@@ -97,12 +102,10 @@ while st.programIsRunning:
             if event.key == pygame.K_SPACE:
                 selectedcell['x']+=1
         if event.type == pygame.MOUSEBUTTONDOWN:
-            (x,y) = pygame.mouse.get_pos()
-
-          
-
-            selectedcell['x']= math.floor((x + scrollLocation[0])/st.boxSideLength)
-            selectedcell['y']= math.floor((y + scrollLocation[1])/st.boxSideLength)
+            selectedcell['x'] = currentcell['x']
+            selectedcell['y'] = currentcell['y']
+            isHighlighting = False
+            highlightedRegion=[[None,None],[None,None]]
 
 
 
@@ -121,7 +124,6 @@ while st.programIsRunning:
     if keys[pygame.K_DOWN]:
         selectedcell['y']+=1
 
-
     
     (mousePX, mousePY) = pygame.mouse.get_pos()
 
@@ -138,7 +140,17 @@ while st.programIsRunning:
     if mousePY > height - 30 and mousePY < height-1:
         scrollLocation[1] += 7
         currentlyScrolling = True
+    if selectedcell['x']*st.boxSideLength > pixelsToGrid[0] - 3*st.boxSideLength:
+        if currentlyScrolling:
+            selectedcell['x']-=1
+        else:
+            scrollLocation[0] += st.boxSideLength
 
+    if selectedcell['y']*st.boxSideLength > pixelsToGrid[1] - 3*st.boxSideLength:
+        if currentlyScrolling:
+            selectedcell['y']-=1
+        else:
+            scrollLocation[1] += st.boxSideLength
 
 
     if selectedcell['x']*st.boxSideLength > pixelsToGrid[0] - 3*st.boxSideLength:
@@ -164,8 +176,19 @@ while st.programIsRunning:
     #color in the selected cell
 
     selRect = pygame.Rect(st.boxSideLength*selectedcell['x'],st.boxSideLength*selectedcell['y'],st.boxSideLength,st.boxSideLength)
+    if (selectedcell != currentcell and pygame.mouse.get_pressed()[0]):
+        isHighlighting = True
+        minCellX = min(selectedcell['x'],currentcell['x'])
+        minCellY = min(selectedcell['y'],currentcell['y'])
+        maxCellX = max(selectedcell['x'],currentcell['x'])+1
+        maxCellY = max(selectedcell['y'],currentcell['y'])+1
+        highlightedRegion = [[minCellX,maxCellX],[minCellY,maxCellY]]
+    if isHighlighting:
+        minCellX,maxCellX=highlightedRegion[0]
+        minCellY,maxCellY=highlightedRegion[1]
+        highlightRect = pygame.Rect(st.boxSideLength*minCellX,st.boxSideLength*minCellY,st.boxSideLength*(maxCellX-minCellX),st.boxSideLength*(maxCellY-minCellY))
+        intermediate_scrollblock.fill(st.HIGHLIGHTED_CELL_COLOR,highlightRect)
     intermediate_scrollblock.fill(st.SELECTED_CELL_COLOR,selRect)
-
 
  
     if st.show_grid:
