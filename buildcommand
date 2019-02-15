@@ -1,3 +1,6 @@
 
-
+for mac:
 pyinstaller -F --add-data "tnr.ttf:." --add-data "tnri.ttf:." main.py
+
+for windows:
+pyinstaller -F --add-data "tnr.ttf;." --add-data "tnri.ttf;." main.py
