@@ -39,6 +39,9 @@ pixelsToGrid = [width,height] #keeps track of the farthest pixel locations that 
 # Set the height and width of the screen
 size = [width, height]
 
+clipboard = {}
+copyOrigin = {}
+
 
 screen = pygame.display.set_mode(size, pygame.RESIZABLE)
 
@@ -89,18 +92,47 @@ while st.programIsRunning:
             surface = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
             width = event.w
             height = event.h
-        if event.type == pygame.KEYDOWN:#if a key is entered
-            if event.unicode in allowed_symbols:# which is one of the digits
+        if event.type == pygame.KEYDOWN:#if a key is entered        
+            if event.key == pygame.K_BACKSPACE:
+
+                if not isHighlighting:
+                    if (selectedcell['x'] > 0 and json.dumps(selectedcell) not in st.symbolcontainer):
+                        selectedcell['x']-=1
+                    st.symbolcontainer.pop(json.dumps(selectedcell),None)
+                else:
+                    j = list(st.symbolcontainer.keys())#don't want to delete from the dict as we're accessing from it, so lets take the keys
+                    for key in j:
+                        unpack = json.loads(key)
+                        if unpack['x'] >= highlightedRegion[0][0] and unpack['x'] <= highlightedRegion[0][1] and unpack['y'] >= highlightedRegion[1][0] and unpack['y'] <= highlightedRegion[1][1]:
+                            st.symbolcontainer.pop(key)
+
+
+            elif event.key == pygame.K_SPACE:
+                selectedcell['x']+=1
+
+            elif event.key == pygame.K_c and (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL):#command or control keys
+                clipboard = {}
+                copyOrigin = selectedcell.copy()
+                if isHighlighting:
+                    for key,value in st.symbolcontainer.items():
+                        coor = json.loads(key)
+                        if coor['x'] >= highlightedRegion[0][0] and coor['x'] <= highlightedRegion[0][1] and coor['y'] >= highlightedRegion[1][0] and coor['y'] <= highlightedRegion[1][1]:
+                            clipboard[key] = value
+
+            elif event.key == pygame.K_v and (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL):#command or control keys
+                for key,value in clipboard.items():
+                    toReplace = json.loads(key)
+                    toReplace['x'] += selectedcell['x'] - copyOrigin['x']
+                    toReplace['y'] += selectedcell['y'] - copyOrigin['y']
+                    st.symbolcontainer[json.dumps(toReplace)] = value
+
+
+
+            elif event.unicode in allowed_symbols:# which is one of the digits
                 st.symbolcontainer[json.dumps(selectedcell)] = event.unicode #put it in the symbolcontainer
                 selectedcell['x']+=1 #so that the selected cell moves right with each data entry
-            if event.key == pygame.K_BACKSPACE:
-                if (selectedcell['x'] > 0 and json.dumps(selectedcell) not in st.symbolcontainer):
-                    selectedcell['x']-=1
-                st.symbolcontainer.pop(json.dumps(selectedcell),None)
 
 
-            if event.key == pygame.K_SPACE:
-                selectedcell['x']+=1
         if event.type == pygame.MOUSEBUTTONDOWN:
             selectedcell['x'] = currentcell['x']
             selectedcell['y'] = currentcell['y']
