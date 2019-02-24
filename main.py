@@ -7,14 +7,22 @@ import json
 import string
 import panel as pnl
 import os
-
+import random
 
 # Initialize the game engine
 pygame.init()
+pygame.mixer.init()
+pygame.mixer.set_num_channels(30)
 
 #load the fonts
-FONT = pygame.freetype.Font(st.resource_path("tnr.ttf"), 24)
-iFONT = pygame.freetype.Font(st.resource_path("tnri.ttf"),24)
+FONT = pygame.freetype.Font(st.font_locator("tnr.ttf"), 24)
+iFONT = pygame.freetype.Font(st.font_locator("tnri.ttf"),24)
+
+
+sounds = []
+for i in range(1,st.numSounds + 1):
+    sounds += [pygame.mixer.Sound(st.audio_locator(str(i) + ".ogg"))]
+
 
 exitmsg, rexitmsg = FONT.render("Please use the console to exit.", st.RED,st.WHITE)
 showmExitMsg = False
@@ -119,6 +127,21 @@ while st.programIsRunning:
                         if coor['x'] >= highlightedRegion[0][0] and coor['x'] <= highlightedRegion[0][1] and coor['y'] >= highlightedRegion[1][0] and coor['y'] <= highlightedRegion[1][1]:
                             clipboard[key] = value
 
+            elif event.key == pygame.K_x and (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL):#command or control keys
+                clipboard = {}
+                copyOrigin = selectedcell.copy()
+                if isHighlighting:
+                    for key,value in st.symbolcontainer.items():
+                        coor = json.loads(key)
+                        if coor['x'] >= highlightedRegion[0][0] and coor['x'] <= highlightedRegion[0][1] and coor['y'] >= highlightedRegion[1][0] and coor['y'] <= highlightedRegion[1][1]:
+                            clipboard[key] = value
+                j = list(st.symbolcontainer.keys())#don't want to delete from the dict as we're accessing from it, so lets take the keys
+                for key in j:
+                    unpack = json.loads(key)
+                    if unpack['x'] >= highlightedRegion[0][0] and unpack['x'] <= highlightedRegion[0][1] and unpack['y'] >= highlightedRegion[1][0] and unpack['y'] <= highlightedRegion[1][1]:
+                        st.symbolcontainer.pop(key)
+
+
             elif event.key == pygame.K_v and (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL):#command or control keys
                 for key,value in clipboard.items():
                     toReplace = json.loads(key)
@@ -129,8 +152,14 @@ while st.programIsRunning:
 
 
             elif event.unicode in allowed_symbols:# which is one of the digits
+                isHighlighting = False
                 st.symbolcontainer[json.dumps(selectedcell)] = event.unicode #put it in the symbolcontainer
                 selectedcell['x']+=1 #so that the selected cell moves right with each data entry
+                if st.calmingMode:
+                    sounds[event.key % st.numSounds].play()
+                    
+
+
 
 
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -152,13 +181,17 @@ while st.programIsRunning:
     if keys[pygame.K_LEFT]:
         if (selectedcell['x'] > 0):
             selectedcell['x']-=1
+            isHighlighting = False
     if keys[pygame.K_RIGHT]:
         selectedcell['x']+=1
+        isHighlighting = False
     if keys[pygame.K_UP]:
         if (selectedcell['y'] > 0):
             selectedcell['y']-=1
+            isHighlighting = False
     if keys[pygame.K_DOWN]:
         selectedcell['y']+=1
+        isHighlighting = False
 
     
     (mousePX, mousePY) = pygame.mouse.get_pos()
@@ -166,16 +199,18 @@ while st.programIsRunning:
     #adjusting the scroll corner depeneding on user's mouse location.
     if mousePX < 30 and mousePX > 0:
         scrollLocation[0] = max(scrollLocation[0]-7,0)
-        currentlyScrolling = True
+        currentlyScrolling = not scrollLocation[0] == 0
     if mousePX > width-30 and mousePX  < width-1:
         scrollLocation[0] += 7
         currentlyScrolling = True
     if mousePY < 30 and mousePY > 0:
-        currentlyScrolling = True
+        currentlyScrolling = not scrollLocation[1] == 0
         scrollLocation[1] = max(scrollLocation[1]-7,0)
     if mousePY > height - 30 and mousePY < height-1:
         scrollLocation[1] += 7
         currentlyScrolling = True
+
+        
     if selectedcell['x']*st.boxSideLength > pixelsToGrid[0] - 3*st.boxSideLength:
         if currentlyScrolling:
             selectedcell['x']-=1
@@ -189,17 +224,23 @@ while st.programIsRunning:
             scrollLocation[1] += st.boxSideLength
 
 
-    if selectedcell['x']*st.boxSideLength > pixelsToGrid[0] - 3*st.boxSideLength:
+    if selectedcell['x']*st.boxSideLength < scrollLocation[0] + 3*st.boxSideLength:
         if currentlyScrolling:
-            selectedcell['x']-=1
+            selectedcell['x']+=1
         else:
-            scrollLocation[0] += st.boxSideLength
+            if scrollLocation[0]<st.boxSideLength:
+                scrollLocation[0] = 0
+            else:
+                scrollLocation[0] -= st.boxSideLength
 
-    if selectedcell['y']*st.boxSideLength > pixelsToGrid[1] - 3*st.boxSideLength:
+    if selectedcell['y']*st.boxSideLength < scrollLocation[1] + 3*st.boxSideLength:
         if currentlyScrolling:
-            selectedcell['y']-=1
+            selectedcell['y']+=1
         else:
-            scrollLocation[1] += st.boxSideLength
+            if scrollLocation[1]<st.boxSideLength:
+                scrollLocation[1]=0
+            else:
+                scrollLocation[1] -= st.boxSideLength
 
 
  

@@ -4,15 +4,24 @@ import os
 import sys
 
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
+    """ Get absolute path to resource folder, works for dev and for PyInstaller """
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")
 
-    return os.path.join(base_path, relative_path)
-    
+    repath = os.path.join(base_path, "Resources")
+
+    return os.path.join(repath, relative_path)
+
+def font_locator(filename):
+	return os.path.join(resource_path("Fonts"),filename)
+
+def audio_locator(filename):
+	return os.path.join(resource_path("Audio"),filename)
+def userdata_locator(filename):
+	return os.path.join(resource_path("UserData"),filename)
 
 BLACK = (  0,   0,   0)
 WHITE = (255, 255, 255)
@@ -33,6 +42,15 @@ boxStrokeColor = BLUE
 backgroundColor = WHITE
 fontColor = BLACK
 show_grid = True
+
+
+calmingMode = False
+numSounds = 14
+
+
+fileSaveLoc = None
+
+
 
 lock = threading.RLock()
 programIsRunning = True
