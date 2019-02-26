@@ -120,7 +120,7 @@ while st.programIsRunning:
 
             elif event.key == pygame.K_c and (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL):#command or control keys
                 clipboard = {}
-                copyOrigin = selectedcell.copy()
+                copyOrigin = {'x':highlightedRegion[0][0],'y':highlightedRegion[1][0]}
                 if isHighlighting:
                     for key,value in st.symbolcontainer.items():
                         coor = json.loads(key)
@@ -129,7 +129,7 @@ while st.programIsRunning:
 
             elif event.key == pygame.K_x and (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL):#command or control keys
                 clipboard = {}
-                copyOrigin = selectedcell.copy()
+                copyOrigin = {'x':highlightedRegion[0][0],'y':highlightedRegion[1][0]}
                 if isHighlighting:
                     for key,value in st.symbolcontainer.items():
                         coor = json.loads(key)
