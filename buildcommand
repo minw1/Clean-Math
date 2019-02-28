@@ -3,4 +3,4 @@ for mac:
 pyinstaller -F --add-data "Resources:Resources" main.py
 
 for windows:
-pyinstaller -F --add-data "Resources;." main.py
+pyinstaller -F --add-data "Resources;Resources" main.py
