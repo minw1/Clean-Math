@@ -1,7 +1,6 @@
 import settings as st
 import json
 def getString(location):
-
 	toReturn = ""
 	st.lock.acquire()
 	curLoc = location
@@ -27,12 +26,7 @@ def getString(location):
 				while loc['y']<= bottom and not found:
 					
 					if json.dumps(loc) in st.symbolcontainer:
-
 						toReturn += "}" * (loc['y']-ypos)
-
-						print(ypos)
-						print(loc['y'])
-
 						curLoc = json.dumps(loc)
 						found = True
 
@@ -41,6 +35,22 @@ def getString(location):
 				if not found:
 					if toReturn.count("{") > toReturn.count("}"):
 						toReturn += "}" * (toReturn.count("{") - toReturn.count("}"))
+					st.lock.release()
 					return toReturn
+	
 
+def printExpression(string,location):
+	curLoc = location
+	st.lock.acquire()
+	for i in range(0, len(string)):
+		loc = json.loads(curLoc)
+		if string[i] == "^": #okay i'll fix this running off the screen at some point
+			loc['y'] -= 1
+		elif string[i] == "}":
+			loc['y'] += 1
+		elif (not string[i]=="{"):
+			st.symbolcontainer[curLoc] = string[i]
+			loc['x']+=1
+		curLoc = json.dumps(loc)
+	st.lock.release()
 

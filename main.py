@@ -9,6 +9,7 @@ import panel as pnl
 import os
 import random
 import gridOps as go
+from settings import selectedcell
 
 # Initialize the game engine
 pygame.init()
@@ -34,7 +35,7 @@ width = 400
 height = 300
 
 
-selectedcell = {'x':0,"y":0}#dictionary representing the currently selected cell
+
 currentcell = {'x':0,"y":0}#dictionary representing the cell the cursor is currently in
 
 currentlyScrolling = False
