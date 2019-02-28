@@ -8,6 +8,8 @@ import string
 import panel as pnl
 import os
 import random
+import gridOps as go
+from settings import selectedcell
 
 # Initialize the game engine
 pygame.init()
@@ -33,7 +35,7 @@ width = 400
 height = 300
 
 
-selectedcell = {'x':0,"y":0}#dictionary representing the currently selected cell
+
 currentcell = {'x':0,"y":0}#dictionary representing the cell the cursor is currently in
 
 currentlyScrolling = False
@@ -120,7 +122,7 @@ while st.programIsRunning:
 
             elif event.key == pygame.K_c and (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL):#command or control keys
                 clipboard = {}
-                copyOrigin = selectedcell.copy()
+                copyOrigin = {'x':highlightedRegion[0][0],'y':highlightedRegion[1][0]}
                 if isHighlighting:
                     for key,value in st.symbolcontainer.items():
                         coor = json.loads(key)
@@ -129,7 +131,7 @@ while st.programIsRunning:
 
             elif event.key == pygame.K_x and (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL):#command or control keys
                 clipboard = {}
-                copyOrigin = selectedcell.copy()
+                copyOrigin = {'x':highlightedRegion[0][0],'y':highlightedRegion[1][0]}
                 if isHighlighting:
                     for key,value in st.symbolcontainer.items():
                         coor = json.loads(key)

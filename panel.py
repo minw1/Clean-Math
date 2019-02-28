@@ -4,6 +4,7 @@ import json
 import settings as st
 import os
 import sys
+import gridOps as go
 from shutil import copyfile
 
 
@@ -88,15 +89,22 @@ class PanelThread (threading.Thread):
 		print("    list -> lists all .cm files in the home directory")
 		print("    save {FILENAME} -> saves work as a .cm file with given filename in the home directory. Overwrites if filename is taken")
 		print("    open {FILENAME} -> opens a .cm file. Does not save current work.")
-		print("Other:")
 
+		print("Other:")
 		print("    exit -> exits the program. does not save")
 		print("    calm -> toggles calming mode.")
+
+		if st.debugMode: #reading a boolean is ok without a lock, besides, main doesn't mess with debugMode.
+			print("Debug:")
+			print("    prx -> prints current expression from selectedCell")
+			print("    plop {EXPRESSION} -> plops an expression down, starting from selectedCell")
 
 
 		print("    do not type the curly braces in the command line. for example a valid command is 'fc red'")
 
 		while st.programIsRunning:
+
+			#AESTHETICS
 
 			x = input();
 			if(x=="tg"):
@@ -112,18 +120,21 @@ class PanelThread (threading.Thread):
 						warn("Sorry, box length must be at least 20")
 				except ValueError:
 					fail("Sorry, the integer you entered was not valid. Enter 'bw' followed by a space and then an integer")
+
 			elif(x[:2] =="fc"):
 				if x[3:].upper() in st.colorMap:
 					setFontColor(st.colorMap[x[3:].upper()])
 					ok("font color changed")
 				else:
 					warn("Sorry, we don't have that color.")
+
 			elif(x[:2] =="bc"):
 				if x[3:].upper() in st.colorMap:
 					setBackgroundColor(st.colorMap[x[3:].upper()])
 					ok("background color changed")
 				else:
 					warn("Sorry, we don't have that color.")
+
 			elif(x[:2] =="gc"):
 				if x[3:].upper() in st.colorMap:
 					setGridColor(st.colorMap[x[3:].upper()])
@@ -132,6 +143,8 @@ class PanelThread (threading.Thread):
 						print("gridlines must be toggled on to see the grid")
 				else:
 					warn("Sorry, we don't have that color.")
+
+			##FILES##
 
 			elif(x[:4] == "save"):
 				st.lock.acquire()
@@ -211,5 +224,11 @@ class PanelThread (threading.Thread):
 			elif(x=="calm"):
 				toggleCalm()
 				print("toggled calming mode")
+
+			##DEBUG##
+			elif(x=="prx"):
+				print(go.getString(json.dumps(st.selectedcell)))
+			elif(x[:4]=="plop"):
+				go.printExpression(x[5:],json.dumps(st.selectedcell))
 			else:
 				fail("Sorry, your command wasn't recognized.")
