@@ -2,7 +2,8 @@
 import threading
 import os 
 import sys
-import json
+import pygame
+pygame.freetype.init()
 
 def resource_path(relative_path):
     """ Get absolute path to resource folder, works for dev and for PyInstaller """
@@ -34,6 +35,10 @@ GRAY = (128,128,128)
 ORANGE = (255,165,0)
 HIGHLIGHTED_CELL_COLOR = (192,192,255)
 SELECTED_CELL_COLOR = (37,122,253)
+
+#load the fonts
+FONT = pygame.freetype.Font(font_locator("tnr.ttf"), 24)
+iFONT = pygame.freetype.Font(font_locator("tnri.ttf"),24)
 
 colorMap={"RED":RED, "BLUE":BLUE, "BLACK":BLACK, "GREEN":GREEN, "WHITE":WHITE,"PURPLE":PURPLE,"GRAY":GRAY,"GREY":GRAY,"ORANGE":ORANGE}
 

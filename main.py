@@ -16,9 +16,8 @@ pygame.init()
 pygame.mixer.init()
 pygame.mixer.set_num_channels(30)
 
-#load the fonts
-FONT = pygame.freetype.Font(st.font_locator("tnr.ttf"), 24)
-iFONT = pygame.freetype.Font(st.font_locator("tnri.ttf"),24)
+FONT = st.FONT
+iFONT = st.iFONT
 
 
 sounds = []
@@ -72,6 +71,8 @@ highlightedRegion = [[None,None],[None,None]]
 
  
 while st.programIsRunning:
+    FONT = st.FONT
+    iFONT = st.iFONT
 
     currentlyScrolling = False
  
