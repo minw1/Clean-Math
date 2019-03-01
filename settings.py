@@ -2,6 +2,7 @@
 import threading
 import os 
 import sys
+import json
 
 def resource_path(relative_path):
     """ Get absolute path to resource folder, works for dev and for PyInstaller """
@@ -54,6 +55,7 @@ fileSaveLoc = None
 
 lock = threading.RLock()
 programIsRunning = True
+selectedcell = {'x':0,"y":0}#dictionary representing the currently selected cell
 
 
 #dictionary for storing what symbols have text in them
@@ -62,3 +64,5 @@ programIsRunning = True
 # i use json's dumps() function to turn dicts to strings, which is nice because i can use json's loads() function to turn the strings right back into dicts
 #the value is a string representing the digit in the cell represented by the key.
 symbolcontainer = {}
+
+debugMode = True
