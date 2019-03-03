@@ -7,6 +7,8 @@ import sys
 import gridOps as go
 from shutil import copyfile
 
+import pygame
+pygame.freetype.init()
 
 def isMac():
 	return sys.platform == "darwin"
@@ -81,6 +83,7 @@ class PanelThread (threading.Thread):
 		print("    fc {COLOR} -> changes font color to a given color")
 		print("    bc {COLOR} -> changes background color to a given color")
 		print("    gc {COLOR} -> changes grid color to a given color")
+		print("    ft {FONT} -> changes font to a given font")
 
 		print("Files:")
 		print("    home {PATH} -> sets the home directory path")
@@ -142,6 +145,11 @@ class PanelThread (threading.Thread):
 						print("gridlines must be toggled on to see the grid")
 				else:
 					warn("Sorry, we don't have that color.")
+			elif(x[:2] =="ft"):
+                                st.lock.acquire()
+                                st.FONT = pygame.freetype.SysFont(x[3:],24)
+                                st.iFONT = pygame.freetype.SysFont(x[3:],24,italic=False)
+                                st.lock.release()
 
 			##FILES##
 
