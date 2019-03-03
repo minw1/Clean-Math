@@ -3,6 +3,13 @@ import wolframalpha
 APP_ID = "8T8YA5-3V337TXULH"
 client = wolframalpha.Client(APP_ID)
 
+
+def simpleWAQuery(string):
+        res = client.query(string)
+        return next(res.results).text
+
+
+
 #Here's the big one: the function that converts a given string into a bunch of expressions
 def parseToExp(strIn):
     newExpression = None

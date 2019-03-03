@@ -10,7 +10,6 @@ from shutil import copyfile
 
 def isMac():
 	return sys.platform == "darwin"
-
 def warn(text):
 	if(not isMac()):
 		print(text)

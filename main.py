@@ -10,6 +10,7 @@ import os
 import random
 import gridOps as go
 from settings import selectedcell
+import expression as xp
 
 # Initialize the game engine
 pygame.init()
@@ -95,6 +96,10 @@ while st.programIsRunning:
     currentcell['y']= math.floor((y + scrollLocation[1])/st.boxSideLength)
     
     for event in pygame.event.get(): # User did something
+
+
+        contOrCommand = (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL)
+
         if event.type == pygame.QUIT: # If user clicked close
         	showmExitMsg = True
         if event.type == pygame.VIDEORESIZE:
@@ -120,7 +125,7 @@ while st.programIsRunning:
             elif event.key == pygame.K_SPACE:
                 selectedcell['x']+=1
 
-            elif event.key == pygame.K_c and (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL):#command or control keys
+            elif event.key == pygame.K_c and contOrCommand:#command or control keys
                 clipboard = {}
                 copyOrigin = {'x':highlightedRegion[0][0],'y':highlightedRegion[1][0]}
                 if isHighlighting:
@@ -129,7 +134,9 @@ while st.programIsRunning:
                         if coor['x'] >= highlightedRegion[0][0] and coor['x'] <= highlightedRegion[0][1] and coor['y'] >= highlightedRegion[1][0] and coor['y'] <= highlightedRegion[1][1]:
                             clipboard[key] = value
 
-            elif event.key == pygame.K_x and (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL):#command or control keys
+
+
+            elif event.key == pygame.K_x and contOrCommand:#command or control keys
                 clipboard = {}
                 copyOrigin = {'x':highlightedRegion[0][0],'y':highlightedRegion[1][0]}
                 if isHighlighting:
@@ -153,13 +160,19 @@ while st.programIsRunning:
 
 
 
+
             elif event.unicode in allowed_symbols:# which is one of the digits
                 isHighlighting = False
                 st.symbolcontainer[json.dumps(selectedcell)] = event.unicode #put it in the symbolcontainer
                 selectedcell['x']+=1 #so that the selected cell moves right with each data entry
                 if st.calmingMode:
                     sounds[event.key % st.numSounds].play()
-                    
+
+                if event.unicode == "=" and contOrCommand:
+                    try:
+                        go.printExpression(xp.simpleWAQuery(go.getString(go.goToExpressionStart(json.dumps(selectedcell)))), json.dumps(selectedcell))
+                    except:
+                        go.printExpression("error",json.dumps(selectedcell))
 
 
 
