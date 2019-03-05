@@ -3,15 +3,24 @@ import json
 def getString(location):
 	toReturn = ""
 	st.lock.acquire()
+
 	curLoc = location
 	bottom = json.loads(curLoc)['y']
 
 	while True:
 		loc = json.loads(curLoc)
 		if curLoc in st.symbolcontainer:
-			toReturn += st.symbolcontainer[curLoc]
-			loc['x'] += 1
-			curLoc = json.dumps(loc)
+			if st.symbolcontainer[curLoc] == "=":
+				if toReturn.count("{") > toReturn.count("}"):
+					toReturn += "}" * (toReturn.count("{") - toReturn.count("}"))
+				st.lock.release()
+				return toReturn
+			else:
+				toReturn += st.symbolcontainer[curLoc]
+				loc['x'] += 1
+				curLoc = json.dumps(loc)
+
+
 		else:
 			loc['y'] -= 1
 			if json.dumps(loc) in st.symbolcontainer:
@@ -36,6 +45,7 @@ def getString(location):
 					if toReturn.count("{") > toReturn.count("}"):
 						toReturn += "}" * (toReturn.count("{") - toReturn.count("}"))
 					st.lock.release()
+
 					return toReturn
 	
 
@@ -53,4 +63,26 @@ def printExpression(string,location):
 			loc['x']+=1
 		curLoc = json.dumps(loc)
 	st.lock.release()
+
+def goToExpressionStart(location):
+	st.lock.acquire()
+	orloc = json.loads(location)
+	smallestX = orloc['x']
+
+	for key in st.symbolcontainer.keys():
+		loc = json.loads(key)
+		if loc['y'] == orloc['y'] and loc['x'] < smallestX:
+			smallestX = loc['x']
+
+	st.lock.release()
+
+	return json.dumps({'x':smallestX,'y':orloc['y']})
+
+
+
+
+
+
+
+
 

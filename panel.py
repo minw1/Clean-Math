@@ -13,7 +13,6 @@ pygameDefaultFontPath = pygame.freetype.SysFont(pygame.freetype.get_default_font
 
 def isMac():
 	return sys.platform == "darwin"
-
 def warn(text):
 	if(not isMac()):
 		print(text)
