@@ -201,7 +201,7 @@ while st.programIsRunning:
                 selectedcell['x']+=1 #so that the selected cell moves right with each data entry
                 if st.calmingMode:
                     sounds[event.key % st.numSounds].play()
-                 if event.unicode == "=" and contOrCommand:
+                if event.unicode == "=" and contOrCommand:
                     try:
                         go.printExpression(xp.simpleWAQuery(go.getString(go.goToExpressionStart(json.dumps(selectedcell)))), json.dumps(selectedcell))
                     except:
