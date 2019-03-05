@@ -37,8 +37,10 @@ HIGHLIGHTED_CELL_COLOR = (192,192,255)
 SELECTED_CELL_COLOR = (37,122,253)
 
 #load the fonts
-FONT = pygame.freetype.Font(font_locator("tnr.ttf"), 24)
-iFONT = pygame.freetype.Font(font_locator("tnri.ttf"),24)
+DEFAULT_FONT = pygame.freetype.Font(font_locator("tnr.ttf"), 24)
+DEFAULT_iFONT = pygame.freetype.Font(font_locator("tnri.ttf"),24)
+FONT = DEFAULT_FONT
+iFONT = DEFAULT_iFONT
 
 colorMap={"RED":RED, "BLUE":BLUE, "BLACK":BLACK, "GREEN":GREEN, "WHITE":WHITE,"PURPLE":PURPLE,"GRAY":GRAY,"GREY":GRAY,"ORANGE":ORANGE}
 

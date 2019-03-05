@@ -9,6 +9,8 @@ import panel as pnl
 import os
 import random
 import gridOps as go
+import time
+from copy import deepcopy
 from settings import selectedcell
 
 # Initialize the game engine
@@ -18,6 +20,7 @@ pygame.mixer.set_num_channels(30)
 
 FONT = st.FONT
 iFONT = st.iFONT
+KEYPRESS_TOLERANCE = 0.25
 
 
 sounds = []
@@ -58,7 +61,11 @@ pygame.display.set_caption("Clean Math")
  
 
 clock = pygame.time.Clock()
-
+currentTime = time.clock()
+timeLeft = 0
+timeRight = 0
+timeUp = 0
+timeDown = 0
 
 #this is starting the thread that controls the command line controls
 panelthread = pnl.PanelThread("panel 1")
@@ -81,6 +88,7 @@ while st.programIsRunning:
     # This limits the while loop to a max of 20 times per second.
     # Leave this out and we will use all CPU we can.
     clock.tick(20)
+    currentTime = time.clock()
     keys = pygame.key.get_pressed();#returns dict with keys, pygame keys and values as bools if pressed
 
 
@@ -123,26 +131,47 @@ while st.programIsRunning:
 
             elif event.key == pygame.K_c and (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL):#command or control keys
                 clipboard = {}
-                copyOrigin = {'x':highlightedRegion[0][0],'y':highlightedRegion[1][0]}
                 if isHighlighting:
-                    for key,value in st.symbolcontainer.items():
-                        coor = json.loads(key)
-                        if coor['x'] >= highlightedRegion[0][0] and coor['x'] <= highlightedRegion[0][1] and coor['y'] >= highlightedRegion[1][0] and coor['y'] <= highlightedRegion[1][1]:
-                            clipboard[key] = value
+                    copyOrigin = {'x':highlightedRegion[0][0],'y':highlightedRegion[1][0]}
+                    for x in range(highlightedRegion[0][0],highlightedRegion[0][1]+1):
+                        for y in range(highlightedRegion[1][0],highlightedRegion[1][1]+1):
+                            key=json.dumps({"x":x,"y":y})
+                            if key in st.symbolcontainer:
+                                clipboard[key]=st.symbolcontainer[key]
+                            else:
+                                clipboard[key]=None
+                else:
+                    copyOrigin=deepcopy(currentcell)
+                    key=json.dumps(currentcell)
+                    if key in st.symbolcontainer:
+                        clipboard[key]=st.symbolcontainer[key]
+                    else:
+                        clipboard[key]=None
 
             elif event.key == pygame.K_x and (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL):#command or control keys
                 clipboard = {}
-                copyOrigin = {'x':highlightedRegion[0][0],'y':highlightedRegion[1][0]}
                 if isHighlighting:
-                    for key,value in st.symbolcontainer.items():
-                        coor = json.loads(key)
-                        if coor['x'] >= highlightedRegion[0][0] and coor['x'] <= highlightedRegion[0][1] and coor['y'] >= highlightedRegion[1][0] and coor['y'] <= highlightedRegion[1][1]:
-                            clipboard[key] = value
-                j = list(st.symbolcontainer.keys())#don't want to delete from the dict as we're accessing from it, so lets take the keys
-                for key in j:
-                    unpack = json.loads(key)
-                    if unpack['x'] >= highlightedRegion[0][0] and unpack['x'] <= highlightedRegion[0][1] and unpack['y'] >= highlightedRegion[1][0] and unpack['y'] <= highlightedRegion[1][1]:
+                    copyOrigin = {'x':highlightedRegion[0][0],'y':highlightedRegion[1][0]}
+                    for x in range(highlightedRegion[0][0],highlightedRegion[0][1]+1):
+                        for y in range(highlightedRegion[1][0],highlightedRegion[1][1]+1):
+                            key=json.dumps({"x":x,"y":y})
+                            if key in st.symbolcontainer:
+                                clipboard[key]=st.symbolcontainer[key]
+                            else:
+                                clipboard[key]=None
+                    j = list(st.symbolcontainer.keys())#don't want to delete from the dict as we're accessing from it, so lets take the keys
+                    for key in j:
+                        unpack = json.loads(key)
+                        if unpack['x'] >= highlightedRegion[0][0] and unpack['x'] <= highlightedRegion[0][1] and unpack['y'] >= highlightedRegion[1][0] and unpack['y'] <= highlightedRegion[1][1]:
+                            st.symbolcontainer.pop(key)
+                else:
+                    copyOrigin=deepcopy(currentcell)
+                    key=json.dumps(currentcell)
+                    if key in st.symbolcontainer:
+                        clipboard[key]=st.symbolcontainer[key]
                         st.symbolcontainer.pop(key)
+                    else:
+                        clipboard[key]=None
 
 
             elif event.key == pygame.K_v and (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL):#command or control keys
@@ -150,7 +179,11 @@ while st.programIsRunning:
                     toReplace = json.loads(key)
                     toReplace['x'] += selectedcell['x'] - copyOrigin['x']
                     toReplace['y'] += selectedcell['y'] - copyOrigin['y']
-                    st.symbolcontainer[json.dumps(toReplace)] = value
+                    formattedPlace = json.dumps(toReplace)
+                    if value is not None:
+                        st.symbolcontainer[formattedPlace] = value
+                    elif formattedPlace in st.symbolcontainer:
+                        st.symbolcontainer.pop(formattedPlace)
 
 
 
@@ -160,6 +193,24 @@ while st.programIsRunning:
                 selectedcell['x']+=1 #so that the selected cell moves right with each data entry
                 if st.calmingMode:
                     sounds[event.key % st.numSounds].play()
+            elif event.key == pygame.K_LEFT:
+                timeLeft = currentTime
+                if (selectedcell['x'] > 0):
+                    selectedcell['x']-=1
+                    isHighlighting = False
+            elif event.key == pygame.K_RIGHT:
+                timeRight = currentTime
+                selectedcell['x']+=1
+                isHighlighting = False
+            elif event.key == pygame.K_UP:
+                timeUp = currentTime
+                if (selectedcell['y'] > 0):
+                    selectedcell['y']-=1
+                    isHighlighting = False
+            elif event.key == pygame.K_DOWN:
+                timeDown = currentTime
+                selectedcell['y']+=1
+                isHighlighting = False
                     
 
 
@@ -179,20 +230,19 @@ while st.programIsRunning:
 
     #use keys to navigate selected cell
     #the reason these aren't in the event loop is that we want them to be able to be held, and for the function to be able to be copied each frame
-    #in the event loop, for example, the space bar must be tapped twice to get two spaces. 
-
-    if keys[pygame.K_LEFT]:
+    #in the event loop, for example, the space bar must be tapped twice to get two spaces.
+    if keys[pygame.K_LEFT] and (currentTime-timeLeft>KEYPRESS_TOLERANCE):
         if (selectedcell['x'] > 0):
             selectedcell['x']-=1
             isHighlighting = False
-    if keys[pygame.K_RIGHT]:
+    if keys[pygame.K_RIGHT] and (currentTime-timeRight>KEYPRESS_TOLERANCE):
         selectedcell['x']+=1
         isHighlighting = False
-    if keys[pygame.K_UP]:
+    if keys[pygame.K_UP] and (currentTime-timeUp>KEYPRESS_TOLERANCE):
         if (selectedcell['y'] > 0):
             selectedcell['y']-=1
             isHighlighting = False
-    if keys[pygame.K_DOWN]:
+    if keys[pygame.K_DOWN] and (currentTime-timeDown>KEYPRESS_TOLERANCE):
         selectedcell['y']+=1
         isHighlighting = False
 

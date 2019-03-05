@@ -9,6 +9,7 @@ from shutil import copyfile
 
 import pygame
 pygame.freetype.init()
+pygameDefaultFontPath = pygame.freetype.SysFont(pygame.freetype.get_default_font(),24).path
 
 def isMac():
 	return sys.platform == "darwin"
@@ -150,6 +151,10 @@ class PanelThread (threading.Thread):
                                 st.lock.acquire()
                                 st.FONT = pygame.freetype.SysFont(x[3:],24)
                                 st.iFONT = pygame.freetype.SysFont(x[3:],24,italic=False)
+                                if st.FONT.path == pygameDefaultFontPath:
+                                        warn("The font you have requested was not found. The font has been reverted to the default")
+                                        st.FONT = st.DEFAULT_FONT
+                                        st.iFONT = st.DEFAULT_iFONT
                                 st.lock.release()
 
 			##FILES##
