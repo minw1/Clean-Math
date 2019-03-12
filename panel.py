@@ -7,10 +7,12 @@ import sys
 import gridOps as go
 from shutil import copyfile
 
+import pygame
+pygame.freetype.init()
+pygameDefaultFontPath = pygame.freetype.SysFont(pygame.freetype.get_default_font(),24).path
 
 def isMac():
 	return sys.platform == "darwin"
-
 def warn(text):
 	if(not isMac()):
 		print(text)
@@ -82,6 +84,7 @@ class PanelThread (threading.Thread):
 		print("    fc {COLOR} -> changes font color to a given color")
 		print("    bc {COLOR} -> changes background color to a given color")
 		print("    gc {COLOR} -> changes grid color to a given color")
+		print("    ft {FONT} -> changes font to a given font")
 
 		print("Files:")
 		print("    home {PATH} -> sets the home directory path")
@@ -143,6 +146,15 @@ class PanelThread (threading.Thread):
 						print("gridlines must be toggled on to see the grid")
 				else:
 					warn("Sorry, we don't have that color.")
+			elif(x[:2] =="ft"):
+                                st.lock.acquire()
+                                st.FONT = pygame.freetype.SysFont(x[3:],24)
+                                st.iFONT = pygame.freetype.SysFont(x[3:],24,italic=False)
+                                if st.FONT.path == pygameDefaultFontPath:
+                                        warn("The font you have requested was not found. The font has been reverted to the default")
+                                        st.FONT = st.DEFAULT_FONT
+                                        st.iFONT = st.DEFAULT_iFONT
+                                st.lock.release()
 
 			##FILES##
 
