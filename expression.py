@@ -1,29 +1,3 @@
-import wolframalpha
-
-APP_ID = "8T8YA5-3V337TXULH"
-client = wolframalpha.Client(APP_ID)
-
-opList = ["+", "-", "/", "*", "%", "^"]
-numList = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-
-def simpleWAQuery(string):
-        res = client.query(string)
-        return next(res.results).text
-
-#Here's the big one: the function that converts a given string into a bunch of expressions
-def parseToExp(strIn):
-    newExpressions = []
-	expLocs = []
-	strCurrent = strIn
-	strTemp = ""
-	while strCurrent != "?":
-		strTemp = ""
-		for i in len(strCurrent):
-			if strCurrent[i] in opList:
-		
-	
-    return newExpression
-
 class Operator:
     #Intializer for an operation
     def __init__(self, strRep):
