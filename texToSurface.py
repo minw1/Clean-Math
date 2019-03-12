@@ -22,7 +22,6 @@ class smartSurface:
 		self.hitboxes=[]
 		if tex in list(string.ascii_letters) or floatcastable(tex):
 			self.surface,rect = st.iFONT.render(tex,st.fontColor)
-			print(self.surface)
 			self.hitboxes.append((self.surface.get_rect(),pos))
 		elif tex[0] =="\\":
 			pass
@@ -65,10 +64,14 @@ class smartSurface:
 
 	def __hash__(self):
 		return hash(self.tex)
-
+'''
 pygame.init()
+pygame.freetype.init()
 screen = pygame.display.set_mode([800,600], pygame.RESIZABLE)
-
-expression = smartSurface("3+2-2",[0,5])
-screen.blit(expression.surface,(0,0))
-pygame.display.update()
+clock = pygame.time.Clock()
+while True:
+	clock.tick(20)
+	expression = smartSurface("3",[0,5])
+	screen.blit(expression.surface,(0,0))
+	pygame.display.flip()
+'''
