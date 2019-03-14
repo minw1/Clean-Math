@@ -18,11 +18,13 @@ class smartSurface:
 
     def __init__(self, exp, frac_depth, exp_depth): #depth is number of layers into generation we are. 
     	self.surface = None
-    	font = pygame.freetype.Font(LATEX_FONT_PATH, font_size)
-    	iFont = pygame.freetype.Font(LATEX_iFONT_PATH, font_size)
+    	self.font = pygame.freetype.Font(LATEX_FONT_PATH, font_size)
+    	self.iFont = pygame.freetype.Font(LATEX_iFONT_PATH, font_size)
 
     	if exp.op.strRep == "()":
     	if exp.op.strRep in simpleOps:
+    		firstSurface = smartSurface(exp.expList[0])
+    		secondSurface = smartSurface(exp.expList[1])
     	if exp.op.strRep == "^":
     	if exp.op.strRep == "frac":
     	if exp.op.strRep == "*":
