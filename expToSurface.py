@@ -19,6 +19,7 @@ class smartSurface:
     spacing = 10
 
     def __init__(self, exp, frac_depth, script_depth): #depth is number of layers into generation we are. 
+        st.lock.acquire()
     	self.surface = None
     	self.hitboxes = [] #(rect, self.exp)
     	self.font_size = makeSmaller(DEFAULT_FONT_SIZE, script_depth+max(frac_depth-1,0))
@@ -39,9 +40,16 @@ class smartSurface:
             self.surface.blit(secondSurface.surface, (finalWidth-secondWidth,(finalHeight-secondHeight)//2))
             self.surface.blit(operatorSurface, (firstWidth+self.spacing,(finalHeight-operatorHeight)//2))
             self.hitboxes = firstSurface.translateHitboxes([0,(finalHeight-firstHeight)//2]) + secondSurface.translateHitboxes([finalWidth-secondWidth,(finalHeight-secondHeight)//2])
+            self.hitboxes += []
+            self.hitboxes += (operatorSurface.get_rect().move(firstWidth+self.spacing,(finalHeight-operatorHeight)//2),exp)
     	elif exp.op.strRep == "^":
     	elif exp.op.strRep == "frac":
     	elif exp.op.strRep == "*":
+        elif type(exp.op) == xp.NoOpExpression:
+            self.surface,rect = font.render(exp.op.getString(),st.fontColor)
+            self.hitboxes.append((self.surface.get_rect(),pos))
+
+        st.lock.release()
 
     def translateHitboxes(self,coordinates):
         newHitboxes = []
