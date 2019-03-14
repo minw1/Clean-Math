@@ -29,6 +29,16 @@ class smartSurface:
     	elif exp.op.strRep in simpleOps:
             firstSurface = smartSurface(exp.expList[0])
             secondSurface = smartSurface(exp.expList[1])
+            secondWidth, secondHeight = secondSurface.get_size()
+            operatorSurface, operatorRect = font.render(tex[i],st.fontColor)
+            operatorWidth, operatorHeight = operatorSurface.get_size()
+            finalWidth = firstWidth+operatorWidth+secondWidth+2*self.spacing
+            finalHeight = max(firstHeight,secondHeight,operatorHeight)
+            self.surface = pygame.Surface((finalWidth, finalHeight))
+            self.surface.blit(firstSurface.surface, (0,(finalHeight-firstHeight)//2))
+            self.surface.blit(secondSurface.surface, (finalWidth-secondWidth,(finalHeight-secondHeight)//2))
+            self.surface.blit(operatorSurface, (firstWidth+self.spacing,(finalHeight-operatorHeight)//2))
+            self.hitboxes = firstSurface.translateHitboxes([0,(finalHeight-firstHeight)//2]) + secondSurface.translateHitboxes([finalWidth-secondWidth,(finalHeight-secondHeight)//2])
     	elif exp.op.strRep == "^":
     	elif exp.op.strRep == "frac":
     	elif exp.op.strRep == "*":
