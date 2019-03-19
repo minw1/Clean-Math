@@ -3,6 +3,7 @@ import threading
 import os 
 import sys
 import pygame
+import pygame.freetype
 pygame.freetype.init()
 
 def resource_path(relative_path):
@@ -48,7 +49,7 @@ boxSideLength = 20
 boxStrokeWidth = 1
 boxStrokeColor = BLUE
 backgroundColor = WHITE
-fontColor = BLACK
+fontColor = WHITE
 show_grid = True
 
 
