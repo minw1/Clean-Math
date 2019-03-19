@@ -52,8 +52,8 @@ class smartSurface:
             self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation)
         elif exp.op in self.simpleOps:
 
-            firstSurface = smartSurface(exp.expList[0])
-            secondSurface = smartSurface(exp.expList[1])
+            firstSurface = smartSurface(exp.expList[0],frac_depth,script_depth)
+            secondSurface = smartSurface(exp.expList[1],frac_depth,script_depth)
 
             firstWidth, firstHeight = firstSurface.get_size()
             secondWidth, secondHeight = secondSurface.get_size()
@@ -70,7 +70,7 @@ class smartSurface:
             self.hitboxes = firstSurface.translateHitboxes([0,(finalHeight-firstHeight)//2]) + secondSurface.translateHitboxes([finalWidth-secondWidth,(finalHeight-secondHeight)//2])
             self.hitboxes += [(operatorSurface.get_rect().move(firstWidth+self.spacing,(finalHeight-operatorHeight)//2),exp)]
         elif exp.op == "^":
-            firstSurface = smartSurface(exp.expList[0])
+            firstSurface = smartSurface(exp.expList[0],frac_depth,script_depth)
             secondSurface = smartSurface(exp.expList[1],frac_depth,script_depth+1)
             firstWidth, firstHeight = firstSurface.get_size()
             secondWidth, secondHeight = secondSurface.get_size()
