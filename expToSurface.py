@@ -99,10 +99,8 @@ class smartSurface:
             pygame.draw.rect(self.surface, (0,0,0), (0,vincHeight,vinculumWidth,vinculumHeight))
             self.hitboxes = self.hitboxes+numSurface.translateHitboxes(numLocation)
                                          +denomSurface.translateHitboxes(denomLocation)
-    	elif exp.op.strRep == "*":
-            pass
         elif type(exp.op) == xp.NoOpExpression:
-            self.surface,rect = font.render(exp.op.getString(),st.fontColor)
+            self.surface,rect = font.render(exp.op.strRep,st.fontColor)
             self.hitboxes.append((self.surface.get_rect(),pos))
         st.lock.release()
 
