@@ -30,7 +30,7 @@ class smartSurface:
     	self.font = pygame.freetype.Font(LATEX_FONT_PATH, font_size)
     	self.iFont = pygame.freetype.Font(LATEX_iFONT_PATH, font_size)
 
-    	if exp.op.strRep == "()":
+    	if exp.op == "()":
             containedExp = exp.expList[0]
             firstSurface = smartSurface(containedExp, frac_depth, script_depth)
             width, height = firstSurface.get_size()
@@ -49,14 +49,14 @@ class smartSurface:
             expLocation = (openWidth, (endHeight-height)//2)
             self.surface.blit(firstSurface.surface, expLocation)
             self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation)
-    	elif exp.op.strRep in simpleOps:
+    	elif exp.op in simpleOps:
             firstSurface = smartSurface(exp.expList[0])
             secondSurface = smartSurface(exp.expList[1])
 
             firstWidth, firstHeight = firstSurface.get_size()
             secondWidth, secondHeight = secondSurface.get_size()
 
-            operatorSurface, operatorRect = font.render(exp.op.strRep,st.fontColor)
+            operatorSurface, operatorRect = font.render(exp.op,st.fontColor)
             operatorWidth, operatorHeight = operatorSurface.get_size()
 
             finalWidth = firstWidth+operatorWidth+secondWidth+2*self.spacing
@@ -67,7 +67,7 @@ class smartSurface:
             self.surface.blit(operatorSurface, (firstWidth+self.spacing,(finalHeight-operatorHeight)//2))
             self.hitboxes = firstSurface.translateHitboxes([0,(finalHeight-firstHeight)//2]) + secondSurface.translateHitboxes([finalWidth-secondWidth,(finalHeight-secondHeight)//2])
             self.hitboxes += (operatorSurface.get_rect().move(firstWidth+self.spacing,(finalHeight-operatorHeight)//2),exp)
-    	elif exp.op.strRep == "^":
+    	elif exp.op == "^":
             firstSurface = smartSurface(exp.expList[0])
             secondSurface = smartSurface(exp.expList[1],frac_depth,script_depth+1)
             firstWidth, firstHeight = firstSurface.get_size()
@@ -78,7 +78,7 @@ class smartSurface:
             self.surface.blit(firstSurface.surface, (0,secondHeight//2))
             self.surface.blit(secondSurface.surface, (firstWidth,0))
             self.hitboxes = firstSurface.translateHitboxes([0,(finalHeight-firstHeight)//2]) + secondSurface.translateHitboxes([finalWidth-secondWidth,(finalHeight-secondHeight)//2])
-    	elif exp.op.strRep == "frac":
+    	elif exp.op == "frac":
             numeratorExp = exp.expList[0]
             denominatorExp = exp.expList[1]
             numSurface = smartSurface(numeratorExp, frac_depth+1, script_depth)
@@ -99,8 +99,8 @@ class smartSurface:
             pygame.draw.rect(self.surface, (0,0,0), (0,vincHeight,vinculumWidth,vinculumHeight))
             self.hitboxes = self.hitboxes+numSurface.translateHitboxes(numLocation)
                                          +denomSurface.translateHitboxes(denomLocation)
-        elif type(exp.op) == xp.NoOpExpression:
-            self.surface,rect = font.render(exp.op.strRep,st.fontColor)
+        elif exp.op == "none":
+            self.surface,rect = font.render(exp.expList[0],st.fontColor)
             self.hitboxes.append((self.surface.get_rect(),pos))
         st.lock.release()
 
