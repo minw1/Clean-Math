@@ -6,7 +6,7 @@ import pygame.freetype
 import time
 
 
-junk,toDraw = rte.RPNtoEXP(["4","2","3","+","^"])
+junk,toDraw = rte.RPNtoEXP(["4","2","+"])
 surface = exs.smartSurface(toDraw)
 pygame.init()
 screen = pygame.display.set_mode([400,300], pygame.RESIZABLE)
