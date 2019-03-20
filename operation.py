@@ -40,5 +40,7 @@ class Operator:
     def makeStr(self, opList):
         opString = self.makeString(opList)
         return opString
+    def __repr__(self):
+        return self.strRep
 
 opList = []

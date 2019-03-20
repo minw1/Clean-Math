@@ -3,6 +3,7 @@ import threading
 import os 
 import sys
 import pygame
+import pygame.freetype
 pygame.freetype.init()
 
 def resource_path(relative_path):

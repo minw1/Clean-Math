@@ -102,6 +102,9 @@ class Expression:
         res = client.query(expString) #Gets result from WolframAlpha
         return next(res.results).text
 
+    def __repr__(self):
+        return repr(self.op)+' of ('+') and ('.join([repr(k) for k in self.expList])+')'
+
 class NoOpExpression(Expression):
     #Initializer for a no-operator expression
     def __init__(self, strRep):
@@ -114,4 +117,6 @@ class NoOpExpression(Expression):
 
     #Get string representation of expression
     def getString(self):
-        return strRep
+        return self.strRep
+    def __repr__(self):
+        return self.strRep
