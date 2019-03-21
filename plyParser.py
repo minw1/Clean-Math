@@ -37,6 +37,8 @@ def t_NUMBER(t):
         t.value = int(t.value)
         t.value = xp.NoOpExpression(str(t.value))
     except ValueError:
+        global error
+        error=True
         print("Integer value too large %d", t.value)
         t.value = xp.NoOpExpression('0')
     return t
@@ -49,6 +51,8 @@ def t_newline(t):
     t.lexer.lineno += t.value.count("\n")
     
 def t_error(t):
+    global error
+    error=True
     print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
     
@@ -112,22 +116,27 @@ def p_expression_name(t):
     try:
         t[0] = names[t[1]]
     except LookupError:
+        global error
+        error=True
         print("Undefined name '%s'" % t[1])
         t[0] = 0
 
 def p_error(t):
+    global error
+    error=True
     print("Syntax error at '%s'" % t.value)
 
 import ply.yacc as yacc
 parser = yacc.yacc()
-counter=0
-def get_exp():
-    inputStr = input('parse > ')
-    parser.parse(inputStr)
-    string = resultingExpression[1]
-    Surface = expToSurface.smartSurface(string)
-    pygame.image.save(Surface.surface,'TestImages/test'+str(counter)+'.png')
 
-while True:
-    get_exp()
-    counter+=1
+error=False
+def get_exp(inputStr):
+    global error
+    error=False
+    parser.parse(inputStr)
+    if error:
+        raise ValueError("Expression could not parse correctly.")
+    else:
+        string = resultingExpression[1]
+        Surface = expToSurface.smartSurface(string)
+        return Surface.surface
