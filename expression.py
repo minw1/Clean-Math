@@ -1,7 +1,7 @@
 import wolframalpha
 import operation as opn
 import numpy as np
-import pandas as pd
+#import pandas as pd
 
 APP_ID = "8T8YA5-3V337TXULH"
 client = wolframalpha.Client(APP_ID)
@@ -14,6 +14,7 @@ def atLocation(subStr, searchStr, loc):
     return out
 
 #Here's the big one: the function that converts a given string into a bunch of expressions
+"""
 def parseToExp(strIn):
     expStr = strIn
 	#Finds operators within the string
@@ -76,6 +77,7 @@ def parseToExp(strIn):
                 opDF["Expressions"][i] = newExp
                 operandLocs.drop(i, 0)
     return returnExpList    
+"""
 
 
 class Expression:
