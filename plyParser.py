@@ -1,3 +1,5 @@
+##adapted from ply example calc.py
+
 import expression as xp
 import operation as op
 import expToSurface
