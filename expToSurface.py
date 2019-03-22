@@ -57,8 +57,8 @@ class smartSurface:
             self.surface.blit(firstSurface.surface, expLocation)
             self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation)
         elif exp.op.strRep in self.simpleOps:
-            firstSurface = smartSurface(exp.expList[0])
-            secondSurface = smartSurface(exp.expList[1])
+            firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth)
+            secondSurface = smartSurface(exp.expList[1], frac_depth, script_depth)
 
             firstWidth, firstHeight = firstSurface.get_size()
             secondWidth, secondHeight = secondSurface.get_size()
@@ -76,7 +76,7 @@ class smartSurface:
             self.hitboxes = firstSurface.translateHitboxes([0,(finalHeight-firstHeight)//2]) + secondSurface.translateHitboxes([finalWidth-secondWidth,(finalHeight-secondHeight)//2])
             self.hitboxes += (operatorSurface.get_rect().move(firstWidth+self.spacing,(finalHeight-operatorHeight)//2),exp)
         elif exp.op.strRep == "^":
-            firstSurface = smartSurface(exp.expList[0])
+            firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth)
             secondSurface = smartSurface(exp.expList[1],frac_depth,script_depth+1)
             firstWidth, firstHeight = firstSurface.get_size()
             secondWidth, secondHeight = secondSurface.get_size()
@@ -109,19 +109,17 @@ class smartSurface:
             self.hitboxes = self.hitboxes+numSurface.translateHitboxes(numLocation)+denomSurface.translateHitboxes(denomLocation)
         elif exp.op.strRep == "{}":
             expression = exp.expList[0]
-            otherSurf = smartSurface(expression)
+            otherSurf = smartSurface(expression, frac_depth, script_depth)
             self.surface = otherSurf.surface
             self.hitboxes = otherSurf.hitboxes
         st.lock.release()
 
     def translateHitboxes(self,coordinates):
-        '''print(self.hitboxes)
         newHitboxes = []
         for hb in self.hitboxes:
             rect, expression = hb
             newHitboxes.append((rect.move(coordinates[0],coordinates[1]), expression))
-        return newHitboxes'''
-        return []
+        return newHitboxes
 
     def get_size(self):
         return self.surface.get_size()
