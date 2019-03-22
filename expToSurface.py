@@ -74,7 +74,7 @@ class smartSurface:
             self.surface.blit(secondSurface.surface, (finalWidth-secondWidth,(finalHeight-secondHeight)//2))
             self.surface.blit(operatorSurface, (firstWidth+self.spacing,(finalHeight-operatorHeight)//2))
             self.hitboxes = firstSurface.translateHitboxes([0,(finalHeight-firstHeight)//2]) + secondSurface.translateHitboxes([finalWidth-secondWidth,(finalHeight-secondHeight)//2])
-            self.hitboxes += (operatorSurface.get_rect().move(firstWidth+self.spacing,(finalHeight-operatorHeight)//2),exp)
+            self.hitboxes += [(operatorSurface.get_rect().move(firstWidth+self.spacing,(finalHeight-operatorHeight)//2),exp)]
         elif exp.op.strRep == "^":
             firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth)
             secondSurface = smartSurface(exp.expList[1],frac_depth,script_depth+1)
