@@ -36,8 +36,10 @@ class smartSurface:
         
         if type(exp) == xp.NoOpExpression:
             self.surface,rect = font.render(exp.strRep,st.fontColor,st.backgroundColor)
+            self.yline = self.surface.get_rect().height//2
             self.hitboxes.append((self.surface.get_rect(),self))
         elif exp.op.strRep == "()":
+
             containedExp = exp.expList[0]
             firstSurface = smartSurface(containedExp, frac_depth, script_depth)
             width, height = firstSurface.get_size()
@@ -56,48 +58,70 @@ class smartSurface:
             expLocation = (openWidth, (endHeight-height)//2)
             self.surface.blit(firstSurface.surface, expLocation)
             self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation)
+            self.yline = endHeight//2
+
         elif exp.op.strRep in self.simpleOps:
             firstSurface = smartSurface(exp.expList[0])
             secondSurface = smartSurface(exp.expList[1])
 
             firstWidth, firstHeight = firstSurface.get_size()
             secondWidth, secondHeight = secondSurface.get_size()
+            firstYline, secondYline = firstSurface.yline,secondSurface.yline
+
             character = '.' if exp.op.strRep == '*' else exp.op.strRep # we want multiplication to appear as cdots
             operatorSurface, operatorRect = font.render(character,st.fontColor,st.backgroundColor)
             operatorWidth, operatorHeight = operatorSurface.get_size()
+            operatorYline = operatorHeight//2
 
             finalWidth = firstWidth+operatorWidth+secondWidth+2*self.spacing
-            finalHeight = max(firstHeight,secondHeight,operatorHeight)
+            finalYline = max(firstYline,secondYline)
+            finalHeight = max(firstYline,secondYline) + max(firstHeight-firstYline,secondHeight-secondYline)
+
+
             self.surface = pygame.Surface((finalWidth, finalHeight))
             self.surface.fill(st.backgroundColor)
-            self.surface.blit(firstSurface.surface, (0,(finalHeight-firstHeight)//2))
-            self.surface.blit(secondSurface.surface, (finalWidth-secondWidth,(finalHeight-secondHeight)//2))
-            self.surface.blit(operatorSurface, (firstWidth+self.spacing,(finalHeight-operatorHeight)//2))
-            self.hitboxes = firstSurface.translateHitboxes([0,(finalHeight-firstHeight)//2]) + secondSurface.translateHitboxes([finalWidth-secondWidth,(finalHeight-secondHeight)//2])
-            self.hitboxes += [(operatorSurface.get_rect().move(firstWidth+self.spacing,(finalHeight-operatorHeight)//2),exp)]
+            self.surface.blit(firstSurface.surface, (0, finalYline - firstYline))
+            self.surface.blit(secondSurface.surface, (finalWidth-secondWidth,finalYline - secondYline))
+            self.surface.blit(operatorSurface, (firstWidth+self.spacing,finalYline-operatorYline))
+
+            self.hitboxes = firstSurface.translateHitboxes([0,finalYline-firstYline]) + secondSurface.translateHitboxes([finalWidth-secondWidth,finalYline-secondYline])
+            self.hitboxes += [(operatorSurface.get_rect().move(firstWidth+self.spacing,finalYline-operatorYline),exp)]
+            self.yline = finalYline
+
         elif exp.op.strRep == "^":
             firstSurface = smartSurface(exp.expList[0])
-            secondSurface = smartSurface(exp.expList[1],frac_depth,script_depth+1)
+            secondSurface = smartSurface(exp.expList[1])
             firstWidth, firstHeight = firstSurface.get_size()
             secondWidth, secondHeight = secondSurface.get_size()
+            firstYline, secondYline = firstSurface.yline,secondSurface.yline
+
+
             finalWidth = firstWidth + secondWidth
-            finalHeight = firstHeight + secondHeight//2
+            finalHeight = firstHeight + secondYline
+            self.yline = firstYline+secondYline
+
             self.surface = pygame.Surface((finalWidth, finalHeight))
             self.surface.fill(st.backgroundColor)
-            self.surface.blit(firstSurface.surface, (0,secondHeight//2))
+            self.surface.blit(firstSurface.surface, (0,secondYline))
             self.surface.blit(secondSurface.surface, (firstWidth,0))
-            self.hitboxes = firstSurface.translateHitboxes([0,(finalHeight-firstHeight)//2]) + secondSurface.translateHitboxes([finalWidth-secondWidth,(finalHeight-secondHeight)//2])
+            self.hitboxes = firstSurface.translateHitboxes([0,secondYline]) + secondSurface.translateHitboxes([firstWidth,0])
+
         elif exp.op.strRep == "frac":
+
             numeratorExp = exp.expList[0]
             denominatorExp = exp.expList[1]
+
             numSurface = smartSurface(numeratorExp, frac_depth+1, script_depth)
             denomSurface = smartSurface(denominatorExp, frac_depth+1, script_depth)
+
             numWidth, numHeight = numSurface.get_size()
             denomWidth, denomHeight = denomSurface.get_size()
             vinculumWidth = max(numWidth, denomWidth)+round(2*FRAC_ADJUSTMENT*font_size)
             vinculumHeight = round(VINCULUM_SIZE*font_size)
+
             endWidth = vinculumWidth
             endHeight = numHeight + vinculumHeight + denomHeight + round(2*FRAC_VERTICAL_TOLERANCE*font_size)
+            
             self.surface = pygame.Surface((endWidth, endHeight))
             self.surface.fill(st.backgroundColor)
             numLocation = ((endWidth-numWidth)//2,0)
@@ -107,11 +131,15 @@ class smartSurface:
             self.surface.blit(denomSurface.surface, denomLocation)
             pygame.draw.rect(self.surface, st.fontColor, (0,vincHeight,vinculumWidth,vinculumHeight))
             self.hitboxes = self.hitboxes+numSurface.translateHitboxes(numLocation)+denomSurface.translateHitboxes(denomLocation)
+            self.yline = vincHeight + (vinculumHeight//2)
+
+
         elif exp.op.strRep == "{}":
             expression = exp.expList[0]
             otherSurf = smartSurface(expression)
             self.surface = otherSurf.surface
             self.hitboxes = otherSurf.hitboxes
+            self.yline = otherSurf.yline
         st.lock.release()
 
     def translateHitboxes(self,coordinates):
