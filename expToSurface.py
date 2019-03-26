@@ -61,8 +61,8 @@ class smartSurface:
             self.yline = endHeight//2
 
         elif exp.op.strRep in self.simpleOps:
-            firstSurface = smartSurface(exp.expList[0])
-            secondSurface = smartSurface(exp.expList[1])
+            firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth)
+            secondSurface = smartSurface(exp.expList[1], frac_depth, script_depth)
 
             firstWidth, firstHeight = firstSurface.get_size()
             secondWidth, secondHeight = secondSurface.get_size()
@@ -89,8 +89,9 @@ class smartSurface:
             self.yline = finalYline
 
         elif exp.op.strRep == "^":
-            firstSurface = smartSurface(exp.expList[0])
-            secondSurface = smartSurface(exp.expList[1])
+            firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth)
+            secondSurface = smartSurface(exp.expList[1],frac_depth,script_depth+1)
+
             firstWidth, firstHeight = firstSurface.get_size()
             secondWidth, secondHeight = secondSurface.get_size()
             firstYline, secondYline = firstSurface.yline,secondSurface.yline
@@ -136,7 +137,7 @@ class smartSurface:
 
         elif exp.op.strRep == "{}":
             expression = exp.expList[0]
-            otherSurf = smartSurface(expression)
+            otherSurf = smartSurface(expression, frac_depth, script_depth)
             self.surface = otherSurf.surface
             self.hitboxes = otherSurf.hitboxes
             self.yline = otherSurf.yline
