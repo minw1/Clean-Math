@@ -1,88 +1,28 @@
-import wolframalpha
 import operation as opn
 import numpy as np
-#import pandas as pd
+import copy
 
-APP_ID = "8T8YA5-3V337TXULH"
-client = wolframalpha.Client(APP_ID)
+ordinal = lambda n: "%d%s" % (n,"tsnrhtdd"[(n/10%10!=1)*(n%10<4)*n%10::4])
 
-def atLocation(subStr, searchStr, loc):
-    out = True
-    for i in range(0, len(subStr)):
-        if searchStr[loc+i] != subStr[i]:
-            out = False
-    return out
+binOps = {
+    "+":0,
+    "-":0,
+    "*":1,
+    "/":1,
+    "^":2,
+}
+digits = ["0","1","2","3","4","5","6","7","8","9"]
 
-#Here's the big one: the function that converts a given string into a bunch of expressions
-"""
-def parseToExp(strIn):
-    expStr = strIn
-	#Finds operators within the string
-    opLocs = {}
-    for op in opn.opList:
-        posList = op.getPos(expStr)
-        for newPos in posList:
-            contained = False
-            for oldPos in opLocs.keys():
-                if all(elem in newPos for elem in oldPos):
-                    del opLocs[oldPos]
-                elif all(elem in oldPos for elem in newPos):
-                    contained = True
-            if not contained:
-                opLocs[newPos] = op
-        
-	#Finds operands of located operators	
-    opDF = pd.DataFrame(opLocs.items(), columns=["Locations", "Operator"])
-    operandList = []
-    for row in opDF.itertuples(index=False):
-        locs, op = row
-        opndsDict = op.getOps(expStr, locs)
-        operandList.append(opndsDict)
-    opDF["Operands"] = operandList
-
-    #Creates expressions in order of execution
-    returnExpList = []
-    operandLocs = opDF["Operands"]
-    opDF["Expressions"] = pd.Series(index = range(0, len(operandLocs)))
-    while not operandLocs.empty:
-        workingOps = np.zeros(len(operandLocs))
-        for i in operandLocs:
-            workingOps[i] = 1
-            for j in range(0, i):
-                for newOpPos in operandLocs[i].keys():
-                    for oldOpPos in operandLocs[j].keys():
-                        if all(elem in newOpPos for elem in oldOpPos):
-                            workingOps[i] = 0
-                        elif all(elem in oldOpPos for elem in newOpPos):
-                            workingOps[j] = 0
-        for i in workingOps:
-            if workingOps[i] == 1:
-                expList = [None] * len(operandLocs[i].keys())
-                count = -1
-                for operand in operandLocs[i].keys():
-                    count += 1
-                    for row in opDF.itertuples(index=False):
-                        opLocs = row[0]
-                        for operandLocation in row[2].keys():
-                            opLocs += operandLocation
-                        if all(elem in operand for elem in opLocs) and all(elem in opLocs for elem in operand):
-                            expList[count] = row[3]
-                            break
-                    if expList[count] == None:
-                        newExp = NoOpExpression[operandLocs[i][operand]]
-                        returnExpList.append(newExp)
-                        expList[count] = newExp
-                newExp = Expression(opDF["Operator"][i], expList)
-                returnExpList.append(newExp)
-                opDF["Expressions"][i] = newExp
-                operandLocs.drop(i, 0)
-    return returnExpList    
-"""
-
+def intcastable(s):
+    try: 
+        int(s)
+        return True
+    except ValueError:
+        return False
 
 class Expression:
     #Initializer for composite expression
-    def __init__(self, op, expList):
+    def __init__(self, op="w", expList=[], parent=None):
         '''
         Initializes a composite expression
         Parameters:
@@ -92,33 +32,115 @@ class Expression:
         '''
         self.expList = expList #Stores expressions that this expression comprises
         self.op = op
-      
-    #Gets string representation of expression
-    def getString(self):
-        returnString = self.op.makeStr(expList)
-        return returnString
+        self.parent = parent
 
-    #Evaluates expression
-    def eval(self):
-        expString = getString(self)
-        res = client.query(expString) #Gets result from WolframAlpha
-        return next(res.results).text
+    def print_tree(self,depth=0):
+        currentNode = self
+        if currentNode.op in binOps:
+            print( ("  "*depth) + currentNode.op + " connects ")
+        else:
+            print(("  "*depth) + currentNode.op )
 
-    def __repr__(self):
-        return repr(self.op)+' of ('+') and ('.join([repr(k) for k in self.expList])+')'
+        for node in currentNode.expList:
+            node.print_tree(depth+1)
 
-class NoOpExpression(Expression):
-    #Initializer for a no-operator expression
-    def __init__(self, strRep):
-        '''
-        Parameters:
-            self: Object being initialized
-            strRep: String representation of expression.
-            '''
-        self.strRep = strRep
 
-    #Get string representation of expression
-    def getString(self):
-        return self.strRep
-    def __repr__(self):
-        return self.strRep
+
+
+    def find_working(self):
+        currentNode = self
+        if(currentNode.op == "w"):
+            return currentNode
+        if len(currentNode.expList) > 0:
+            for node in currentNode.expList:
+                fw = node.find_working()
+                if not (fw == None):
+                    return fw
+        return None
+
+    def add_child(self,node):
+        node.parent = self
+        self.expList += [node]
+
+    def detach_child(self,op):
+        for index, node in enumerate(self.expList):
+            if node.op == op: 
+                toDetachIndices = index
+        del self.expList[index]
+
+    def scrub_working(self):
+        currentNode = self
+        currentNode.detach_child("w")
+        for node in currentNode.expList:
+            node.detach_child("w")
+
+
+    def youngestLPAC(node,thisop):#child of youngest lower precedence ancestor
+        currentNode = node
+        while True:
+            if currentNode.parent == None:
+                return currentNode
+            if currentNode.parent.op in binOps:
+                if binOps[currentNode.parent.op] < binOps[thisop]:
+                    return currentNode
+            currentNode = currentNode.parent
+
+
+
+    def add(self,added):
+        workingNode = self.find_working()
+        if workingNode == None:
+            print("something very bad has happened")
+        elif workingNode.parent == None:
+            if added in binOps:
+                thisop = Expression(added,[],None)
+                first = Expression("e",[],None)
+                second = Expression("e",[],None)
+                w = Expression("w",[],None)
+                second.add_child(w)
+                this.add_child(first)
+                this.add_child(second)
+                self.__dict__ = copy.deepcopy(thisop.__dict__)
+            if added in digits:
+                thisdig = Expression(added,[],None)
+                w = Expression("w",[],None)
+                thisdig.add_child(w)
+                thisdig.print_tree()
+                self.__dict__ = copy.deepcopy(thisdig.__dict__)
+        elif intcastable(workingNode.parent.op):
+            if added in digits:
+                workingNode.parent.op += added
+        elif workingNode.op == "e":
+            if added in digits:
+                workingNode.parent.op = added
+        elif added in binOps:
+            YLPAC = youngestLPAC(workingNode,added)
+            treeflip = False
+            if(YLPAC == self):
+                treeflip = True
+            if treeflip:
+                self.scrub_working()
+                top = Expression(added,[],None)
+                second = Expression("e",[],None)
+                w = Expression("w",[],None)
+                second.add_child(w)
+                top.add_child(self)
+                top.add_child(second)
+                self.__dict__ = copy.deepcopy(top.__dict__)
+            else:
+                YLPAC.scrub_working()
+                medium = Expression(added,[],None)
+                second = Expression("e",[],None)
+                w = Expression("w",[],None)
+                second.add_child(w)
+                medium.add_child(YLPAC)
+                medium.add_child(second)
+                YLPAC = medium
+
+
+e =  Expression()
+e.print_tree()
+e.add("3")
+e.print_tree()
+e.add("+")
+e.print_tree()
