@@ -1,5 +1,6 @@
 import operation as opn
 import numpy as np
+
 import copy
 
 ordinal = lambda n: "%d%s" % (n,"tsnrhtdd"[(n/10%10!=1)*(n%10<4)*n%10::4])
@@ -19,6 +20,9 @@ def intcastable(s):
         return True
     except ValueError:
         return False
+
+
+
 
 class Expression:
     #Initializer for composite expression
