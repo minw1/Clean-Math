@@ -48,9 +48,6 @@ class Expression:
         for node in currentNode.expList:
             node.print_tree(depth+1)
 
-
-
-
     def find_working(self):
         currentNode = self
         if(currentNode.op == "w"):
@@ -66,11 +63,13 @@ class Expression:
         node.parent = self
         self.expList += [node]
 
-    def detach_child(self,op):
+    def detach_child(self,op):#will only detach the last node with matching op
+        toDetachIndex = -1
         for index, node in enumerate(self.expList):
             if node.op == op: 
-                toDetachIndices = index
-        del self.expList[index]
+                toDetachIndex = index
+        if not (toDetachIndex == -1):
+            del self.expList[toDetachIndex]
 
     def scrub_working(self):
         currentNode = self
@@ -93,8 +92,6 @@ class Expression:
         for i in expList:
             i.parent = newParent
 
-
-
     def add(self,added):
         workingNode = self.find_working()
         if workingNode == None:
@@ -108,14 +105,14 @@ class Expression:
                 second.add_child(w)
                 thisop.add_child(first)
                 thisop.add_child(second)
-                Expression.changeNodeParents(thisop.expList,self)
-                self.__dict__ = copy.copy(thisop.__dict__)
+                Expression.changeNodeParents(thisop.expList,self)#because self  will 'become' thisop, but self's pointer will remain fixed
+                self.__dict__ = copy.copy(thisop.__dict__)#shalllow copy because we want the pointers to maintain the hierarchy's connections
             if added in digits:
                 thisdig = Expression(added,[],None)
                 w = Expression("w",[],None)
                 thisdig.add_child(w)
-                thisdig.expList[0].parent = self #self will 'become' thisdig, but pointer will remain fixed
-                self.__dict__ = copy.copy(thisdig.__dict__)
+                thisdig.expList[0].parent = self #self will 'become' thisdig, but self's pointer will remain fixed
+                self.__dict__ = copy.copy(thisdig.__dict__)#shalllow copy because we want the pointers to maintain the hierarchy's connections
         elif intcastable(workingNode.parent.op) and added in digits:
                 workingNode.parent.op += added
         elif workingNode.parent.op == "e" and added in digits:
@@ -149,9 +146,10 @@ class Expression:
 
 
 e =  Expression()
-e.add("3")
-e.add("+")
 e.add("*")
 e.add("5")
+e.add("3")
+e.add("+")
+
 e.print_tree()
 
