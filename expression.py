@@ -41,9 +41,9 @@ class Expression:
     def print_tree(self,depth=0):
         currentNode = self
         if currentNode.op in binOps:
-            print( ("  "*depth) + currentNode.op + " connects ")
+            print( ("    "*depth) + currentNode.op + " connects ")
         else:
-            print(("  "*depth) + currentNode.op )
+            print(("    "*depth) + currentNode.op )
 
         for node in currentNode.expList:
             node.print_tree(depth+1)
@@ -79,7 +79,7 @@ class Expression:
             node.detach_child("w")
 
 
-    def youngestLPAC(node,thisop):#child of youngest lower precedence ancestor
+    def youngestLPAC(self,node,thisop):#child of youngest lower precedence ancestor
         currentNode = node
         while True:
             if currentNode.parent == None:
@@ -88,6 +88,10 @@ class Expression:
                 if binOps[currentNode.parent.op] < binOps[thisop]:
                     return currentNode
             currentNode = currentNode.parent
+
+    def changeNodeParents(expList, newParent):
+        for i in expList:
+            i.parent = newParent
 
 
 
@@ -102,49 +106,52 @@ class Expression:
                 second = Expression("e",[],None)
                 w = Expression("w",[],None)
                 second.add_child(w)
-                this.add_child(first)
-                this.add_child(second)
-                self.__dict__ = copy.deepcopy(thisop.__dict__)
+                thisop.add_child(first)
+                thisop.add_child(second)
+                Expression.changeNodeParents(thisop.expList,self)
+                self.__dict__ = copy.copy(thisop.__dict__)
             if added in digits:
                 thisdig = Expression(added,[],None)
                 w = Expression("w",[],None)
                 thisdig.add_child(w)
-                thisdig.print_tree()
-                self.__dict__ = copy.deepcopy(thisdig.__dict__)
-        elif intcastable(workingNode.parent.op):
-            if added in digits:
+                thisdig.expList[0].parent = self #self will 'become' thisdig, but pointer will remain fixed
+                self.__dict__ = copy.copy(thisdig.__dict__)
+        elif intcastable(workingNode.parent.op) and added in digits:
                 workingNode.parent.op += added
-        elif workingNode.op == "e":
-            if added in digits:
+        elif workingNode.parent.op == "e" and added in digits:
                 workingNode.parent.op = added
         elif added in binOps:
-            YLPAC = youngestLPAC(workingNode,added)
+            YLPAC = workingNode.youngestLPAC(workingNode,added)
             treeflip = False
             if(YLPAC == self):
-                treeflip = True
+                treeflip = True              
             if treeflip:
                 self.scrub_working()
                 top = Expression(added,[],None)
                 second = Expression("e",[],None)
                 w = Expression("w",[],None)
                 second.add_child(w)
-                top.add_child(self)
+                top.add_child(copy.copy(self))
                 top.add_child(second)
-                self.__dict__ = copy.deepcopy(top.__dict__)
+                Expression.changeNodeParents(top.expList,self)
+                self.__dict__ = copy.copy(top.__dict__)
             else:
                 YLPAC.scrub_working()
                 medium = Expression(added,[],None)
                 second = Expression("e",[],None)
                 w = Expression("w",[],None)
                 second.add_child(w)
-                medium.add_child(YLPAC)
+                medium.add_child(copy.copy(YLPAC))
                 medium.add_child(second)
-                YLPAC = medium
+                YLPAC.__dict__= copy.copy(medium.__dict__)
+        else:
+            print("that case is not supported")
 
 
 e =  Expression()
-e.print_tree()
 e.add("3")
-e.print_tree()
 e.add("+")
+e.add("*")
+e.add("5")
 e.print_tree()
+
