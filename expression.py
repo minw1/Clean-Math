@@ -92,6 +92,23 @@ class Expression:
         for i in expList:
             i.parent = newParent
 
+    def backspace(self):
+        workingNode = self.find_working()
+        if workingNode == None:
+            print("something very bad has happened")
+        elif workingNode == self:
+            print("backspace called on an empty expression; expression unchanged")
+        elif intcastable(workingNode.parent.op):
+            if(len(workingNode.parent.op) == 1):
+                workingNode.parent.op = "e"
+            else:
+                workingNode.parent.op = workingNode.parent.op[:-1]
+        else:
+            print("that case is not yet implemented")
+
+
+
+
     def add(self,added):
         workingNode = self.find_working()
         if workingNode == None:
@@ -142,7 +159,7 @@ class Expression:
                 medium.add_child(second)
                 YLPAC.__dict__= copy.copy(medium.__dict__)
         else:
-            print("that case is not supported")
+            print("that case is not yet supported")
 
 
 e =  Expression()
