@@ -37,13 +37,14 @@ class Expression:
         self.expList = expList #Stores expressions that this expression comprises
         self.op = op
         self.parent = parent
+        self.index = 0 if op == "w" else None
 
     def print_tree(self,depth=0):
         currentNode = self
         if currentNode.op in binOps:
-            print( ("    "*depth) + currentNode.op + " connects ")
+            print( ("    "*depth) + currentNode.op+("_"+str(currentNode.index) if currentNode.op=="w" else "") + " connects ")
         else:
-            print(("    "*depth) + currentNode.op )
+            print(("    "*depth) + currentNode.op+("_"+str(currentNode.index) if currentNode.op=="w" else "") )
 
         for node in currentNode.expList:
             node.print_tree(depth+1)
@@ -58,6 +59,12 @@ class Expression:
                 if not (fw == None):
                     return fw
         return None
+
+    def move_working(self, newPlace, index):
+        self.scrub_working()
+        w = Expression("w",[],None)
+        w.index = index
+        newPlace.add_child(w)
 
     def add_child(self,node):
         node.parent = self
@@ -88,7 +95,7 @@ class Expression:
                     return currentNode
             currentNode = currentNode.parent
 
-    def changeNodeParents(expList, newParent):
+    def changeNodeParents(expList, newParent): #may have working moving issues
         for i in expList:
             i.parent = newParent
 
@@ -98,11 +105,12 @@ class Expression:
             print("something very bad has happened")
         elif workingNode == self:
             print("backspace called on an empty expression; expression unchanged")
-        elif intcastable(workingNode.parent.op):
+        elif intcastable(workingNode.parent.op) and workingNode.index>0: #deal with being at the beginning of a number later
             if(len(workingNode.parent.op) == 1):
                 workingNode.parent.op = "e"
             else:
-                workingNode.parent.op = workingNode.parent.op[:-1]
+                workingNode.parent.op = workingNode.parent.op[:workingNode.index-1]+workingNode.parent.op[workingNode.index:]
+            workingNode.index -= 1
         else:
             print("that case is not yet implemented")
 
@@ -127,13 +135,18 @@ class Expression:
             if added in digits:
                 thisdig = Expression(added,[],None)
                 w = Expression("w",[],None)
+                w.index = 1
                 thisdig.add_child(w)
                 thisdig.expList[0].parent = self #self will 'become' thisdig, but self's pointer will remain fixed
-                self.__dict__ = copy.copy(thisdig.__dict__)#shalllow copy because we want the pointers to maintain the hierarchy's connections
+                self.__dict__ = copy.copy(thisdig.__dict__) #shallow copy because we want the pointers to maintain the hierarchy's connections
         elif intcastable(workingNode.parent.op) and added in digits:
-                workingNode.parent.op += added
+                number = workingNode.parent.op
+                before, after = number[:workingNode.index],number[workingNode.index:]
+                number = before+added+after
+                workingNode.index += 1
         elif workingNode.parent.op == "e" and added in digits:
                 workingNode.parent.op = added
+                workingNode.index += 1
         elif added in binOps:
             YLPAC = workingNode.youngestLPAC(workingNode,added)
             treeflip = False
@@ -160,6 +173,8 @@ class Expression:
                 YLPAC.__dict__= copy.copy(medium.__dict__)
         else:
             print("that case is not yet supported")
+
+    
 
 
 e =  Expression()
