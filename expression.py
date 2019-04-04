@@ -7,7 +7,7 @@ client = wolframalpha.Client(APP_ID)
 
 class Expression:
     #Initializer for composite expression
-    def __init__(self, op, expList):
+    def __init__(self, op, expList, parens=False):
         '''
         Initializes a composite expression
         Parameters:
@@ -17,10 +17,13 @@ class Expression:
         '''
         self.expList = expList #Stores expressions that this expression comprises
         self.op = op
+        self.parens = parens
       
     #Gets string representation of expression
     def getString(self):
         returnString = self.op.makeStr(expList)
+        if self.parens:
+            returnString = "(" + returnString + ")"
         return returnString
 
     #Evaluates expression
@@ -28,6 +31,11 @@ class Expression:
         expString = getString(self)
         res = client.query(expString) #Gets result from WolframAlpha
         return next(res.results).text
+
+	#Returns expression with parentheses
+    def addParens(self):
+        self.parens = True
+        return self
 
     def __repr__(self):
         return repr(self.op)+' of ('+') and ('.join([repr(k) for k in self.expList])+')'
