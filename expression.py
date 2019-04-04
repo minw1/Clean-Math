@@ -78,7 +78,7 @@ class Expression:
         if not (toDetachIndex == -1):
             del self.expList[toDetachIndex]
 
-    def scrub_working(self):
+    def scrub_working(self):#removes all w nodes from a tree
         currentNode = self
         currentNode.detach_child("w")
         for node in currentNode.expList:
@@ -114,8 +114,32 @@ class Expression:
         else:
             print("that case is not yet implemented")
 
+    def leftmost(node):
+        if len(node.expList) < 2: #can't go left if there is only down
+            return node
+        return leftmost(node.expList[0])
+    def is_leftnode(node):
+        if node.parent = None:
+            return None
+        return True if node.parent.expList.index(node)==0 else False
+    def first_rightward_ancestor(node):
+        if node.parent = None:
+            return None
+        if not is_leftnode(node):
+            return node.parent
+        return first_rightward_ancestor(node.parent)
+                
+    def to_left(self):
+        w = self.find_working()
+        working = w.parent
+        lm = leftmost(working)
 
-
+        if leftmost(self) = w:
+            return working
+        elif lm == working:
+            return first_rightward_ancestor(working)
+        else:
+            return lm
 
     def add(self,added):
         workingNode = self.find_working()
@@ -179,9 +203,10 @@ class Expression:
 
 e =  Expression()
 e.add("*")
-e.add("5")
 e.add("3")
 e.add("+")
+e.add("^")
+e.add("4")
 
 e.print_tree()
 
