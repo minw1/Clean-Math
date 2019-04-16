@@ -60,7 +60,7 @@ class Expression:
                     return fw
         return None
 
-    def move_working(self, newPlace, index):
+    def move_working(self, newPlace, index=0):
         self.scrub_working()
         w = Expression("w",[],None)
         w.index = index
@@ -177,30 +177,60 @@ class Expression:
                 workingNode.parent.op = added
                 workingNode.index += 1
         elif added in binOps:
-            YLPAC = workingNode.youngestLPAC(workingNode,added)
-            treeflip = False
-            if(YLPAC == self):
-                treeflip = True              
-            if treeflip:
-                self.scrub_working()
-                top = Expression(added,[],None)
-                second = Expression("e",[],None)
-                w = Expression("w",[],None)
-                second.add_child(w)
-                top.add_child(copy.copy(self))
-                top.add_child(second)
-                Expression.changeNodeParents(top.expList,self)
-                self.__dict__ = copy.copy(top.__dict__)
+            parent = workingNode.parent
+            if intcastable(parent.op) and 0<workingNode.index<len(parent.op):
+                print("that case is not yet implemented") #insertion is hard
+            elif workingNode.index == 0:
+                YLPAC = workingNode.youngestLPAC(workingNode,added)
+                treeflip = False
+                if(YLPAC == self):
+                    treeflip = True              
+                if treeflip:
+                    self.scrub_working()
+                    top = Expression(added,[],None)
+                    first = Expression("e",[],None)
+                    w = Expression("w",[],None)
+                    first.add_child(w)
+                    top.add_child(first)
+                    top.add_child(copy.copy(self))
+                    Expression.changeNodeParents(top.expList,self)
+                    self.__dict__ = copy.copy(top.__dict__)
+                else:
+                    YLPAC.scrub_working()
+                    medium = Expression(added,[],None)
+                    first = Expression("e",[],None)
+                    w = Expression("w",[],None)
+                    first.add_child(w)
+                    medium.add_child(first)
+                    medium.add_child(copy.copy(YLPAC))
+                    YLPAC.__dict__= copy.copy(medium.__dict__)
+            elif workingNode.index == 1:
+                YLPAC = workingNode.youngestLPAC(workingNode,added)
+                treeflip = False
+                if(YLPAC == self):
+                    treeflip = True              
+                if treeflip:
+                    self.scrub_working()
+                    top = Expression(added,[],None)
+                    second = Expression("e",[],None)
+                    w = Expression("w",[],None)
+                    second.add_child(w)
+                    top.add_child(copy.copy(self))
+                    top.add_child(second)
+                    Expression.changeNodeParents(top.expList,self)
+                    self.__dict__ = copy.copy(top.__dict__)
+                else:
+                    YLPAC.scrub_working()
+                    medium = Expression(added,[],None)
+                    second = Expression("e",[],None)
+                    w = Expression("w",[],None)
+                    second.add_child(w)
+                    medium.add_child(copy.copy(YLPAC))
+                    medium.add_child(second)
+                    YLPAC.__dict__= copy.copy(medium.__dict__)
             else:
-                YLPAC.scrub_working()
-                medium = Expression(added,[],None)
-                second = Expression("e",[],None)
-                w = Expression("w",[],None)
-                second.add_child(w)
-                medium.add_child(copy.copy(YLPAC))
-                medium.add_child(second)
-                medium.parent = YLPAC.parent
-                YLPAC.__dict__= copy.copy(medium.__dict__)
+                print("i don't think this should happen")
+
         else:
             print("that case is not yet supported")
 
@@ -210,9 +240,13 @@ class Expression:
 e =  Expression()
 e.add("*")
 e.add("3")
+e.add("2")
 e.add("+")
 e.add("^")
 e.add("4")
-
+thirtytwo = e.expList[0].expList[1]
+e.move_working(thirtytwo,1)
+e.add("1")
 e.print_tree()
-
+e.backspace()
+e.print_tree()
