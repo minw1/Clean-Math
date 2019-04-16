@@ -6,7 +6,7 @@ import os
 import sys
 import gridOps as go
 from shutil import copyfile
-import plyParser as pp
+#import plyParser as pp
 
 import pygame
 pygame.freetype.init()

@@ -82,7 +82,7 @@ class Expression:
         currentNode = self
         currentNode.detach_child("w")
         for node in currentNode.expList:
-            node.detach_child("w")
+            node.scrub_working()
 
 
     def youngestLPAC(self,node,thisop):#child of youngest lower precedence ancestor
@@ -117,29 +117,34 @@ class Expression:
     def leftmost(node):
         if len(node.expList) < 2: #can't go left if there is only down
             return node
-        return leftmost(node.expList[0])
+        return Expression.leftmost(node.expList[0])
+    
     def is_leftnode(node):
-        if node.parent = None:
+        if node.parent == None:
             return None
         return True if node.parent.expList.index(node)==0 else False
+    
     def first_rightward_ancestor(node):
-        if node.parent = None:
+        if node.parent == None:
             return None
-        if not is_leftnode(node):
+        if not Expression.is_leftnode(node):
             return node.parent
-        return first_rightward_ancestor(node.parent)
+        return Expression.first_rightward_ancestor(node.parent)
                 
     def to_left(self):
         w = self.find_working()
         working = w.parent
-        lm = leftmost(working)
+        lm = Expression.leftmost(working)
 
-        if leftmost(self) = w:
+        if Expression.leftmost(self) == w:
             return working
         elif lm == working:
-            return first_rightward_ancestor(working)
+            return Expression.first_rightward_ancestor(working)
         else:
             return lm
+
+    def shift_left(self):
+        self.move_working(self.to_left(),1)
 
     def add(self,added):
         workingNode = self.find_working()
@@ -166,7 +171,7 @@ class Expression:
         elif intcastable(workingNode.parent.op) and added in digits:
                 number = workingNode.parent.op
                 before, after = number[:workingNode.index],number[workingNode.index:]
-                number = before+added+after
+                workingNode.parent.op = before+added+after
                 workingNode.index += 1
         elif workingNode.parent.op == "e" and added in digits:
                 workingNode.parent.op = added
@@ -194,6 +199,7 @@ class Expression:
                 second.add_child(w)
                 medium.add_child(copy.copy(YLPAC))
                 medium.add_child(second)
+                medium.parent = YLPAC.parent
                 YLPAC.__dict__= copy.copy(medium.__dict__)
         else:
             print("that case is not yet supported")
