@@ -12,7 +12,7 @@ import gridOps as go
 import time
 from copy import deepcopy
 from settings import selectedcell
-import expression as xp
+#import expression as xp
 
 # Initialize the game engine
 pygame.init()
