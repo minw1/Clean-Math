@@ -2,6 +2,7 @@
 
 import expression as xp
 import operation as op
+import re
 import expToSurface
 import pygame
 
@@ -10,7 +11,7 @@ def mkstr_plus(opList):
 	if len(opList) != 2:
 		opStr = "ERROR"
 	else:
-		opStr = opList[0].getString + "+" + opList[1].getString
+		opStr = opList[0].getString() + "+" + opList[1].getString()
 	return opStr
 
 def mkstr_minus(opList):
@@ -18,7 +19,7 @@ def mkstr_minus(opList):
 	if len(opList) != 2:
 		opStr = "ERROR"
 	else:
-		opStr = opList[0].getString + "-" + opList[1].getString
+		opStr = opList[0].getString() + "-" + opList[1].getString()
 	return opStr
 	
 def mkstr_astrtimes(opList):
@@ -26,15 +27,15 @@ def mkstr_astrtimes(opList):
 	if len(opList) != 2:
 		opStr = "ERROR"
 	else:
-		opStr = opList[0].getString + "*" + opList[1].getString
+		opStr = opList[0].getString() + "*" + opList[1].getString()
 	return opStr
-	
+
 def mkstr_slashdiv(opList):
 	opStr = ""
 	if len(opList) != 2:
 		opStr = "ERROR"
 	else:
-		opStr = opList[0].getString + "/" + opList[1].getString
+		opStr = opList[0].getString() + "/" + opList[1].getString()
 	return opStr
 	
 def mkstr_caretpow(opList):
@@ -42,7 +43,7 @@ def mkstr_caretpow(opList):
 	if len(opList) != 2:
 		opStr = "ERROR"
 	else:
-		opStr = opList[0].getString + "^" + opList[1].getString
+		opStr = opList[0].getString() + "^" + opList[1].getString()
 	return opStr
 
 
@@ -58,7 +59,7 @@ POW_OP = op.Operator('^', mkstr_caretpow)
 ERR_OP = op.Operator("ERROR", mkstr_error)
 
 tokens = (
-    'NAME','NUMBER',
+    'NAME', 'VAR', 'NUMBER',
     '1L1R_OP_L0', '1L1R_OP_L1', '1L1R_OP_R2', 'EQUALS',
     'LPAREN','RPAREN','LBRACK','RBRACK'
     )
@@ -70,6 +71,7 @@ t_RPAREN  = r'\)'
 t_LBRACK  = r'\{'
 t_RBRACK  = r'\}'
 t_NAME    = r'[a-zA-Z_][a-zA-Z0-9_]*'
+t_VAR	  = r'[a-zA-Z]'
 
 def t_1L1R_OP_L0(t):
 	r'\+|-'
@@ -83,9 +85,9 @@ def t_1L1R_OP_L0(t):
 
 def t_1L1R_OP_L1(t):
 	r'\*|/'
-	if t.value == '*':
+	if t.value == '*' or t.value == '':
 		t.value = MUL_OP
-	elif t.value = '/':
+	elif t.value == '/':
 		t.value = DIV_OP
 	else:
 		t.value = ERR_OP
@@ -93,7 +95,7 @@ def t_1L1R_OP_L1(t):
 
 def t_1L1R_OP_R2(t):
 	r'\^'
-	if t.value = '^':
+	if t.value == '^':
 		t.value = POW_OP
 	else:
 		t.value = ERR_OP
@@ -130,13 +132,6 @@ lexer = lex.lex()
 
 # Parsing rules
 
-precedence = (
-    ('left','PLUS','MINUS'),
-    ('left','TIMES','DIVIDE'),
-    ('right','POWER'),
-    ('right','UMINUS'),
-    )
-
 # dictionary of names
 names = { }
 
@@ -144,26 +139,56 @@ def p_statement_assign(p):
     'statement : NAME EQUALS exp0'
     names[p[1]] = p[3]
 
-resultingExpression = None
-
-def p_statement_expr(p):
+def p_statement_exp0(p):
     'statement : exp0'
     p[0] = p[1]
 
 def p_exp0_exp1(p):
-	'exp0: exp1'
+	'exp0 : exp1'
 	p[0] = p[1]
 
 def p_exp1_exp2(p):
-	'exp1: exp2'
+	'exp1 : exp2'
 	p[0] = p[1]	
 
-def p_expression_number(t):
-    'expression : NUMBER'
-    t[0] = t[1]
+def p_exp2_exp3(p):
+	'exp2 : exp3'
+	p[0] = p[1]	
 
+def p_exp3_parens(p):
+    'exp3 : LPAREN exp0 RPAREN'
+    p[0] = p[2]
+
+def p_exp3_number(p):
+    'exp3 : NUMBER'
+    p[0] = p[1]
+   
+def p_empty(p):
+     'empty :'
+     pass
+
+def p_exp3_empty(p):
+    'exp3 : empty'
+    p[0] = xp.NoOpExpression(" ")
+
+def p_exp0_exp0ops(p):
+    'exp0 : exp0 1L1R_OP_L0 exp1'
+    expList = [p[1], p[3]]
+    p[0] = xp.Expression(p[2], expList)
+
+def p_exp1_exp1ops(p):
+    'exp1 : exp1 1L1R_OP_L1 exp2'
+    expList = [p[1], p[3]]
+    p[0] = xp.Expression(p[2], expList)
+
+def p_exp1_exp2ops(p):
+    'exp2 : exp3 1L1R_OP_R2 exp2'
+    expList = [p[1], p[3]]
+    p[0] = xp.Expression(p[2], expList)
+
+#Not sure what this does
 def p_expression_name(t):
-    'expression : NAME'
+    'exp0 : NAME'
     try:
         t[0] = names[t[1]]
     except LookupError:
@@ -180,14 +205,21 @@ def p_error(t):
 import ply.yacc as yacc
 parser = yacc.yacc()
 
+def process_string(inputStr):
+    outputStr = inputStr
+    outputStr = re.sub('(?<=\w|\))(?=\()|(?<=\))(?=\w)|(?<=\d)(?=[a-zA-Z])|(?<=[a-zA-Z])(?=\d)', '*', outputStr)
+    return outputStr
+
 error=False
 def get_exp(inputStr):
     global error
     error=False
-    parser.parse(inputStr)
+    inputStr = process_string(inputStr)
+    resultingExpression = parser.parse(inputStr)
     if error:
         raise ValueError("Expression could not parse correctly.")
     else:
-        string = resultingExpression[1]
-        Surface = expToSurface.smartSurface(string)
-        return Surface.surface
+        return resultingExpression
+        #string = resultingExpression.getString()
+        #Surface = expToSurface.smartSurface(string)
+        #return Surface.surface

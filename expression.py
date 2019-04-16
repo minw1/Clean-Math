@@ -1,6 +1,6 @@
-import wolframalpha
 import operation as opn
 import numpy as np
+import wolframalpha
 
 APP_ID = "8T8YA5-3V337TXULH"
 client = wolframalpha.Client(APP_ID)
@@ -21,14 +21,14 @@ class Expression:
       
     #Gets string representation of expression
     def getString(self):
-        returnString = self.op.makeStr(expList)
+        returnString = self.op.makeStr(self.expList)
         if self.parens:
             returnString = "(" + returnString + ")"
         return returnString
 
     #Evaluates expression
     def eval(self):
-        expString = getString(self)
+        expString = self.getString()
         res = client.query(expString) #Gets result from WolframAlpha
         return next(res.results).text
 
@@ -55,3 +55,4 @@ class NoOpExpression(Expression):
         return self.strRep
     def __repr__(self):
         return self.strRep
+
