@@ -7,7 +7,7 @@ client = wolframalpha.Client(APP_ID)
 
 class Expression:
     #Initializer for composite expression
-    def __init__(self, op, expList, parens=False):
+    def __init__(self, op, expList, parens=False, cursor=False, cursor_idx=None):
         '''
         Initializes a composite expression
         Parameters:
@@ -18,6 +18,8 @@ class Expression:
         self.expList = expList #Stores expressions that this expression comprises
         self.op = op
         self.parens = parens
+        self.cursor = cursor
+        self.cursor_idx = cursor_idx
       
     #Gets string representation of expression
     def getString(self):
@@ -36,23 +38,32 @@ class Expression:
     def addParens(self):
         self.parens = True
         return self
+	
+	#Adds cursor and index
+    def addCursor(self, idx):
+        self.cursor = True
+        self.cursor_idx = idx
 
     def __repr__(self):
         return repr(self.op)+' of ('+') and ('.join([repr(k) for k in self.expList])+')'
 
 class NoOpExpression(Expression):
     #Initializer for a no-operator expression
-    def __init__(self, strRep):
+    def __init__(self, strRep, cursor=False, cursor_idx=None):
         '''
         Parameters:
             self: Object being initialized
             strRep: String representation of expression.
             '''
         self.strRep = strRep
+        self.cursor = cursor
+        self.cursor_idx = cursor_idx
 
-    #Get string representation of expression
-    def getString(self):
-        return self.strRep
+	#Adds cursor and index
+    def addCursor(self, idx):
+        self.cursor = True
+        self.cursor_idx = idx
+		
     def __repr__(self):
         return self.strRep
 

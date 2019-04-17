@@ -46,7 +46,6 @@ def mkstr_caretpow(opList):
 		opStr = opList[0].getString() + "^" + opList[1].getString()
 	return opStr
 
-
 def mkstr_error(opList):
 	return "ERROR"
 	
@@ -61,7 +60,7 @@ ERR_OP = op.Operator("ERROR", mkstr_error)
 tokens = (
     'NAME', 'VAR', 'NUMBER',
     '1L1R_OP_L0', '1L1R_OP_L1', '1L1R_OP_R2', 'EQUALS',
-    'LPAREN','RPAREN','LBRACK','RBRACK'
+    'LPAREN','RPAREN','LBRACK','RBRACK', 'NUM_CURSOR', 'VAR_CURSOR'
     )
 
 # Tokens
@@ -71,7 +70,6 @@ t_RPAREN  = r'\)'
 t_LBRACK  = r'\{'
 t_RBRACK  = r'\}'
 t_NAME    = r'[a-zA-Z_][a-zA-Z0-9_]*'
-t_VAR	  = r'[a-zA-Z]'
 
 def t_1L1R_OP_L0(t):
 	r'\+|-'
@@ -100,6 +98,26 @@ def t_1L1R_OP_R2(t):
 	else:
 		t.value = ERR_OP
 	return t
+	
+def t_NUM_CURSOR(t):
+	r'(\d+\|\d*)|(\d*\|\d+)'
+	numString = t.value
+	cursor_idx = numString.index('|')
+	numString = numString.replace('|', '')
+	t.value = xp.NoOpExpression(numString, True, cursor_idx)
+	return t
+	
+def t_VAR_CURSOR(t):
+	r'([a-zA-Z]\|)|(\|[a-zA-Z])'
+	varString = t.value
+	cursor_idx = varString.index('|')
+	varString = varString.replace('|', '')
+	t.value = xp.NoOpExpression(varString, True, cursor_idx)
+	return t
+	
+def t_VAR(t):
+	r'[a-zA-Z]'
+	t.value = xp.NoOpExpression(t.value)
 	
 def t_NUMBER(t):
     r'\d+'
@@ -161,6 +179,18 @@ def p_exp3_parens(p):
 
 def p_exp3_number(p):
     'exp3 : NUMBER'
+    p[0] = p[1]
+
+def p_exp3_cnumber(p):
+    'exp3 : NUM_CURSOR'
+    p[0] = p[1]
+
+def p_exp3_cvar(p):
+    'exp3 : VAR_CURSOR'
+    p[0] = p[1]
+
+def p_exp3_var(p):
+    'exp3 : VAR'
     p[0] = p[1]
    
 def p_empty(p):
