@@ -6,7 +6,7 @@ import os
 import sys
 import gridOps as go
 from shutil import copyfile
-import plyParser as pp
+import plyParser as pprs
 
 import pygame
 pygame.freetype.init()
@@ -250,7 +250,9 @@ class PanelThread (threading.Thread):
                     if len(expression)==2:
                             try:
                                     exp, loc = expression
-                                    surface = pp.get_exp(exp)
+                                    expressionExp = pprs.get_exp(exp)
+                                    
+                                    surface = xts.get_
                                     pygame.image.save(surface, "TestImages/"+loc)
                                     ok("The expression was successfully parsed and saved at "+loc+".")
                             except:
