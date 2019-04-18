@@ -38,7 +38,6 @@ class smartSurface:
         iFont = IFONTS[font_size] if font_size in IFONTS else pygame.freetype.Font(LATEX_iFONT_PATH, font_size)
         IFONTS[font_size]=iFont
         self.iFont = iFont
-        print(exp)
         if type(exp) == xp.NoOpExpression:
             if exp.strRep == "|":
                 middleColor = [(st.fontColor[i]+st.backgroundColor[i])//2 for i in range(3)]
