@@ -23,6 +23,8 @@ class Expression:
       
     #Gets string representation of expression
     def getString(self):
+        if type(self)==NoOpExpression:
+            return self.strRep
         returnString = self.op.makeStr(self.expList)
         if self.parens:
             returnString = "(" + returnString + ")"
@@ -55,6 +57,7 @@ class NoOpExpression(Expression):
             self: Object being initialized
             strRep: String representation of expression.
             '''
+        self.op = opn.Operator('',lambda x:''.join(x)) #null operator
         self.strRep = strRep
         self.cursor = cursor
         self.cursor_idx = cursor_idx

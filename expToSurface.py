@@ -18,6 +18,9 @@ FRAC_ADJUSTMENT = 0.3
 FRAC_VERTICAL_TOLERANCE = 0.4
 VINCULUM_SIZE = 0.05
 
+FONTS={}
+IFONTS={}
+
 class smartSurface:
 
     simpleOps = {'+','-','*'} 
@@ -29,13 +32,14 @@ class smartSurface:
         self.hitboxes = [] #(rect, self.exp, op_depth)
         font_size = makeSmaller(DEFAULT_FONT_SIZE, script_depth+max(frac_depth-1,0))
         self.font_size = font_size
-        font = pygame.freetype.Font(LATEX_FONT_PATH, font_size)
+        font = FONTS[font_size] if font_size in FONTS else pygame.freetype.Font(LATEX_FONT_PATH, font_size)
+        FONTS[font_size]=font
         self.font = font
-        iFont = pygame.freetype.Font(LATEX_iFONT_PATH, font_size)
+        iFont = IFONTS[font_size] if font_size in IFONTS else pygame.freetype.Font(LATEX_iFONT_PATH, font_size)
+        IFONTS[font_size]=iFont
         self.iFont = iFont
-        
         if type(exp) == xp.NoOpExpression:
-            if exp.strRep == "\cursor":
+            if exp.strRep == "|":
                 middleColor = [(st.fontColor[i]+st.backgroundColor[i])//2 for i in range(3)]
                 self.surface,rect = font.render('|',middleColor,st.backgroundColor)
                 self.hitboxes.append((self.surface.get_rect(),self,op_depth))
@@ -44,7 +48,6 @@ class smartSurface:
                 self.hitboxes.append((self.surface.get_rect(),self,op_depth))
             self.yline = self.surface.get_rect().height//2
         elif exp.op.strRep == "()":
-
             containedExp = exp.expList[0]
             firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
             width, height = firstSurface.get_size()
@@ -109,7 +112,7 @@ class smartSurface:
             self.surface.blit(firstSurface.surface, (0,secondYline))
             self.surface.blit(secondSurface.surface, (firstWidth,0))
             self.hitboxes = firstSurface.translateHitboxes([0,secondYline],1) + secondSurface.translateHitboxes([firstWidth,0],1)
-        elif exp.op.strRep == "frac":
+        elif exp.op.strRep == "frac" or exp.op.strRep == "/":
 
             numeratorExp = exp.expList[0]
             denominatorExp = exp.expList[1]

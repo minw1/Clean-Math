@@ -17,4 +17,11 @@ class Operator:
         return opString
     def __repr__(self):
         return self.strRep
+    def __eq__(self,other):
+        if type(other)==Operator:
+            return self.strRep == other.StrRep
+        else:
+            return self.strRep == other
+    def __hash__(self):
+        return hash(self.strRep)
 
