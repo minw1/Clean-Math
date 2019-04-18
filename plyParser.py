@@ -120,6 +120,7 @@ def t_VAR_CURSOR(t):
 def t_VAR(t):
 	r'[a-zA-Z]'
 	t.value = xp.NoOpExpression(t.value)
+	return t
 	
 def t_NUMBER(t):
     r'\d+'
