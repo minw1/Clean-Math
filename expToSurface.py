@@ -48,7 +48,6 @@ class smartSurface:
                 self.hitboxes.append((self.surface.get_rect(),self,op_depth))
             self.yline = self.surface.get_rect().height//2
         elif exp.op.strRep == "()":
-
             containedExp = exp.expList[0]
             firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
             width, height = firstSurface.get_size()
@@ -113,7 +112,7 @@ class smartSurface:
             self.surface.blit(firstSurface.surface, (0,secondYline))
             self.surface.blit(secondSurface.surface, (firstWidth,0))
             self.hitboxes = firstSurface.translateHitboxes([0,secondYline],1) + secondSurface.translateHitboxes([firstWidth,0],1)
-        elif exp.op.strRep == "frac":
+        elif exp.op.strRep == "frac" or exp.op.strRep == "/":
 
             numeratorExp = exp.expList[0]
             denominatorExp = exp.expList[1]
