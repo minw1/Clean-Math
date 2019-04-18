@@ -58,20 +58,22 @@ POW_OP = op.Operator('^', mkstr_caretpow)
 ERR_OP = op.Operator("ERROR", mkstr_error)
 
 tokens = (
-    'NAME', 'VAR', 'NUMBER',
-    '1L1R_OP_L0', '1L1R_OP_L1', '1L1R_OP_R2', 'EQUALS',
-    'LPAREN','RPAREN','LBRACK','RBRACK', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'PRN_CURSOR'
+    'VAR', 'NUMBER',
+    '1L1R_OP_L0', '1L1R_OP_L1', '1L1R_OP_R2',
+    'LPAREN','RPAREN','LBRACK','RBRACK', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'LPRN_CURSOR', 'RPRN_CURSOR'
     )
 
 # Tokens
-t_EQUALS  = r'='
+#t_EQUALS  = r'='
 t_LPAREN  = r'\('
 t_RPAREN  = r'\)'
 t_LBRACK  = r'\{'
 t_RBRACK  = r'\}'
-t_NAME    = r'[a-zA-Z_][a-zA-Z0-9_]*'
-t_UNF_CURSOR  = r'((?<=[^a-zA-Z\d])|(?<=^))\|(?=[^a-zA-Z\d\(]|$)'
-t_PRN_CURSOR = r'\|(?=\()|(?<=\))\|'
+#t_NAME    = r'[a-zA-Z_][a-zA-Z0-9_]*'
+t_UNF_CURSOR  = r'((?<=[^a-zA-Z\d\)])|(?<=^))\|(?=[^a-zA-Z\d\(]|$)'
+#t_PRN_CURSOR = r'\|(?=\()|(?<=\))\|'
+t_LPRN_CURSOR = r'\|(?=\()'
+t_RPRN_CURSOR = r'(?<=\))\|'
 
 def t_1L1R_OP_L0(t):
 	r'\+|-'
@@ -154,11 +156,11 @@ lexer = lex.lex()
 # Parsing rules
 
 # dictionary of names
-names = { }
+#names = { }
 
-def p_statement_assign(p):
-    'statement : NAME EQUALS exp0'
-    names[p[1]] = p[3]
+#def p_statement_assign(p):
+#    'statement : NAME EQUALS exp0'
+#    names[p[1]] = p[3]
 
 def p_statement_exp0(p):
     'statement : exp0'
@@ -181,15 +183,14 @@ def p_exp3_parens(p):
     p[0] = p[2]
 
 def p_exp3_clparens(p):
-    'exp3 : PRN_CURSOR LPAREN exp0 RPAREN'
+    'exp3 : LPRN_CURSOR LPAREN exp0 RPAREN'
     p[3].addCursor(0)
     p[0] = p[3]
 
 def p_exp3_crparens(p):
-    'exp3 : LPAREN exp0 RPAREN PRN_CURSOR'
+    'exp3 : LPAREN exp0 RPAREN RPRN_CURSOR'
     p[2].addCursor(-1)
     p[0] = p[2]
-
 
 def p_exp3_number(p):
     'exp3 : NUMBER'
@@ -235,15 +236,15 @@ def p_exp1_exp2ops(p):
     p[0] = xp.Expression(p[2], expList)
 
 #Not sure what this does
-def p_expression_name(t):
-    'exp0 : NAME'
-    try:
-        t[0] = names[t[1]]
-    except LookupError:
-        global error
-        error=True
-        print("Undefined name '%s'" % t[1])
-        t[0] = 0
+#def p_expression_name(t):
+#    'exp0 : NAME'
+#    try:
+#        t[0] = names[t[1]]
+#    except LookupError:
+#        global error
+#        error=True
+#        print("Undefined name '%s'" % t[1])
+#        t[0] = 0
 
 def p_error(t):
     global error
