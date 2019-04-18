@@ -124,7 +124,7 @@ def t_VAR(t):
 def t_NUMBER(t):
     r'\d+'
     try:
-        t.value = float(t.value)
+        t.value = int(t.value)
         t.value = xp.NoOpExpression(str(t.value))
     except ValueError:
         global error

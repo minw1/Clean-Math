@@ -18,6 +18,9 @@ FRAC_ADJUSTMENT = 0.3
 FRAC_VERTICAL_TOLERANCE = 0.4
 VINCULUM_SIZE = 0.05
 
+FONTS={}
+IFONTS={}
+
 class smartSurface:
 
     simpleOps = {'+','-','*'} 
@@ -29,13 +32,15 @@ class smartSurface:
         self.hitboxes = [] #(rect, self.exp, op_depth)
         font_size = makeSmaller(DEFAULT_FONT_SIZE, script_depth+max(frac_depth-1,0))
         self.font_size = font_size
-        font = pygame.freetype.Font(LATEX_FONT_PATH, font_size)
+        font = FONTS[font_size] if font_size in FONTS else pygame.freetype.Font(LATEX_FONT_PATH, font_size)
+        FONTS[font_size]=font
         self.font = font
-        iFont = pygame.freetype.Font(LATEX_iFONT_PATH, font_size)
+        iFont = IFONTS[font_size] if font_size in IFONTS else pygame.freetype.Font(LATEX_iFONT_PATH, font_size)
+        IFONTS[font_size]=iFont
         self.iFont = iFont
-        
+        print(exp)
         if type(exp) == xp.NoOpExpression:
-            if exp.strRep == "\cursor":
+            if exp.strRep == "|":
                 middleColor = [(st.fontColor[i]+st.backgroundColor[i])//2 for i in range(3)]
                 self.surface,rect = font.render('|',middleColor,st.backgroundColor)
                 self.hitboxes.append((self.surface.get_rect(),self,op_depth))

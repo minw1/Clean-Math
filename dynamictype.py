@@ -16,6 +16,7 @@ import expression as xp
 import expToSurface as xts
 import plyParser as pprs
 
+
 # Initialize the game engine
 pygame.init()
 pygame.mixer.init()
@@ -73,13 +74,12 @@ timeDown = 0
 text=''
 index=0
 
+import psutil
  
 while st.programIsRunning:
+    clock.tick(20)
     st.lock.acquire()
     for event in pygame.event.get(): # User did something
-
-
-        contOrCommand = (keys[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL)
 
         if event.type == pygame.QUIT: # If user clicked close
         	showmExitMsg = True
@@ -97,13 +97,16 @@ while st.programIsRunning:
                 index+=1
             elif event.unicode in allowed_symbols:# which is one of the digits
                 text=text[:index]+event.unicode+text[index:]
+                index+=1
             elif event.key == pygame.K_LEFT:
                 index=max(index-1,0)
             elif event.key == pygame.K_RIGHT:
                 index=min(index+1,len(text))
     string = text[:index]+'|'+text[index:]
-
     expression = pprs.get_exp(string)
+    Surface = xts.smartSurface(expression)
+    screen.fill((255,255,255))
+    screen.blit(Surface.surface,(100,100))
     
     
     
