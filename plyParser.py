@@ -60,7 +60,7 @@ ERR_OP = op.Operator("ERROR", mkstr_error)
 tokens = (
     'NAME', 'VAR', 'NUMBER',
     '1L1R_OP_L0', '1L1R_OP_L1', '1L1R_OP_R2', 'EQUALS',
-    'LPAREN','RPAREN','LBRACK','RBRACK', 'NUM_CURSOR', 'VAR_CURSOR'
+    'LPAREN','RPAREN','LBRACK','RBRACK', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'PRN_CURSOR'
     )
 
 # Tokens
@@ -70,6 +70,8 @@ t_RPAREN  = r'\)'
 t_LBRACK  = r'\{'
 t_RBRACK  = r'\}'
 t_NAME    = r'[a-zA-Z_][a-zA-Z0-9_]*'
+t_UNF_CURSOR  = r'((?<=[^a-zA-Z\d])|(?<=^))\|(?=[^a-zA-Z\d\(]|$)'
+t_PRN_CURSOR = r'\|(?=\()|(?<=\))\|'
 
 def t_1L1R_OP_L0(t):
 	r'\+|-'
@@ -177,6 +179,17 @@ def p_exp3_parens(p):
     'exp3 : LPAREN exp0 RPAREN'
     p[0] = p[2]
 
+def p_exp3_clparens(p):
+    'exp3 : PRN_CURSOR LPAREN exp0 RPAREN'
+    p[3].addCursor(0)
+    p[0] = p[3]
+
+def p_exp3_crparens(p):
+    'exp3 : LPAREN exp0 RPAREN PRN_CURSOR'
+    p[2].addCursor(-1)
+    p[0] = p[2]
+
+
 def p_exp3_number(p):
     'exp3 : NUMBER'
     p[0] = p[1]
@@ -192,14 +205,18 @@ def p_exp3_cvar(p):
 def p_exp3_var(p):
     'exp3 : VAR'
     p[0] = p[1]
-   
-def p_empty(p):
-     'empty :'
-     pass
 
 def p_exp3_empty(p):
     'exp3 : empty'
     p[0] = xp.NoOpExpression(" ")
+
+def p_exp3_cempty(p):
+	'exp3 : UNF_CURSOR empty'
+	p[0] = xp.NoOpExpression(" ", True, 0)
+
+def p_empty(p):
+     'empty :'
+     pass
 
 def p_exp0_exp0ops(p):
     'exp0 : exp0 1L1R_OP_L0 exp1'
@@ -237,7 +254,7 @@ parser = yacc.yacc()
 
 def process_string(inputStr):
     outputStr = inputStr
-    outputStr = re.sub('(?<=\w|\))(?=\()|(?<=\))(?=\w)|(?<=\d)(?=[a-zA-Z])|(?<=[a-zA-Z])(?=\d)', '*', outputStr)
+    outputStr = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', outputStr)
     return outputStr
 
 error=False
