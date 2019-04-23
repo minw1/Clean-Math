@@ -70,6 +70,9 @@ Surface=None
 while st.programIsRunning:
     clock.tick(20)
     st.lock.acquire()
+
+
+
     keys = pygame.key.get_pressed();#returns dict with keys, pygame keys and values as bools if pressed
     (mousePX, mousePY) = pygame.mouse.get_pos()
     (button1,button2,button3) = pygame.mouse.get_pressed()
@@ -115,12 +118,27 @@ while st.programIsRunning:
             
     string = text[:index]+'|'+text[index:]
     expression = pprs.get_exp(string)
+    expression.assign_parents()
     Surface = xts.smartSurface(expression)
     screen.fill((255,255,255))
-    pygame.draw.rect(screen,st.ORANGE,selectedRectangle)
+    #pygame.draw.rect(screen,st.ORANGE,selectedRectangle)
+
+
+    selRectInEQSpace = selectedRectangle.move(-100,-100)
+    rselect = Surface.selectFromRect(selRectInEQSpace)
+
+    for hb in Surface.hitboxes:
+        [irect,orect], expression, op_depth = hb
+        if expression == rselect:
+            pygame.draw.rect(screen,st.ORANGE,orect.move(100,100))
+
     screen.blit(Surface.surface,(100,100))
     
-    
+
+
+
+
+
     
     st.lock.release()
 
