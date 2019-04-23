@@ -1,6 +1,7 @@
 import expression as xp
 import settings as st
 import pygame
+import xml.etree.ElementTree as ET
 
 LATEX_FONT_PATH = st.font_locator("cmu.ttf")
 LATEX_iFONT_PATH = st.font_locator("cmu_i.ttf")
@@ -20,6 +21,40 @@ VINCULUM_SIZE = 0.05
 
 FONTS={}
 IFONTS={}
+
+def is_intable(string):
+    try:
+        i=int(string)
+        return True
+    except ValueError:
+        return False
+
+fontXML = ET.parse('Resources/Fonts/cmu.ttx')
+iFontXML = ET.parse('Resources/Fonts/cmu_i.ttx')
+
+def get_bounds(xml):
+    root = xml.getroot()
+    head = root.find('head')
+    xMin = int(head.find('xMin').get('value'))
+    xMax = int(head.find('xMax').get('value'))
+    yMin = int(head.find('yMin').get('value'))
+    yMax = int(head.find('yMax').get('value'))
+    return xMin,xMax,yMin,yMax
+
+def get_height_offset(char,xml):
+    root = xml.getroot()
+
+    #get the character's name
+    hex_val = hex(ord(char))
+    cmap = root.find('cmap').find('cmap_format_4')
+    charnode = [child for child in cmap.getchildren() if child.get('code')==hex_val][0]
+    name = charnode.get('name')
+
+    #find its boundary
+    glyf_font = fontXML.getroot().find('glyf')
+    glyph = [child for child in glyf_font.getchildren() if child.get('name')==name][0]
+    ymin,ymax=int(glyph.get('yMin')),int(glyph.get('yMax'))
+    return (ymax)/(ymax-ymin)
 
 class smartSurface:
 
@@ -44,10 +79,10 @@ class smartSurface:
                 middleColor = [(st.fontColor[i]+st.backgroundColor[i])//2 for i in range(3)]
                 self.surface,rect = font.render('|',middleColor,st.backgroundColor)
                 self.hitboxes.append((self.surface.get_rect(),self.exp,op_depth))
-            else:
+            elif is_intable(exp.strRep):
                 self.surface,rect = font.render(exp.strRep,st.fontColor,st.backgroundColor)
                 self.hitboxes.append((self.surface.get_rect(),self.exp,op_depth))
-            self.yline = self.surface.get_rect().height//2
+                self.yline = self.surface.get_rect().height//2
         elif exp.op.strRep == "()":
             containedExp = exp.expList[0]
             firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
@@ -69,52 +104,6 @@ class smartSurface:
             self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation,1)
             self.hitboxes.append((self.surface.get_rect(),self.exp,op_depth))
             self.yline = endHeight//2
-        elif exp.op.strRep == "(":
-            containedExp = exp.expList[0]
-            firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
-            width, height = firstSurface.get_size()
-            newFontSize=height*SQRT2+round(2*PARENTHESES_ADJUSTMENT*font_size)
-            newFont = pygame.freetype.Font(LATEX_FONT_PATH, newFontSize)
-            openParen, openRect = newFont.render("(",st.fontColor,st.backgroundColor)
-            closeParen, closeRect = newFont.render(")",tuple([(x+255)//2 for x in st.fontColor]),st.backgroundColor)
-            openWidth, openHeight = openParen.get_size()
-            closeWidth, closeHeight = closeParen.get_size()
-            endWidth = openWidth+width+closeWidth
-            endHeight = max(openHeight, height, closeHeight)
-            self.surface = pygame.Surface((endWidth,endHeight))
-            self.surface.fill(st.backgroundColor)
-            self.surface.blit(openParen,(0,(endHeight-openHeight)//2))
-            self.surface.blit(closeParen,(endWidth-closeWidth,(endHeight-closeHeight)//2))
-            expLocation = (openWidth, (endHeight-height)//2)
-            self.surface.blit(firstSurface.surface, expLocation)
-            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation,1)
-            self.yline = endHeight//2
-        elif exp.op.strRep == ")":
-            containedExp = exp.expList[0]
-            firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
-            width, height = firstSurface.get_size()
-            newFontSize=height*SQRT2+round(2*PARENTHESES_ADJUSTMENT*font_size)
-            newFont = pygame.freetype.Font(LATEX_FONT_PATH, newFontSize)
-            openParen, openRect = newFont.render("(",tuple([(x+255)//2 for x in st.fontColor]),st.backgroundColor)
-            closeParen, closeRect = newFont.render(")",st.fontColor,st.backgroundColor)
-            openWidth, openHeight = openParen.get_size()
-            closeWidth, closeHeight = closeParen.get_size()
-            endWidth = openWidth+width+closeWidth
-            endHeight = max(openHeight, height, closeHeight)
-            self.surface = pygame.Surface((endWidth,endHeight))
-            self.surface.fill(st.backgroundColor)
-            self.surface.blit(openParen,(0,(endHeight-openHeight)//2))
-            self.surface.blit(closeParen,(endWidth-closeWidth,(endHeight-closeHeight)//2))
-            expLocation = (openWidth, (endHeight-height)//2)
-            self.surface.blit(firstSurface.surface, expLocation)
-            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation,1)
-            self.yline = endHeight//2
-        
-
-
-
-
-
         elif exp.op.strRep in self.simpleOps:
             firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth, op_depth+1)
             secondSurface = smartSurface(exp.expList[1], frac_depth, script_depth, op_depth+1)
