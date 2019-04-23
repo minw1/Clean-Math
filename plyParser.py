@@ -176,7 +176,7 @@ def t_NUMBER(t):
     return t
 
 # Ignored characters
-#t_ignore = "!@#$%&_{}\\[]:;\"\'?><,."
+t_ignore = " \w"
 
 def t_newline(t):
     r'\n+'
@@ -306,9 +306,20 @@ parser = yacc.yacc()
 
 def process_string(input_str):
     output_str = input_str
-    #Insert implicit multiplication
+	
+    #Remove illegal characters
+    illegal_chars = ['!', '@', '#', '$', '%', '&', '_', '\\', ':', ';', '\"', '\'', '?', '>', '<', ',', '=']
+    idx = 0
+    while idx < len(output_str):
+        if output_str[idx] in illegal_chars:
+            output_str = output_str[:idx] + output_str[idx+1:]
+        else:
+            idx += 1
+	
+	#Insert implicit multiplication
     output_str = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', output_str)
-    #Close unclosed parentheses (with shadow parens)
+    
+	#Close unclosed parentheses (with shadow parens)
     extr_prns = output_str.count("(") - output_str.count(")")
     if extr_prns > 0:
         output_str = output_str + "\u2986"*extr_prns
