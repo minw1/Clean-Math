@@ -26,7 +26,8 @@ class smartSurface:
     simpleOps = {'+','-','*'} 
     spacing = 10
 
-    def __init__(self, exp, frac_depth=0, script_depth=0, op_depth=0): #depth is number of layers into generation we are. 
+    def __init__(self, exp, frac_depth=0, script_depth=0, op_depth=0): #depth is number of layers into generation we are.
+        self.exp = exp
         st.lock.acquire()
         self.surface = None
         self.hitboxes = [] #(rect, self.exp, op_depth)
@@ -42,10 +43,10 @@ class smartSurface:
             if exp.strRep == "|":
                 middleColor = [(st.fontColor[i]+st.backgroundColor[i])//2 for i in range(3)]
                 self.surface,rect = font.render('|',middleColor,st.backgroundColor)
-                self.hitboxes.append((self.surface.get_rect(),self,op_depth))
+                self.hitboxes.append((self.surface.get_rect(),self.exp,op_depth))
             else:
                 self.surface,rect = font.render(exp.strRep,st.fontColor,st.backgroundColor)
-                self.hitboxes.append((self.surface.get_rect(),self,op_depth))
+                self.hitboxes.append((self.surface.get_rect(),self.exp,op_depth))
             self.yline = self.surface.get_rect().height//2
         elif exp.op.strRep == "()":
             containedExp = exp.expList[0]
@@ -66,6 +67,7 @@ class smartSurface:
             expLocation = (openWidth, (endHeight-height)//2)
             self.surface.blit(firstSurface.surface, expLocation)
             self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation,1)
+            self.hitboxes.append((self.surface.get_rect(),self.exp,op_depth))
             self.yline = endHeight//2
         elif exp.op.strRep in self.simpleOps:
             firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth, op_depth+1)
@@ -92,7 +94,7 @@ class smartSurface:
             self.surface.blit(operatorSurface, (firstWidth+self.spacing,finalYline-operatorYline))
 
             self.hitboxes = firstSurface.translateHitboxes([0,finalYline-firstYline],1) + secondSurface.translateHitboxes([finalWidth-secondWidth,finalYline-secondYline],1)
-            self.hitboxes += [(operatorSurface.get_rect().move(firstWidth+self.spacing,finalYline-operatorYline),exp,op_depth)]
+            self.hitboxes.append((self.surface.get_rect(),self.exp,op_depth))
             self.yline = finalYline
 
         elif exp.op.strRep == "^":
@@ -112,6 +114,7 @@ class smartSurface:
             self.surface.blit(firstSurface.surface, (0,secondYline))
             self.surface.blit(secondSurface.surface, (firstWidth,0))
             self.hitboxes = firstSurface.translateHitboxes([0,secondYline],1) + secondSurface.translateHitboxes([firstWidth,0],1)
+            self.hitboxes.append((self.surface.get_rect(),self.exp,op_depth))
         elif exp.op.strRep == "frac" or exp.op.strRep == "/":
 
             numeratorExp = exp.expList[0]
@@ -135,6 +138,7 @@ class smartSurface:
             self.surface.blit(denomSurface.surface, denomLocation)
             pygame.draw.rect(self.surface, st.fontColor, (0,vincHeight,vinculumWidth,vinculumHeight))
             self.hitboxes = self.hitboxes+numSurface.translateHitboxes(numLocation,1)+denomSurface.translateHitboxes(denomLocation,1)
+            self.hitboxes.append((self.surface.get_rect(),self.exp,op_depth))
             self.yline = vincHeight + (vinculumHeight//2)
         elif exp.op.strRep == "{}":
             expression = exp.expList[0]
@@ -153,7 +157,7 @@ class smartSurface:
 
     def get_at_position(self,coordinates):
         best_exp=None
-        best_op_depth=0
+        best_op_depth=-1
         for hb in self.hitboxes:
             rect, expression, op_depth = hb
             if op_depth>best_op_depth and rect.collidepoint(coordinates): #if it's further in and the point is in the rect

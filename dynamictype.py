@@ -75,14 +75,17 @@ text=''
 index=0
 
 import psutil
+
+Surface=None
  
 while st.programIsRunning:
     clock.tick(20)
     st.lock.acquire()
+    keys = pygame.key.get_pressed();#returns dict with keys, pygame keys and values as bools if pressed
     for event in pygame.event.get(): # User did something
 
-        if event.type == pygame.QUIT: # If user clicked close
-        	showmExitMsg = True
+        if event.type == pygame.QUIT: # If user clicked close 
+            pygame.quit()
         if event.type == pygame.VIDEORESIZE:
             # There's some code to add back window content here.
             surface = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
@@ -105,6 +108,13 @@ while st.programIsRunning:
                 index=max(index-1,0)
             elif event.key == pygame.K_RIGHT:
                 index=min(index+1,len(text))
+        if event.type == pygame.MOUSEBUTTONDOWN and (keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]):
+            posx, posy = pygame.mouse.get_pos()
+            x,y=posx-100,posy-100
+            if Surface is not None:
+                expres = Surface.get_at_position((x,y))
+                print('exp high is', expres)
+            
     string = text[:index]+'|'+text[index:]
     expression = pprs.get_exp(string)
     Surface = xts.smartSurface(expression)
