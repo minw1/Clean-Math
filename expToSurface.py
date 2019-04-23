@@ -51,6 +51,8 @@ def get_bounds(xml):
     yMax = int(head.find('yMax').get('value'))
     return xMin,xMax,yMin,yMax
 
+EM_SQUARE = 1400
+
 def get_height_offset(char,xml):
     root = xml.getroot()
 
@@ -60,11 +62,26 @@ def get_height_offset(char,xml):
     charnode = [child for child in cmap.getchildren() if child.get('code')==hex_val][0]
     name = charnode.get('name')
 
+    if name=="space":
+        return 0,EM_SQUARE
+
     #find its boundary
     glyf_font = fontXML.getroot().find('glyf')
     glyph = [child for child in glyf_font.getchildren() if child.get('name')==name][0]
     ymin,ymax=int(glyph.get('yMin')),int(glyph.get('yMax'))
-    return (ymax)/(ymax-ymin)
+    return ymin,ymax
+
+def get_height_offset_str(string,xml):
+    if string=='': return (0,EM_SQUARE)
+    yMins,yMaxs=[],[]
+    for char in string:
+        ymin,ymax=get_height_offset(char,xml)
+        yMins.append(ymin)
+        yMaxs.append(ymax)
+    return min(yMins),max(yMaxs)
+
+def get_altitudes(ymin,ymax,height):
+    return round(height*(-ymin)/(ymax-ymin)),round(height*(EM_SQUARE-ymin)/(ymax-ymin))
 
 class smartSurface:
 
@@ -73,6 +90,7 @@ class smartSurface:
 
     def __init__(self, exp, frac_depth=0, script_depth=0, op_depth=0): #depth is number of layers into generation we are.
         self.exp = exp
+        self.yline = 0
         st.lock.acquire()
         COLORKEY = tinyShift(st.backgroundColor)
         self.surface = None
@@ -86,14 +104,23 @@ class smartSurface:
         IFONTS[font_size]=iFont
         self.iFont = iFont
         if type(exp) == xp.NoOpExpression:
+            is_int = is_intable(exp.strRep)
             if exp.strRep == "|":
                 middleColor = [(st.fontColor[i]+COLORKEY[i])//2 for i in range(3)]
                 self.surface,rect = font.render('|',middleColor,COLORKEY)
                 self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
-            else:
+            elif is_int:
                 self.surface,rect = font.render(exp.strRep,st.fontColor,COLORKEY)
                 self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
-            self.yline = self.surface.get_rect().height//2
+            elif exp.strRep == " ":
+                self.surface,rect = font.render('|',COLORKEY,COLORKEY)
+                self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
+            else:
+                self.surface,rect = iFont.render(exp.strRep,st.fontColor,COLORKEY)
+                self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
+            ymin,ymax=get_height_offset_str(exp.strRep,(fontXML if (is_int or exp.strRep == "|") else iFontXML))
+            minY,maxY = get_altitudes(ymin,ymax,self.surface.get_size()[1])
+            self.yline=(minY+maxY)//2
             self.surface.set_colorkey(COLORKEY)
         elif exp.op.strRep == "()":
             containedExp = exp.expList[0]
@@ -113,7 +140,7 @@ class smartSurface:
             self.surface.blit(closeParen,(endWidth-closeWidth,(endHeight-closeHeight)//2))
             expLocation = (openWidth, (endHeight-height)//2)
             self.surface.blit(firstSurface.surface, expLocation)
-            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation,1)
+            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation)
             self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
             self.yline = endHeight//2            
         elif exp.op.strRep == "(":
@@ -134,7 +161,7 @@ class smartSurface:
             self.surface.blit(closeParen,(endWidth-closeWidth,(endHeight-closeHeight)//2))
             expLocation = (openWidth, (endHeight-height)//2)
             self.surface.blit(firstSurface.surface, expLocation)
-            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation,1)
+            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation)
             self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
             self.yline = endHeight//2
             self.surface.set_colorkey(COLORKEY)
@@ -156,7 +183,7 @@ class smartSurface:
             self.surface.blit(closeParen,(endWidth-closeWidth,(endHeight-closeHeight)//2))
             expLocation = (openWidth, (endHeight-height)//2)
             self.surface.blit(firstSurface.surface, expLocation)
-            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation,1)
+            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation)
             self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
             self.yline = endHeight//2
             self.surface.set_colorkey(COLORKEY)
@@ -168,28 +195,33 @@ class smartSurface:
             secondWidth, secondHeight = secondSurface.get_size()
             firstYline, secondYline = firstSurface.yline,secondSurface.yline
 
-            character = '.' if exp.op.strRep == '*' else exp.op.strRep # we want multiplication to appear as cdots
+            character = u'\u00B7' if exp.op.strRep == '*' else exp.op.strRep # we want multiplication to appear as cdots
             operatorSurface, operatorRect = font.render(character,st.fontColor,COLORKEY)
             operatorWidth, operatorHeight = operatorSurface.get_size()
-            operatorYline = operatorHeight//2
 
+            firstAbove = firstHeight-firstYline
+            secondAbove = secondHeight-secondYline
+            ymin,ymax = get_height_offset(character,fontXML)
+            opmin,opmax = get_altitudes(ymin,ymax,operatorHeight)
+            operatorYline = (opmin+opmax)//2
+            operatorAbove = operatorHeight-operatorYline
+
+            finalAbove = max(firstAbove, secondAbove, operatorAbove)
+            finalBelow = max(firstYline, secondYline, operatorYline)
+            finalHeight = finalAbove+finalBelow
             finalWidth = firstWidth+operatorWidth+secondWidth+2*self.spacing
-            finalYline = max(firstYline,secondYline)
-            finalHeight = max(firstYline,secondYline) + max(firstHeight-firstYline,secondHeight-secondYline)
-
 
             self.surface = pygame.Surface((finalWidth, finalHeight))
             self.surface.fill(COLORKEY)
-            self.surface.blit(firstSurface.surface, (0, finalYline - firstYline))
-            self.surface.blit(secondSurface.surface, (finalWidth-secondWidth,finalYline - secondYline))
-            self.surface.blit(operatorSurface, (firstWidth+self.spacing,finalYline-operatorYline))
+            self.surface.blit(firstSurface.surface, (0,finalAbove-firstAbove))
+            self.surface.blit(operatorSurface, (firstWidth+self.spacing, finalAbove-operatorAbove))
+            self.surface.blit(secondSurface.surface, (finalWidth-secondWidth,finalAbove-secondAbove))
 
-            operatorLoc = pygame.Rect(firstWidth+self.spacing,finalYline-operatorYline,operatorRect.w,operatorRect.h)
-
-            self.hitboxes = firstSurface.translateHitboxes([0,finalYline-firstYline],1) + secondSurface.translateHitboxes([finalWidth-secondWidth,finalYline-secondYline],1)
+            operatorLoc = pygame.Rect(firstWidth+self.spacing,finalAbove-operatorAbove,operatorRect.w,operatorRect.h)
+            self.hitboxes = firstSurface.translateHitboxes([0,finalAbove-firstAbove]) + secondSurface.translateHitboxes([finalWidth-secondWidth,finalAbove-secondAbove])
             self.hitboxes.append(([operatorLoc,self.surface.get_rect()],self.exp,op_depth))
-            self.yline = finalYline
             self.surface.set_colorkey(COLORKEY)
+            self.yline = finalBelow
 
         elif exp.op.strRep == "^":
             firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth, op_depth+1)
@@ -200,14 +232,14 @@ class smartSurface:
 
 
             finalWidth = firstWidth + secondWidth
-            finalHeight = firstHeight + secondYline
-            self.yline = firstYline+secondYline
+            finalHeight = firstHeight + secondHeight-secondYline
+            self.yline = firstYline
 
             self.surface = pygame.Surface((finalWidth, finalHeight))
             self.surface.fill(COLORKEY)
-            self.surface.blit(firstSurface.surface, (0,secondYline))
+            self.surface.blit(firstSurface.surface, (0,secondHeight-secondYline))
             self.surface.blit(secondSurface.surface, (firstWidth,0))
-            self.hitboxes = firstSurface.translateHitboxes([0,secondYline],1) + secondSurface.translateHitboxes([firstWidth,0],1)
+            self.hitboxes = firstSurface.translateHitboxes([0,secondHeight-secondYline]) + secondSurface.translateHitboxes([firstWidth,0])
 
             self.surface.set_colorkey(COLORKEY)
             self.hitboxes.append(([pygame.Rect(0,0,0,0),self.surface.get_rect()],self.exp,op_depth))
@@ -237,7 +269,7 @@ class smartSurface:
             vincRect = pygame.Rect(0,vincHeight,vinculumWidth,vinculumHeight)
 
             pygame.draw.rect(self.surface, st.fontColor, vincRect)
-            self.hitboxes = self.hitboxes+numSurface.translateHitboxes(numLocation,1)+denomSurface.translateHitboxes(denomLocation,1)
+            self.hitboxes = self.hitboxes+numSurface.translateHitboxes(numLocation)+denomSurface.translateHitboxes(denomLocation)
             self.hitboxes.append(([vincRect,self.surface.get_rect()],self.exp,op_depth))
             self.yline = vincHeight + (vinculumHeight//2)
             self.surface.set_colorkey(COLORKEY)
@@ -249,11 +281,11 @@ class smartSurface:
             self.yline = otherSurf.yline
         st.lock.release()
 
-    def translateHitboxes(self,coordinates,op_depthAdd):
+    def translateHitboxes(self,coordinates):
         newHitboxes = []
         for hb in self.hitboxes:
             [irect,orect], expression, op_depth = hb
-            newHitboxes.append(([irect.move(coordinates[0],coordinates[1]),orect.move(coordinates[0],coordinates[1])], expression, op_depth+op_depthAdd))
+            newHitboxes.append(([irect.move(coordinates[0],coordinates[1]),orect.move(coordinates[0],coordinates[1])], expression, op_depth))
         return newHitboxes
 
     def get_at_position(self,coordinates):
