@@ -67,6 +67,52 @@ class smartSurface:
             self.surface.blit(firstSurface.surface, expLocation)
             self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation,1)
             self.yline = endHeight//2
+        elif exp.op.strRep == "(":
+            containedExp = exp.expList[0]
+            firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
+            width, height = firstSurface.get_size()
+            newFontSize=height*SQRT2+round(2*PARENTHESES_ADJUSTMENT*font_size)
+            newFont = pygame.freetype.Font(LATEX_FONT_PATH, newFontSize)
+            openParen, openRect = newFont.render("(",st.fontColor,st.backgroundColor)
+            closeParen, closeRect = newFont.render(")",tuple([(x+255)//2 for x in st.fontColor]),st.backgroundColor)
+            openWidth, openHeight = openParen.get_size()
+            closeWidth, closeHeight = closeParen.get_size()
+            endWidth = openWidth+width+closeWidth
+            endHeight = max(openHeight, height, closeHeight)
+            self.surface = pygame.Surface((endWidth,endHeight))
+            self.surface.fill(st.backgroundColor)
+            self.surface.blit(openParen,(0,(endHeight-openHeight)//2))
+            self.surface.blit(closeParen,(endWidth-closeWidth,(endHeight-closeHeight)//2))
+            expLocation = (openWidth, (endHeight-height)//2)
+            self.surface.blit(firstSurface.surface, expLocation)
+            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation,1)
+            self.yline = endHeight//2
+        elif exp.op.strRep == ")":
+            containedExp = exp.expList[0]
+            firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
+            width, height = firstSurface.get_size()
+            newFontSize=height*SQRT2+round(2*PARENTHESES_ADJUSTMENT*font_size)
+            newFont = pygame.freetype.Font(LATEX_FONT_PATH, newFontSize)
+            openParen, openRect = newFont.render("(",tuple([(x+255)//2 for x in st.fontColor]),st.backgroundColor)
+            closeParen, closeRect = newFont.render(")",st.fontColor,st.backgroundColor)
+            openWidth, openHeight = openParen.get_size()
+            closeWidth, closeHeight = closeParen.get_size()
+            endWidth = openWidth+width+closeWidth
+            endHeight = max(openHeight, height, closeHeight)
+            self.surface = pygame.Surface((endWidth,endHeight))
+            self.surface.fill(st.backgroundColor)
+            self.surface.blit(openParen,(0,(endHeight-openHeight)//2))
+            self.surface.blit(closeParen,(endWidth-closeWidth,(endHeight-closeHeight)//2))
+            expLocation = (openWidth, (endHeight-height)//2)
+            self.surface.blit(firstSurface.surface, expLocation)
+            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation,1)
+            self.yline = endHeight//2
+        
+
+
+
+
+
         elif exp.op.strRep in self.simpleOps:
             firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth, op_depth+1)
             secondSurface = smartSurface(exp.expList[1], frac_depth, script_depth, op_depth+1)
