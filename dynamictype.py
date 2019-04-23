@@ -82,7 +82,8 @@ while st.programIsRunning:
     for event in pygame.event.get(): # User did something
 
         if event.type == pygame.QUIT: # If user clicked close
-        	showmExitMsg = True
+            showmExitMsg = True
+            pygame.quit()
         if event.type == pygame.VIDEORESIZE:
             # There's some code to add back window content here.
             surface = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)

@@ -47,8 +47,8 @@ class smartSurface:
                 self.surface,rect = font.render(exp.strRep,st.fontColor,st.backgroundColor)
                 self.hitboxes.append((self.surface.get_rect(),self,op_depth))
             self.yline = self.surface.get_rect().height//2
-        elif exp.op.strRep == "()":
-            containedExp = exp.expList[0]
+        elif exp.op.strRep == "()" or exp.op.strRep == "(" or exp.op.strRep == ")":
+            containedExp = exp
             firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
             width, height = firstSurface.get_size()
             newFontSize=height*SQRT2+round(2*PARENTHESES_ADJUSTMENT*font_size)
