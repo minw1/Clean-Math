@@ -87,15 +87,6 @@ class smartSurface:
         self.iFont = iFont
         if type(exp) == xp.NoOpExpression:
             if exp.strRep == "|":
-<<<<<<< HEAD
-                middleColor = [(st.fontColor[i]+st.backgroundColor[i])//2 for i in range(3)]
-                self.surface,rect = font.render('|',middleColor,st.backgroundColor)
-                self.hitboxes.append((self.surface.get_rect(),self.exp,op_depth))
-            elif is_intable(exp.strRep):
-                self.surface,rect = font.render(exp.strRep,st.fontColor,st.backgroundColor)
-                self.hitboxes.append((self.surface.get_rect(),self.exp,op_depth))
-                self.yline = self.surface.get_rect().height//2
-=======
                 middleColor = [(st.fontColor[i]+COLORKEY[i])//2 for i in range(3)]
                 self.surface,rect = font.render('|',middleColor,COLORKEY)
                 self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
@@ -104,7 +95,6 @@ class smartSurface:
                 self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
             self.yline = self.surface.get_rect().height//2
             self.surface.set_colorkey(COLORKEY)
->>>>>>> d98ca0077ebe97652c70accaa5d6c4afc363d48d
         elif exp.op.strRep == "()":
             containedExp = exp.expList[0]
             firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
