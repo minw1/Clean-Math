@@ -21,7 +21,7 @@ class Expression:
         self.op = op
         self.cursor = cursor
         self.cursor_idx = cursor_idx
-      
+        self.parent = None
     #Gets string representation of expression
     def getString(self):
         if type(self)==NoOpExpression:
@@ -46,6 +46,16 @@ class Expression:
     def __repr__(self):
         return repr(self.op)+' of ('+') and ('.join([repr(k) for k in self.expList])+')'
 
+    def assign_parents(self):
+        currentNode = self
+        if type(currentNode) == Expression:
+            for node in currentNode.expList:
+                node.parent = currentNode
+            for node in currentNode.expList:
+                node.assign_parents()
+
+
+
 class NoOpExpression(Expression):
     #Initializer for a no-operator expression
     def __init__(self, strRep, cursor=False, cursor_idx=None):
@@ -58,6 +68,7 @@ class NoOpExpression(Expression):
         self.strRep = strRep
         self.cursor = cursor
         self.cursor_idx = cursor_idx
+        self.parent = None
 
 	#Adds cursor and index
     def addCursor(self, idx):
