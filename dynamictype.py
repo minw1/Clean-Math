@@ -26,10 +26,7 @@ FONT = st.FONT
 iFONT = st.iFONT
 KEYPRESS_TOLERANCE = 0.25
 
-
-sounds = []
-for i in range(1,st.numSounds + 1):
-    sounds += [pygame.mixer.Sound(st.audio_locator(str(i) + ".ogg"))]
+expression = None
 
 
 exitmsg, rexitmsg = FONT.render("Please use the console to exit.", st.RED,st.WHITE)
@@ -42,21 +39,13 @@ height = 300
 
 
 
-currentcell = {'x':0,"y":0}#dictionary representing the cell the cursor is currently in
-
-currentlyScrolling = False
-
-scrollLocation = [0,0]
-pixelsToGrid = [width,height] #keeps track of the farthest pixel locations that need to be loaded
-#in the loop, this will be calculated with
-#[width+scrollLocation[0], height + scrollLocation[1]]
-
-
 # Set the height and width of the screen
 size = [width, height]
 
-clipboard = {}
-copyOrigin = {}
+
+selectedRectangle = pygame.Rect(0,0,0,0)
+firstTap = (-1,-1)
+secondTap = (-1,-1)
 
 
 screen = pygame.display.set_mode(size, pygame.RESIZABLE)
@@ -75,19 +64,34 @@ text=''
 index=0
 
 import psutil
+
+
  
 while st.programIsRunning:
     clock.tick(20)
     st.lock.acquire()
+    (mousePX, mousePY) = pygame.mouse.get_pos()
+    (button1,button2,button3) = pygame.mouse.get_pressed()
+
     for event in pygame.event.get(): # User did something
 
+
+        ##SYSTEM EVENTS##
         if event.type == pygame.QUIT: # If user clicked close
-        	showmExitMsg = True
+            sshowmExitMsg = True
+            pygame.quit()
         if event.type == pygame.VIDEORESIZE:
             # There's some code to add back window content here.
             surface = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
             width = event.w
             height = event.h
+        ##MOUSE EVENTS##
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            firstTap = (mousePX, mousePY)
+            secondTap = (mousePX,mousePY)
+        if event.type == pygame.MOUSEMOTION and button1:
+            secondTap = (mousePX, mousePY)
+        ##KEY EVENTS
         if event.type == pygame.KEYDOWN:#if a key is entered        
             if event.key == pygame.K_BACKSPACE and index>0:
                 text=text[:index-1]+text[index:]
@@ -109,6 +113,7 @@ while st.programIsRunning:
     expression = pprs.get_exp(string)
     Surface = xts.smartSurface(expression)
     screen.fill((255,255,255))
+    pygame.draw.rect(screen,st.ORANGE,selectedRectangle)
     screen.blit(Surface.surface,(100,100))
     
     
@@ -116,8 +121,17 @@ while st.programIsRunning:
     st.lock.release()
 
 
+    selectedRectangle.x = min(firstTap[0],secondTap[0])
+    selectedRectangle.y = min(firstTap[1],secondTap[1])
+    selectedRectangle.w = abs(firstTap[0]-secondTap[0])
+    selectedRectangle.h = abs(firstTap[1]-secondTap[1])
+
+
     # Go ahead and update the screen with what we've drawn.
     # This MUST happen after all the other drawing commands.
+
+    
+
     pygame.display.flip()
  
 # Be IDLE friendly
