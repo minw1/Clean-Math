@@ -78,3 +78,6 @@ class NoOpExpression(Expression):
     def __repr__(self):
         return self.strRep
 
+    def assign_parents(self):
+        return 0
+

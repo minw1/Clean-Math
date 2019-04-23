@@ -18,10 +18,12 @@ def wrap(str,foReallyThough):
 		return "(" + str + ")"
 	else:
 		return str
-
 def expToStr(exp):
-	if exp.op in precedents:
+	if(type(exp)==xp.NoOpExpression):
+		return exp.strRep
+	if(exp.op = "()"):
+		return wrap(exp.expList[0], True)
+	elif exp.op in precedents:
 		firstLower = pre(exp.expList[0].op)<pre(exp.op)#is first op lower precedence than the exp op?
 		secondLower = pre(exp.expList[1].op)<pre(exp.op)
-		return wrap(expToStr(exp.expList[0]),firstLower) + exp.op + wrap(expToStr(exp.expList),secondLower)
-	return exp.strRep
+		return wrap(expToStr(exp.expList[0]),firstLower) + exp.op + wrap(expToStr(exp.expList[1]),secondLower)
