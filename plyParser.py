@@ -46,6 +46,30 @@ def mkstr_caretpow(opList):
 		opStr = opList[0].getString() + "^" + opList[1].getString()
 	return opStr
 
+def mkstr_fullprns(opList):
+	opStr = ""
+	if len(opList) != 1:
+		opStr = "ERROR"
+	else:
+		opStr = "(" + opList[0].getString() + ")"
+	return opStr
+
+def mkstr_lprns(opList):
+	opStr = ""
+	if len(opList) != 1:
+		opStr = "ERROR"
+	else:
+		opStr = "(" + opList[0].getString() + ")"
+	return opStr
+
+def mkstr_rprns(opList):
+	opStr = ""
+	if len(opList) != 1:
+		opStr = "ERROR"
+	else:
+		opStr = "(" + opList[0].getString() + ")"
+	return opStr
+
 def mkstr_error(opList):
 	return "ERROR"
 	
@@ -54,19 +78,34 @@ SUB_OP = op.Operator('-', mkstr_minus)
 MUL_OP = op.Operator('*', mkstr_astrtimes)
 DIV_OP = op.Operator('/', mkstr_slashdiv)
 POW_OP = op.Operator('^', mkstr_caretpow)
+FPRN_OP = op.Operator('()', mkstr_fullprns)
+LPRN_OP = op.Operator('(', mkstr_lprns)
+RPRN_OP = op.Operator(')', mkstr_rprns)
 
 ERR_OP = op.Operator("ERROR", mkstr_error)
 
 tokens = (
     'VAR', 'NUMBER',
     '1L1R_OP_L0', '1L1R_OP_L1', '1L1R_OP_R2',
-    'LPAREN','RPAREN','LBRACK','RBRACK', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'LPRN_CURSOR', 'RPRN_CURSOR'
+    'LPAREN','RPAREN', 'ULPAREN', 'URPAREN', 'LBRACK','RBRACK', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'LPRN_CURSOR', 'RPRN_CURSOR'
     )
+	
+#precedence = (
+#   ('left', 'ULPAREN', 'URPAREN'),
+#   ('left', 'LPAREN', 'RPAREN'),
+#   ('left', '1L1R_OP_L0'),
+#   ('left', '1L1R_OP_L1'),
+#   ('right', '1L1R_OP_R2'),
+#   ('left', 'VAR', 'NUMBER'),
+#   ('left', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'LPRN_CURSOR', 'RPRN_CURSOR'),
+#)
 
 # Tokens
 #t_EQUALS  = r'='
 t_LPAREN  = r'\('
 t_RPAREN  = r'\)'
+t_ULPAREN = r'\u2985'
+t_URPAREN = r'\u2986'
 t_LBRACK  = r'\{'
 t_RBRACK  = r'\}'
 #t_NAME    = r'[a-zA-Z_][a-zA-Z0-9_]*'
@@ -137,7 +176,7 @@ def t_NUMBER(t):
     return t
 
 # Ignored characters
-t_ignore = " \t"
+t_ignore = " \w"
 
 def t_newline(t):
     r'\n+'
@@ -151,16 +190,13 @@ def t_error(t):
     
 # Build the lexer
 import ply.lex as lex
-lexer = lex.lex()
+lexer = lex.lex(reflags=re.UNICODE)
 
 # Parsing rules
 
-# dictionary of names
-#names = { }
-
 #def p_statement_assign(p):
-#    'statement : NAME EQUALS exp0'
-#    names[p[1]] = p[3]
+#    'statement : statement EQUALS exp0'
+#    
 
 def p_statement_exp0(p):
     'statement : exp0'
@@ -180,18 +216,32 @@ def p_exp2_exp3(p):
 
 def p_exp3_parens(p):
     'exp3 : LPAREN exp0 RPAREN'
-    p[0] = p[2]
+    p[0] = xp.Expression(FPRN_OP, [p[2]])
 
 def p_exp3_clparens(p):
     'exp3 : LPRN_CURSOR LPAREN exp0 RPAREN'
-    p[3].addCursor(0)
-    p[0] = p[3]
+    p[0] = xp.Expression(FPRN_OP, [p[3]]).addCursor(0)
 
 def p_exp3_crparens(p):
     'exp3 : LPAREN exp0 RPAREN RPRN_CURSOR'
-    p[2].addCursor(-1)
-    p[0] = p[2]
+    p[0] = xp.Expression(FPRN_OP, [p[2]]).addCursor(-1)
 
+def p_exp3_ulparens(p):
+    'exp3 : LPAREN exp0 URPAREN'
+    p[0] = xp.Expression(LPRN_OP, [p[2]])
+
+def p_exp3_culparens(p):
+    'exp3 : LPRN_CURSOR LPAREN exp0 URPAREN'
+    p[0] = xp.Expression(LPRN_OP, [p[3]]).addCursor(0)
+
+def p_exp3_urparens(p):
+    'exp3 : ULPAREN exp0 RPAREN'
+    p[0] = xp.Expression(RPRN_OP, [p[2]])
+
+def p_exp3_curparens(p):
+    'exp3 : ULPAREN exp0 RPAREN RPRN_CURSOR'
+    p[0] = xp.Expression(RPRN_OP, [p[2]]).addCursor(-1)
+    
 def p_exp3_number(p):
     'exp3 : NUMBER'
     p[0] = p[1]
@@ -254,10 +304,28 @@ def p_error(t):
 import ply.yacc as yacc
 parser = yacc.yacc()
 
-def process_string(inputStr):
-    outputStr = inputStr
-    outputStr = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', outputStr)
-    return outputStr
+def process_string(input_str):
+    output_str = input_str
+	
+    #Remove illegal characters
+    illegal_chars = ['!', '@', '#', '$', '%', '&', '_', '\\', ':', ';', '\"', '\'', '?', '>', '<', ',', '=']
+    idx = 0
+    while idx < len(output_str):
+        if output_str[idx] in illegal_chars:
+            output_str = output_str[:idx] + output_str[idx+1:]
+        else:
+            idx += 1
+	
+	#Insert implicit multiplication
+    output_str = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', output_str)
+    
+	#Close unclosed parentheses (with shadow parens)
+    extr_prns = output_str.count("(") - output_str.count(")")
+    if extr_prns > 0:
+        output_str = output_str + "\u2986"*extr_prns
+    elif extr_prns < 0:
+        output_str = (-1*extr_prns)*"\u2985" + output_str
+    return output_str
 
 error=False
 def get_exp(inputStr):

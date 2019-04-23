@@ -7,17 +7,18 @@ client = wolframalpha.Client(APP_ID)
 
 class Expression:
     #Initializer for composite expression
-    def __init__(self, op, expList, parens=False, cursor=False, cursor_idx=None):
+    def __init__(self, op, expList, cursor=False, cursor_idx=None):
         '''
         Initializes a composite expression
         Parameters:
             self: Object being initialized
             op: operation the expression contains
             explist: List of expressions the expression contains (assumed to be ordered properly; for example, it would be [2,1] for 2+1 and [1,2] for 1+2)
+            parens: Whether or not this expression has parentheses
+            parens_solid: Encodes graphical information about the solidity (white-black ratio) of parentheses if the expression has them. [1,0] means the expression's left paren is black and right paren is grey, for example
         '''
         self.expList = expList #Stores expressions that this expression comprises
         self.op = op
-        self.parens = parens
         self.cursor = cursor
         self.cursor_idx = cursor_idx
         self.parent = None
@@ -36,15 +37,11 @@ class Expression:
         res = client.query(expString) #Gets result from WolframAlpha
         return next(res.results).text
 
-	#Returns expression with parentheses
-    def addParens(self):
-        self.parens = True
-        return self
-	
-	#Adds cursor and index
+    #Adds cursor and index
     def addCursor(self, idx):
         self.cursor = True
         self.cursor_idx = idx
+        return self
 
     def __repr__(self):
         return repr(self.op)+' of ('+') and ('.join([repr(k) for k in self.expList])+')'
@@ -80,4 +77,7 @@ class NoOpExpression(Expression):
 		
     def __repr__(self):
         return self.strRep
+
+    def assign_parents(self):
+        return 0
 
