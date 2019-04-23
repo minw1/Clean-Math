@@ -313,7 +313,7 @@ def process_string(input_str):
     if extr_prns > 0:
         output_str = output_str + "\u2986"*extr_prns
     elif extr_prns < 0:
-        output_str = (-1*extr_prns)*"\u2985"* + output_str
+        output_str = (-1*extr_prns)*"\u2985" + output_str
     return output_str
 
 error=False
