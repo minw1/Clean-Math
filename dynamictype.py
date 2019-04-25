@@ -133,10 +133,6 @@ while st.programIsRunning:
             pygame.draw.rect(screen,st.ORANGE,orect.move(100,100))
 
     screen.blit(Surface.surface,(100,100))
-    
-
-
-
 
 
     

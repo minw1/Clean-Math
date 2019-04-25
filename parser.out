@@ -1,0 +1,662 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    LBRACK
+    RBRACK
+
+Grammar
+
+Rule 0     S' -> statement
+Rule 1     statement -> exp0
+Rule 2     exp0 -> exp1
+Rule 3     exp1 -> exp2
+Rule 4     exp2 -> exp3
+Rule 5     exp3 -> LPAREN exp0 RPAREN
+Rule 6     exp3 -> LPRN_CURSOR LPAREN exp0 RPAREN
+Rule 7     exp3 -> LPAREN exp0 RPAREN RPRN_CURSOR
+Rule 8     exp3 -> LPAREN exp0 URPAREN
+Rule 9     exp3 -> LPRN_CURSOR LPAREN exp0 URPAREN
+Rule 10    exp3 -> ULPAREN exp0 RPAREN
+Rule 11    exp3 -> ULPAREN exp0 RPAREN RPRN_CURSOR
+Rule 12    exp3 -> NUMBER
+Rule 13    exp3 -> NUM_CURSOR
+Rule 14    exp3 -> VAR_CURSOR
+Rule 15    exp3 -> VAR
+Rule 16    exp3 -> empty
+Rule 17    exp3 -> UNF_CURSOR empty
+Rule 18    empty -> <empty>
+Rule 19    exp0 -> exp0 1L1R_OP_L0 exp1
+Rule 20    exp1 -> exp1 1L1R_OP_L1 exp2
+Rule 21    exp2 -> exp3 1L1R_OP_R2 exp2
+
+Terminals, with rules where they appear
+
+1L1R_OP_L0           : 19
+1L1R_OP_L1           : 20
+1L1R_OP_R2           : 21
+LBRACK               : 
+LPAREN               : 5 6 7 8 9
+LPRN_CURSOR          : 6 9
+NUMBER               : 12
+NUM_CURSOR           : 13
+RBRACK               : 
+RPAREN               : 5 6 7 10 11
+RPRN_CURSOR          : 7 11
+ULPAREN              : 10 11
+UNF_CURSOR           : 17
+URPAREN              : 8 9
+VAR                  : 15
+VAR_CURSOR           : 14
+error                : 
+
+Nonterminals, with rules where they appear
+
+empty                : 16 17
+exp0                 : 1 5 6 7 8 9 10 11 19
+exp1                 : 2 19 20
+exp2                 : 3 20 21
+exp3                 : 4 21
+statement            : 0
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . statement
+    (1) statement -> . exp0
+    (2) exp0 -> . exp1
+    (19) exp0 -> . exp0 1L1R_OP_L0 exp1
+    (3) exp1 -> . exp2
+    (20) exp1 -> . exp1 1L1R_OP_L1 exp2
+    (4) exp2 -> . exp3
+    (21) exp2 -> . exp3 1L1R_OP_R2 exp2
+    (5) exp3 -> . LPAREN exp0 RPAREN
+    (6) exp3 -> . LPRN_CURSOR LPAREN exp0 RPAREN
+    (7) exp3 -> . LPAREN exp0 RPAREN RPRN_CURSOR
+    (8) exp3 -> . LPAREN exp0 URPAREN
+    (9) exp3 -> . LPRN_CURSOR LPAREN exp0 URPAREN
+    (10) exp3 -> . ULPAREN exp0 RPAREN
+    (11) exp3 -> . ULPAREN exp0 RPAREN RPRN_CURSOR
+    (12) exp3 -> . NUMBER
+    (13) exp3 -> . NUM_CURSOR
+    (14) exp3 -> . VAR_CURSOR
+    (15) exp3 -> . VAR
+    (16) exp3 -> . empty
+    (17) exp3 -> . UNF_CURSOR empty
+    (18) empty -> .
+
+    LPAREN          shift and go to state 6
+    LPRN_CURSOR     shift and go to state 7
+    ULPAREN         shift and go to state 8
+    NUMBER          shift and go to state 9
+    NUM_CURSOR      shift and go to state 10
+    VAR_CURSOR      shift and go to state 11
+    VAR             shift and go to state 12
+    UNF_CURSOR      shift and go to state 14
+    1L1R_OP_R2      reduce using rule 18 (empty -> .)
+    1L1R_OP_L1      reduce using rule 18 (empty -> .)
+    1L1R_OP_L0      reduce using rule 18 (empty -> .)
+    $end            reduce using rule 18 (empty -> .)
+
+    statement                      shift and go to state 1
+    exp0                           shift and go to state 2
+    exp1                           shift and go to state 3
+    exp2                           shift and go to state 4
+    exp3                           shift and go to state 5
+    empty                          shift and go to state 13
+
+state 1
+
+    (0) S' -> statement .
+
+
+
+state 2
+
+    (1) statement -> exp0 .
+    (19) exp0 -> exp0 . 1L1R_OP_L0 exp1
+
+    $end            reduce using rule 1 (statement -> exp0 .)
+    1L1R_OP_L0      shift and go to state 15
+
+
+state 3
+
+    (2) exp0 -> exp1 .
+    (20) exp1 -> exp1 . 1L1R_OP_L1 exp2
+
+    1L1R_OP_L0      reduce using rule 2 (exp0 -> exp1 .)
+    $end            reduce using rule 2 (exp0 -> exp1 .)
+    RPAREN          reduce using rule 2 (exp0 -> exp1 .)
+    URPAREN         reduce using rule 2 (exp0 -> exp1 .)
+    1L1R_OP_L1      shift and go to state 16
+
+
+state 4
+
+    (3) exp1 -> exp2 .
+
+    1L1R_OP_L1      reduce using rule 3 (exp1 -> exp2 .)
+    1L1R_OP_L0      reduce using rule 3 (exp1 -> exp2 .)
+    $end            reduce using rule 3 (exp1 -> exp2 .)
+    RPAREN          reduce using rule 3 (exp1 -> exp2 .)
+    URPAREN         reduce using rule 3 (exp1 -> exp2 .)
+
+
+state 5
+
+    (4) exp2 -> exp3 .
+    (21) exp2 -> exp3 . 1L1R_OP_R2 exp2
+
+    1L1R_OP_L1      reduce using rule 4 (exp2 -> exp3 .)
+    1L1R_OP_L0      reduce using rule 4 (exp2 -> exp3 .)
+    $end            reduce using rule 4 (exp2 -> exp3 .)
+    RPAREN          reduce using rule 4 (exp2 -> exp3 .)
+    URPAREN         reduce using rule 4 (exp2 -> exp3 .)
+    1L1R_OP_R2      shift and go to state 17
+
+
+state 6
+
+    (5) exp3 -> LPAREN . exp0 RPAREN
+    (7) exp3 -> LPAREN . exp0 RPAREN RPRN_CURSOR
+    (8) exp3 -> LPAREN . exp0 URPAREN
+    (2) exp0 -> . exp1
+    (19) exp0 -> . exp0 1L1R_OP_L0 exp1
+    (3) exp1 -> . exp2
+    (20) exp1 -> . exp1 1L1R_OP_L1 exp2
+    (4) exp2 -> . exp3
+    (21) exp2 -> . exp3 1L1R_OP_R2 exp2
+    (5) exp3 -> . LPAREN exp0 RPAREN
+    (6) exp3 -> . LPRN_CURSOR LPAREN exp0 RPAREN
+    (7) exp3 -> . LPAREN exp0 RPAREN RPRN_CURSOR
+    (8) exp3 -> . LPAREN exp0 URPAREN
+    (9) exp3 -> . LPRN_CURSOR LPAREN exp0 URPAREN
+    (10) exp3 -> . ULPAREN exp0 RPAREN
+    (11) exp3 -> . ULPAREN exp0 RPAREN RPRN_CURSOR
+    (12) exp3 -> . NUMBER
+    (13) exp3 -> . NUM_CURSOR
+    (14) exp3 -> . VAR_CURSOR
+    (15) exp3 -> . VAR
+    (16) exp3 -> . empty
+    (17) exp3 -> . UNF_CURSOR empty
+    (18) empty -> .
+
+    LPAREN          shift and go to state 6
+    LPRN_CURSOR     shift and go to state 7
+    ULPAREN         shift and go to state 8
+    NUMBER          shift and go to state 9
+    NUM_CURSOR      shift and go to state 10
+    VAR_CURSOR      shift and go to state 11
+    VAR             shift and go to state 12
+    UNF_CURSOR      shift and go to state 14
+    1L1R_OP_R2      reduce using rule 18 (empty -> .)
+    1L1R_OP_L1      reduce using rule 18 (empty -> .)
+    RPAREN          reduce using rule 18 (empty -> .)
+    URPAREN         reduce using rule 18 (empty -> .)
+    1L1R_OP_L0      reduce using rule 18 (empty -> .)
+
+    exp0                           shift and go to state 18
+    exp1                           shift and go to state 3
+    exp2                           shift and go to state 4
+    exp3                           shift and go to state 5
+    empty                          shift and go to state 13
+
+state 7
+
+    (6) exp3 -> LPRN_CURSOR . LPAREN exp0 RPAREN
+    (9) exp3 -> LPRN_CURSOR . LPAREN exp0 URPAREN
+
+    LPAREN          shift and go to state 19
+
+
+state 8
+
+    (10) exp3 -> ULPAREN . exp0 RPAREN
+    (11) exp3 -> ULPAREN . exp0 RPAREN RPRN_CURSOR
+    (2) exp0 -> . exp1
+    (19) exp0 -> . exp0 1L1R_OP_L0 exp1
+    (3) exp1 -> . exp2
+    (20) exp1 -> . exp1 1L1R_OP_L1 exp2
+    (4) exp2 -> . exp3
+    (21) exp2 -> . exp3 1L1R_OP_R2 exp2
+    (5) exp3 -> . LPAREN exp0 RPAREN
+    (6) exp3 -> . LPRN_CURSOR LPAREN exp0 RPAREN
+    (7) exp3 -> . LPAREN exp0 RPAREN RPRN_CURSOR
+    (8) exp3 -> . LPAREN exp0 URPAREN
+    (9) exp3 -> . LPRN_CURSOR LPAREN exp0 URPAREN
+    (10) exp3 -> . ULPAREN exp0 RPAREN
+    (11) exp3 -> . ULPAREN exp0 RPAREN RPRN_CURSOR
+    (12) exp3 -> . NUMBER
+    (13) exp3 -> . NUM_CURSOR
+    (14) exp3 -> . VAR_CURSOR
+    (15) exp3 -> . VAR
+    (16) exp3 -> . empty
+    (17) exp3 -> . UNF_CURSOR empty
+    (18) empty -> .
+
+    LPAREN          shift and go to state 6
+    LPRN_CURSOR     shift and go to state 7
+    ULPAREN         shift and go to state 8
+    NUMBER          shift and go to state 9
+    NUM_CURSOR      shift and go to state 10
+    VAR_CURSOR      shift and go to state 11
+    VAR             shift and go to state 12
+    UNF_CURSOR      shift and go to state 14
+    1L1R_OP_R2      reduce using rule 18 (empty -> .)
+    1L1R_OP_L1      reduce using rule 18 (empty -> .)
+    RPAREN          reduce using rule 18 (empty -> .)
+    1L1R_OP_L0      reduce using rule 18 (empty -> .)
+
+    exp0                           shift and go to state 20
+    exp1                           shift and go to state 3
+    exp2                           shift and go to state 4
+    exp3                           shift and go to state 5
+    empty                          shift and go to state 13
+
+state 9
+
+    (12) exp3 -> NUMBER .
+
+    1L1R_OP_R2      reduce using rule 12 (exp3 -> NUMBER .)
+    1L1R_OP_L1      reduce using rule 12 (exp3 -> NUMBER .)
+    1L1R_OP_L0      reduce using rule 12 (exp3 -> NUMBER .)
+    $end            reduce using rule 12 (exp3 -> NUMBER .)
+    RPAREN          reduce using rule 12 (exp3 -> NUMBER .)
+    URPAREN         reduce using rule 12 (exp3 -> NUMBER .)
+
+
+state 10
+
+    (13) exp3 -> NUM_CURSOR .
+
+    1L1R_OP_R2      reduce using rule 13 (exp3 -> NUM_CURSOR .)
+    1L1R_OP_L1      reduce using rule 13 (exp3 -> NUM_CURSOR .)
+    1L1R_OP_L0      reduce using rule 13 (exp3 -> NUM_CURSOR .)
+    $end            reduce using rule 13 (exp3 -> NUM_CURSOR .)
+    RPAREN          reduce using rule 13 (exp3 -> NUM_CURSOR .)
+    URPAREN         reduce using rule 13 (exp3 -> NUM_CURSOR .)
+
+
+state 11
+
+    (14) exp3 -> VAR_CURSOR .
+
+    1L1R_OP_R2      reduce using rule 14 (exp3 -> VAR_CURSOR .)
+    1L1R_OP_L1      reduce using rule 14 (exp3 -> VAR_CURSOR .)
+    1L1R_OP_L0      reduce using rule 14 (exp3 -> VAR_CURSOR .)
+    $end            reduce using rule 14 (exp3 -> VAR_CURSOR .)
+    RPAREN          reduce using rule 14 (exp3 -> VAR_CURSOR .)
+    URPAREN         reduce using rule 14 (exp3 -> VAR_CURSOR .)
+
+
+state 12
+
+    (15) exp3 -> VAR .
+
+    1L1R_OP_R2      reduce using rule 15 (exp3 -> VAR .)
+    1L1R_OP_L1      reduce using rule 15 (exp3 -> VAR .)
+    1L1R_OP_L0      reduce using rule 15 (exp3 -> VAR .)
+    $end            reduce using rule 15 (exp3 -> VAR .)
+    RPAREN          reduce using rule 15 (exp3 -> VAR .)
+    URPAREN         reduce using rule 15 (exp3 -> VAR .)
+
+
+state 13
+
+    (16) exp3 -> empty .
+
+    1L1R_OP_R2      reduce using rule 16 (exp3 -> empty .)
+    1L1R_OP_L1      reduce using rule 16 (exp3 -> empty .)
+    1L1R_OP_L0      reduce using rule 16 (exp3 -> empty .)
+    $end            reduce using rule 16 (exp3 -> empty .)
+    RPAREN          reduce using rule 16 (exp3 -> empty .)
+    URPAREN         reduce using rule 16 (exp3 -> empty .)
+
+
+state 14
+
+    (17) exp3 -> UNF_CURSOR . empty
+    (18) empty -> .
+
+    1L1R_OP_R2      reduce using rule 18 (empty -> .)
+    1L1R_OP_L1      reduce using rule 18 (empty -> .)
+    1L1R_OP_L0      reduce using rule 18 (empty -> .)
+    $end            reduce using rule 18 (empty -> .)
+    RPAREN          reduce using rule 18 (empty -> .)
+    URPAREN         reduce using rule 18 (empty -> .)
+
+    empty                          shift and go to state 21
+
+state 15
+
+    (19) exp0 -> exp0 1L1R_OP_L0 . exp1
+    (3) exp1 -> . exp2
+    (20) exp1 -> . exp1 1L1R_OP_L1 exp2
+    (4) exp2 -> . exp3
+    (21) exp2 -> . exp3 1L1R_OP_R2 exp2
+    (5) exp3 -> . LPAREN exp0 RPAREN
+    (6) exp3 -> . LPRN_CURSOR LPAREN exp0 RPAREN
+    (7) exp3 -> . LPAREN exp0 RPAREN RPRN_CURSOR
+    (8) exp3 -> . LPAREN exp0 URPAREN
+    (9) exp3 -> . LPRN_CURSOR LPAREN exp0 URPAREN
+    (10) exp3 -> . ULPAREN exp0 RPAREN
+    (11) exp3 -> . ULPAREN exp0 RPAREN RPRN_CURSOR
+    (12) exp3 -> . NUMBER
+    (13) exp3 -> . NUM_CURSOR
+    (14) exp3 -> . VAR_CURSOR
+    (15) exp3 -> . VAR
+    (16) exp3 -> . empty
+    (17) exp3 -> . UNF_CURSOR empty
+    (18) empty -> .
+
+    LPAREN          shift and go to state 6
+    LPRN_CURSOR     shift and go to state 7
+    ULPAREN         shift and go to state 8
+    NUMBER          shift and go to state 9
+    NUM_CURSOR      shift and go to state 10
+    VAR_CURSOR      shift and go to state 11
+    VAR             shift and go to state 12
+    UNF_CURSOR      shift and go to state 14
+    1L1R_OP_R2      reduce using rule 18 (empty -> .)
+    1L1R_OP_L1      reduce using rule 18 (empty -> .)
+    1L1R_OP_L0      reduce using rule 18 (empty -> .)
+    $end            reduce using rule 18 (empty -> .)
+    RPAREN          reduce using rule 18 (empty -> .)
+    URPAREN         reduce using rule 18 (empty -> .)
+
+    exp1                           shift and go to state 22
+    exp2                           shift and go to state 4
+    exp3                           shift and go to state 5
+    empty                          shift and go to state 13
+
+state 16
+
+    (20) exp1 -> exp1 1L1R_OP_L1 . exp2
+    (4) exp2 -> . exp3
+    (21) exp2 -> . exp3 1L1R_OP_R2 exp2
+    (5) exp3 -> . LPAREN exp0 RPAREN
+    (6) exp3 -> . LPRN_CURSOR LPAREN exp0 RPAREN
+    (7) exp3 -> . LPAREN exp0 RPAREN RPRN_CURSOR
+    (8) exp3 -> . LPAREN exp0 URPAREN
+    (9) exp3 -> . LPRN_CURSOR LPAREN exp0 URPAREN
+    (10) exp3 -> . ULPAREN exp0 RPAREN
+    (11) exp3 -> . ULPAREN exp0 RPAREN RPRN_CURSOR
+    (12) exp3 -> . NUMBER
+    (13) exp3 -> . NUM_CURSOR
+    (14) exp3 -> . VAR_CURSOR
+    (15) exp3 -> . VAR
+    (16) exp3 -> . empty
+    (17) exp3 -> . UNF_CURSOR empty
+    (18) empty -> .
+
+    LPAREN          shift and go to state 6
+    LPRN_CURSOR     shift and go to state 7
+    ULPAREN         shift and go to state 8
+    NUMBER          shift and go to state 9
+    NUM_CURSOR      shift and go to state 10
+    VAR_CURSOR      shift and go to state 11
+    VAR             shift and go to state 12
+    UNF_CURSOR      shift and go to state 14
+    1L1R_OP_R2      reduce using rule 18 (empty -> .)
+    1L1R_OP_L1      reduce using rule 18 (empty -> .)
+    1L1R_OP_L0      reduce using rule 18 (empty -> .)
+    $end            reduce using rule 18 (empty -> .)
+    RPAREN          reduce using rule 18 (empty -> .)
+    URPAREN         reduce using rule 18 (empty -> .)
+
+    exp2                           shift and go to state 23
+    exp3                           shift and go to state 5
+    empty                          shift and go to state 13
+
+state 17
+
+    (21) exp2 -> exp3 1L1R_OP_R2 . exp2
+    (4) exp2 -> . exp3
+    (21) exp2 -> . exp3 1L1R_OP_R2 exp2
+    (5) exp3 -> . LPAREN exp0 RPAREN
+    (6) exp3 -> . LPRN_CURSOR LPAREN exp0 RPAREN
+    (7) exp3 -> . LPAREN exp0 RPAREN RPRN_CURSOR
+    (8) exp3 -> . LPAREN exp0 URPAREN
+    (9) exp3 -> . LPRN_CURSOR LPAREN exp0 URPAREN
+    (10) exp3 -> . ULPAREN exp0 RPAREN
+    (11) exp3 -> . ULPAREN exp0 RPAREN RPRN_CURSOR
+    (12) exp3 -> . NUMBER
+    (13) exp3 -> . NUM_CURSOR
+    (14) exp3 -> . VAR_CURSOR
+    (15) exp3 -> . VAR
+    (16) exp3 -> . empty
+    (17) exp3 -> . UNF_CURSOR empty
+    (18) empty -> .
+
+    LPAREN          shift and go to state 6
+    LPRN_CURSOR     shift and go to state 7
+    ULPAREN         shift and go to state 8
+    NUMBER          shift and go to state 9
+    NUM_CURSOR      shift and go to state 10
+    VAR_CURSOR      shift and go to state 11
+    VAR             shift and go to state 12
+    UNF_CURSOR      shift and go to state 14
+    1L1R_OP_R2      reduce using rule 18 (empty -> .)
+    1L1R_OP_L1      reduce using rule 18 (empty -> .)
+    1L1R_OP_L0      reduce using rule 18 (empty -> .)
+    $end            reduce using rule 18 (empty -> .)
+    RPAREN          reduce using rule 18 (empty -> .)
+    URPAREN         reduce using rule 18 (empty -> .)
+
+    exp3                           shift and go to state 5
+    exp2                           shift and go to state 24
+    empty                          shift and go to state 13
+
+state 18
+
+    (5) exp3 -> LPAREN exp0 . RPAREN
+    (7) exp3 -> LPAREN exp0 . RPAREN RPRN_CURSOR
+    (8) exp3 -> LPAREN exp0 . URPAREN
+    (19) exp0 -> exp0 . 1L1R_OP_L0 exp1
+
+    RPAREN          shift and go to state 25
+    URPAREN         shift and go to state 26
+    1L1R_OP_L0      shift and go to state 15
+
+
+state 19
+
+    (6) exp3 -> LPRN_CURSOR LPAREN . exp0 RPAREN
+    (9) exp3 -> LPRN_CURSOR LPAREN . exp0 URPAREN
+    (2) exp0 -> . exp1
+    (19) exp0 -> . exp0 1L1R_OP_L0 exp1
+    (3) exp1 -> . exp2
+    (20) exp1 -> . exp1 1L1R_OP_L1 exp2
+    (4) exp2 -> . exp3
+    (21) exp2 -> . exp3 1L1R_OP_R2 exp2
+    (5) exp3 -> . LPAREN exp0 RPAREN
+    (6) exp3 -> . LPRN_CURSOR LPAREN exp0 RPAREN
+    (7) exp3 -> . LPAREN exp0 RPAREN RPRN_CURSOR
+    (8) exp3 -> . LPAREN exp0 URPAREN
+    (9) exp3 -> . LPRN_CURSOR LPAREN exp0 URPAREN
+    (10) exp3 -> . ULPAREN exp0 RPAREN
+    (11) exp3 -> . ULPAREN exp0 RPAREN RPRN_CURSOR
+    (12) exp3 -> . NUMBER
+    (13) exp3 -> . NUM_CURSOR
+    (14) exp3 -> . VAR_CURSOR
+    (15) exp3 -> . VAR
+    (16) exp3 -> . empty
+    (17) exp3 -> . UNF_CURSOR empty
+    (18) empty -> .
+
+    LPAREN          shift and go to state 6
+    LPRN_CURSOR     shift and go to state 7
+    ULPAREN         shift and go to state 8
+    NUMBER          shift and go to state 9
+    NUM_CURSOR      shift and go to state 10
+    VAR_CURSOR      shift and go to state 11
+    VAR             shift and go to state 12
+    UNF_CURSOR      shift and go to state 14
+    1L1R_OP_R2      reduce using rule 18 (empty -> .)
+    1L1R_OP_L1      reduce using rule 18 (empty -> .)
+    RPAREN          reduce using rule 18 (empty -> .)
+    URPAREN         reduce using rule 18 (empty -> .)
+    1L1R_OP_L0      reduce using rule 18 (empty -> .)
+
+    exp0                           shift and go to state 27
+    exp1                           shift and go to state 3
+    exp2                           shift and go to state 4
+    exp3                           shift and go to state 5
+    empty                          shift and go to state 13
+
+state 20
+
+    (10) exp3 -> ULPAREN exp0 . RPAREN
+    (11) exp3 -> ULPAREN exp0 . RPAREN RPRN_CURSOR
+    (19) exp0 -> exp0 . 1L1R_OP_L0 exp1
+
+    RPAREN          shift and go to state 28
+    1L1R_OP_L0      shift and go to state 15
+
+
+state 21
+
+    (17) exp3 -> UNF_CURSOR empty .
+
+    1L1R_OP_R2      reduce using rule 17 (exp3 -> UNF_CURSOR empty .)
+    1L1R_OP_L1      reduce using rule 17 (exp3 -> UNF_CURSOR empty .)
+    1L1R_OP_L0      reduce using rule 17 (exp3 -> UNF_CURSOR empty .)
+    $end            reduce using rule 17 (exp3 -> UNF_CURSOR empty .)
+    RPAREN          reduce using rule 17 (exp3 -> UNF_CURSOR empty .)
+    URPAREN         reduce using rule 17 (exp3 -> UNF_CURSOR empty .)
+
+
+state 22
+
+    (19) exp0 -> exp0 1L1R_OP_L0 exp1 .
+    (20) exp1 -> exp1 . 1L1R_OP_L1 exp2
+
+    1L1R_OP_L0      reduce using rule 19 (exp0 -> exp0 1L1R_OP_L0 exp1 .)
+    $end            reduce using rule 19 (exp0 -> exp0 1L1R_OP_L0 exp1 .)
+    RPAREN          reduce using rule 19 (exp0 -> exp0 1L1R_OP_L0 exp1 .)
+    URPAREN         reduce using rule 19 (exp0 -> exp0 1L1R_OP_L0 exp1 .)
+    1L1R_OP_L1      shift and go to state 16
+
+
+state 23
+
+    (20) exp1 -> exp1 1L1R_OP_L1 exp2 .
+
+    1L1R_OP_L1      reduce using rule 20 (exp1 -> exp1 1L1R_OP_L1 exp2 .)
+    1L1R_OP_L0      reduce using rule 20 (exp1 -> exp1 1L1R_OP_L1 exp2 .)
+    $end            reduce using rule 20 (exp1 -> exp1 1L1R_OP_L1 exp2 .)
+    RPAREN          reduce using rule 20 (exp1 -> exp1 1L1R_OP_L1 exp2 .)
+    URPAREN         reduce using rule 20 (exp1 -> exp1 1L1R_OP_L1 exp2 .)
+
+
+state 24
+
+    (21) exp2 -> exp3 1L1R_OP_R2 exp2 .
+
+    1L1R_OP_L1      reduce using rule 21 (exp2 -> exp3 1L1R_OP_R2 exp2 .)
+    1L1R_OP_L0      reduce using rule 21 (exp2 -> exp3 1L1R_OP_R2 exp2 .)
+    $end            reduce using rule 21 (exp2 -> exp3 1L1R_OP_R2 exp2 .)
+    RPAREN          reduce using rule 21 (exp2 -> exp3 1L1R_OP_R2 exp2 .)
+    URPAREN         reduce using rule 21 (exp2 -> exp3 1L1R_OP_R2 exp2 .)
+
+
+state 25
+
+    (5) exp3 -> LPAREN exp0 RPAREN .
+    (7) exp3 -> LPAREN exp0 RPAREN . RPRN_CURSOR
+
+    1L1R_OP_R2      reduce using rule 5 (exp3 -> LPAREN exp0 RPAREN .)
+    1L1R_OP_L1      reduce using rule 5 (exp3 -> LPAREN exp0 RPAREN .)
+    1L1R_OP_L0      reduce using rule 5 (exp3 -> LPAREN exp0 RPAREN .)
+    $end            reduce using rule 5 (exp3 -> LPAREN exp0 RPAREN .)
+    RPAREN          reduce using rule 5 (exp3 -> LPAREN exp0 RPAREN .)
+    URPAREN         reduce using rule 5 (exp3 -> LPAREN exp0 RPAREN .)
+    RPRN_CURSOR     shift and go to state 29
+
+
+state 26
+
+    (8) exp3 -> LPAREN exp0 URPAREN .
+
+    1L1R_OP_R2      reduce using rule 8 (exp3 -> LPAREN exp0 URPAREN .)
+    1L1R_OP_L1      reduce using rule 8 (exp3 -> LPAREN exp0 URPAREN .)
+    1L1R_OP_L0      reduce using rule 8 (exp3 -> LPAREN exp0 URPAREN .)
+    $end            reduce using rule 8 (exp3 -> LPAREN exp0 URPAREN .)
+    RPAREN          reduce using rule 8 (exp3 -> LPAREN exp0 URPAREN .)
+    URPAREN         reduce using rule 8 (exp3 -> LPAREN exp0 URPAREN .)
+
+
+state 27
+
+    (6) exp3 -> LPRN_CURSOR LPAREN exp0 . RPAREN
+    (9) exp3 -> LPRN_CURSOR LPAREN exp0 . URPAREN
+    (19) exp0 -> exp0 . 1L1R_OP_L0 exp1
+
+    RPAREN          shift and go to state 30
+    URPAREN         shift and go to state 31
+    1L1R_OP_L0      shift and go to state 15
+
+
+state 28
+
+    (10) exp3 -> ULPAREN exp0 RPAREN .
+    (11) exp3 -> ULPAREN exp0 RPAREN . RPRN_CURSOR
+
+    1L1R_OP_R2      reduce using rule 10 (exp3 -> ULPAREN exp0 RPAREN .)
+    1L1R_OP_L1      reduce using rule 10 (exp3 -> ULPAREN exp0 RPAREN .)
+    1L1R_OP_L0      reduce using rule 10 (exp3 -> ULPAREN exp0 RPAREN .)
+    $end            reduce using rule 10 (exp3 -> ULPAREN exp0 RPAREN .)
+    RPAREN          reduce using rule 10 (exp3 -> ULPAREN exp0 RPAREN .)
+    URPAREN         reduce using rule 10 (exp3 -> ULPAREN exp0 RPAREN .)
+    RPRN_CURSOR     shift and go to state 32
+
+
+state 29
+
+    (7) exp3 -> LPAREN exp0 RPAREN RPRN_CURSOR .
+
+    1L1R_OP_R2      reduce using rule 7 (exp3 -> LPAREN exp0 RPAREN RPRN_CURSOR .)
+    1L1R_OP_L1      reduce using rule 7 (exp3 -> LPAREN exp0 RPAREN RPRN_CURSOR .)
+    1L1R_OP_L0      reduce using rule 7 (exp3 -> LPAREN exp0 RPAREN RPRN_CURSOR .)
+    $end            reduce using rule 7 (exp3 -> LPAREN exp0 RPAREN RPRN_CURSOR .)
+    RPAREN          reduce using rule 7 (exp3 -> LPAREN exp0 RPAREN RPRN_CURSOR .)
+    URPAREN         reduce using rule 7 (exp3 -> LPAREN exp0 RPAREN RPRN_CURSOR .)
+
+
+state 30
+
+    (6) exp3 -> LPRN_CURSOR LPAREN exp0 RPAREN .
+
+    1L1R_OP_R2      reduce using rule 6 (exp3 -> LPRN_CURSOR LPAREN exp0 RPAREN .)
+    1L1R_OP_L1      reduce using rule 6 (exp3 -> LPRN_CURSOR LPAREN exp0 RPAREN .)
+    1L1R_OP_L0      reduce using rule 6 (exp3 -> LPRN_CURSOR LPAREN exp0 RPAREN .)
+    $end            reduce using rule 6 (exp3 -> LPRN_CURSOR LPAREN exp0 RPAREN .)
+    RPAREN          reduce using rule 6 (exp3 -> LPRN_CURSOR LPAREN exp0 RPAREN .)
+    URPAREN         reduce using rule 6 (exp3 -> LPRN_CURSOR LPAREN exp0 RPAREN .)
+
+
+state 31
+
+    (9) exp3 -> LPRN_CURSOR LPAREN exp0 URPAREN .
+
+    1L1R_OP_R2      reduce using rule 9 (exp3 -> LPRN_CURSOR LPAREN exp0 URPAREN .)
+    1L1R_OP_L1      reduce using rule 9 (exp3 -> LPRN_CURSOR LPAREN exp0 URPAREN .)
+    1L1R_OP_L0      reduce using rule 9 (exp3 -> LPRN_CURSOR LPAREN exp0 URPAREN .)
+    $end            reduce using rule 9 (exp3 -> LPRN_CURSOR LPAREN exp0 URPAREN .)
+    RPAREN          reduce using rule 9 (exp3 -> LPRN_CURSOR LPAREN exp0 URPAREN .)
+    URPAREN         reduce using rule 9 (exp3 -> LPRN_CURSOR LPAREN exp0 URPAREN .)
+
+
+state 32
+
+    (11) exp3 -> ULPAREN exp0 RPAREN RPRN_CURSOR .
+
+    1L1R_OP_R2      reduce using rule 11 (exp3 -> ULPAREN exp0 RPAREN RPRN_CURSOR .)
+    1L1R_OP_L1      reduce using rule 11 (exp3 -> ULPAREN exp0 RPAREN RPRN_CURSOR .)
+    1L1R_OP_L0      reduce using rule 11 (exp3 -> ULPAREN exp0 RPAREN RPRN_CURSOR .)
+    $end            reduce using rule 11 (exp3 -> ULPAREN exp0 RPAREN RPRN_CURSOR .)
+    RPAREN          reduce using rule 11 (exp3 -> ULPAREN exp0 RPAREN RPRN_CURSOR .)
+    URPAREN         reduce using rule 11 (exp3 -> ULPAREN exp0 RPAREN RPRN_CURSOR .)
+

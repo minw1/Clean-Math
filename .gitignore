@@ -1,0 +1,15 @@
+
+Resources/UserData/home.txt
+__pycache__/settings.cpython-36.pyc
+__pycache__/RPNtoEXP.cpython-36.pyc
+__pycache__/plyParser.cpython-36.pyc
+__pycache__/parsetab.cpython-36.pyc
+__pycache__/panel.cpython-36.pyc
+__pycache__/operation.cpython-36.pyc
+__pycache__/gridOps.cpython-36.pyc
+__pycache__/expToSurface.cpython-36.pyc
+__pycache__/expression.cpython-36.pyc
+__pycache__/cmdColors.cpython-36.pyc
+.DS_Store
+TestImages/.DS_Store
+.DS_Store
