@@ -28,6 +28,7 @@ PARENTHESES_ADJUSTMENT = 0.05
 FRAC_ADJUSTMENT = 0.3
 FRAC_VERTICAL_TOLERANCE = 0.4
 VINCULUM_SIZE = 0.05
+PAREN_SCALE = 1.1
 
 FONTS={}
 IFONTS={}
@@ -63,7 +64,7 @@ def get_height_offset(char,xml):
     name = charnode.get('name')
 
     if name=="space":
-        return 0,EM_SQUARE
+        return get_height_offset("|",xml)#0,EM_SQUARE
 
     #find its boundary
     glyf_font = fontXML.getroot().find('glyf')
@@ -72,7 +73,7 @@ def get_height_offset(char,xml):
     return ymin,ymax
 
 def get_height_offset_str(string,xml):
-    if string=='': return (0,EM_SQUARE)
+    if string=='': return #(0,EM_SQUARE)
     yMins,yMaxs=[],[]
     for char in string:
         ymin,ymax=get_height_offset(char,xml)
@@ -82,6 +83,17 @@ def get_height_offset_str(string,xml):
 
 def get_altitudes(ymin,ymax,height):
     return round(height*(-ymin)/(ymax-ymin)),round(height*(EM_SQUARE-ymin)/(ymax-ymin))
+
+def get_font(font_size):
+    font = FONTS[font_size] if font_size in FONTS else pygame.freetype.Font(LATEX_FONT_PATH, font_size)
+    FONTS[font_size] = font
+    return font
+
+def get_iFont(font_size):
+    iFont = IFONTS[font_size] if font_size in IFONTS else pygame.freetype.Font(LATEX_iFONT_PATH, font_size)
+    IFONTS[font_size]=iFont
+    return iFont
+    
 
 class smartSurface:
 
@@ -97,11 +109,9 @@ class smartSurface:
         self.hitboxes = [] #(rect, self.exp, op_depth)
         font_size = makeSmaller(DEFAULT_FONT_SIZE, script_depth+max(frac_depth-1,0))
         self.font_size = font_size
-        font = FONTS[font_size] if font_size in FONTS else pygame.freetype.Font(LATEX_FONT_PATH, font_size)
-        FONTS[font_size]=font
+        font = get_font(font_size)
         self.font = font
-        iFont = IFONTS[font_size] if font_size in IFONTS else pygame.freetype.Font(LATEX_iFONT_PATH, font_size)
-        IFONTS[font_size]=iFont
+        iFont = get_iFont(font_size)
         self.iFont = iFont
         if type(exp) == xp.NoOpExpression:
             is_int = is_intable(exp.strRep)
@@ -113,7 +123,9 @@ class smartSurface:
                 self.surface,rect = font.render(exp.strRep,st.fontColor,COLORKEY)
                 self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
             elif exp.strRep == " ":
-                self.surface,rect = font.render('|',COLORKEY,COLORKEY)
+                new_size = round(font_size/SQRT2)
+                font2 = get_font(new_size)
+                self.surface,rect = font2.render('|',COLORKEY,COLORKEY)
                 self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
             else:
                 self.surface,rect = iFont.render(exp.strRep,st.fontColor,COLORKEY)
@@ -126,8 +138,8 @@ class smartSurface:
             containedExp = exp.expList[0]
             firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
             width, height = firstSurface.get_size()
-            newFontSize=height*SQRT2+round(2*PARENTHESES_ADJUSTMENT*font_size)
-            newFont = pygame.freetype.Font(LATEX_FONT_PATH, newFontSize)
+            newFontSize=height*PAREN_SCALE+round(2*PARENTHESES_ADJUSTMENT*font_size)
+            newFont = get_font(newFontSize)
             openParen, openRect = newFont.render("(",st.fontColor,COLORKEY)
             closeParen, closeRect = newFont.render(")",st.fontColor,COLORKEY)
             openWidth, openHeight = openParen.get_size()
@@ -147,8 +159,8 @@ class smartSurface:
             containedExp = exp.expList[0]
             firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
             width, height = firstSurface.get_size()
-            newFontSize=height*SQRT2+round(2*PARENTHESES_ADJUSTMENT*font_size)
-            newFont = pygame.freetype.Font(LATEX_FONT_PATH, newFontSize)
+            newFontSize=height*PAREN_SCALE+round(2*PARENTHESES_ADJUSTMENT*font_size)
+            newFont = get_font(newFontSize)
             openParen, openRect = newFont.render("(",st.fontColor,COLORKEY)
             closeParen, closeRect = newFont.render(")",tuple([(x+255)//2 for x in st.fontColor]),COLORKEY)
             openWidth, openHeight = openParen.get_size()
@@ -169,8 +181,8 @@ class smartSurface:
             containedExp = exp.expList[0]
             firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
             width, height = firstSurface.get_size()
-            newFontSize=height*SQRT2+round(2*PARENTHESES_ADJUSTMENT*font_size)
-            newFont = pygame.freetype.Font(LATEX_FONT_PATH, newFontSize)
+            newFontSize=height*PAREN_SCALE+round(2*PARENTHESES_ADJUSTMENT*font_size)
+            newFont = get_font(newFontSize)
             openParen, openRect = newFont.render("(",tuple([(x+255)//2 for x in st.fontColor]),COLORKEY)
             closeParen, closeRect = newFont.render(")",st.fontColor,COLORKEY)
             openWidth, openHeight = openParen.get_size()

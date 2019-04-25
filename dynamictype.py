@@ -102,7 +102,7 @@ while st.programIsRunning:
                 index+=1
             elif event.unicode == "(":
                 text=text[:index]+'()'+text[index:]
-                index+=2
+                index+=1
             elif event.unicode != ")" and event.unicode in allowed_symbols:# which is one of the digits
                 text=text[:index]+event.unicode+text[index:]
                 index+=1
