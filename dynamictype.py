@@ -100,8 +100,10 @@ while st.programIsRunning:
             elif event.key == pygame.K_SPACE:
                 text=text[:index]+' '+text[index:]
                 index+=1
-
-            elif event.unicode in allowed_symbols:# which is one of the digits
+            elif event.unicode == "(":
+                text=text[:index]+'()'+text[index:]
+                index+=1
+            elif event.unicode != ")" and event.unicode in allowed_symbols:# which is one of the digits
                 text=text[:index]+event.unicode+text[index:]
                 index+=1
             elif event.key == pygame.K_LEFT:
