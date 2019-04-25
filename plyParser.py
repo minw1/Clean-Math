@@ -89,16 +89,6 @@ tokens = (
     '1L1R_OP_L0', '1L1R_OP_L1', '1L1R_OP_R2',
     'LPAREN','RPAREN', 'ULPAREN', 'URPAREN', 'LBRACK','RBRACK', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'LPRN_CURSOR', 'RPRN_CURSOR'
     )
-	
-#precedence = (
-#   ('left', 'ULPAREN', 'URPAREN'),
-#   ('left', 'LPAREN', 'RPAREN'),
-#   ('left', '1L1R_OP_L0'),
-#   ('left', '1L1R_OP_L1'),
-#   ('right', '1L1R_OP_R2'),
-#   ('left', 'VAR', 'NUMBER'),
-#   ('left', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'LPRN_CURSOR', 'RPRN_CURSOR'),
-#)
 
 # Tokens
 #t_EQUALS  = r'='
