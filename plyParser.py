@@ -282,7 +282,7 @@ def process_string(input_str):
             idx += 1
 	
 	#Replace multiplication operators with unicode version
-	output_str = output_str.replace('*', '\u00B7')
+    output_str = output_str.replace('*', '\u00B7')
 	
 	#Insert implicit multiplication
     output_str = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', output_str)

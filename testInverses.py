@@ -8,5 +8,8 @@ def is_inverse(stri):
 	print(st2)
 	return st2==stri
 
+while True:
+   print(is_inverse(input(">>> ")))
+
 
 
