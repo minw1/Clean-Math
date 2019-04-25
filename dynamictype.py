@@ -100,10 +100,7 @@ while st.programIsRunning:
             elif event.key == pygame.K_SPACE:
                 text=text[:index]+' '+text[index:]
                 index+=1
-            elif event.unicode == "(":
-                text=text[:index]+'()'+text[index:]
-                index+=1
-            elif event.unicode != ")" and event.unicode in allowed_symbols:# which is one of the digits
+            elif event.unicode in allowed_symbols:# which is one of the digits
                 text=text[:index]+event.unicode+text[index:]
                 index+=1
             elif event.key == pygame.K_LEFT:
@@ -133,7 +130,7 @@ while st.programIsRunning:
             pygame.draw.rect(screen,st.ORANGE,orect.move(100,100))
 
     screen.blit(Surface.surface,(100,100))
-
+    print(string)
 
     
     st.lock.release()

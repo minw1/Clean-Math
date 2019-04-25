@@ -73,7 +73,7 @@ def get_height_offset(char,xml):
     return ymin,ymax
 
 def get_height_offset_str(string,xml):
-    if string=='': return #(0,EM_SQUARE)
+    if string=='': return 0,EM_SQUARE
     yMins,yMaxs=[],[]
     for char in string:
         ymin,ymax=get_height_offset(char,xml)
