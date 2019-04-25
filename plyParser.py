@@ -35,11 +35,11 @@ def mkstr_fullprns(opList):
     return opStr
 
 def mkstr_lprns(opList):
-    opStr = "(" + opList[0].getString() + ")"
+    opStr = "(" + opList[0].getString()
     return opStr
 
 def mkstr_rprns(opList):
-    opStr = "(" + opList[0].getString() + ")"
+    opStr = opList[0].getString() + ")"
     return opStr
 
 def mkstr_error(opList):
@@ -229,7 +229,7 @@ def p_exp3_empty(p):
 
 def p_exp3_cempty(p):
 	'exp3 : UNF_CURSOR empty'
-	p[0] = xp.NoOpExpression(" ", True, 0)
+	p[0] = xp.NoOpExpression("", True, 0)
 
 def p_empty(p):
      'empty :'
