@@ -7,75 +7,48 @@ import expToSurface
 import pygame
 
 def mkstr_plus(opList):
-	opStr = ""
-	if len(opList) != 2:
-		opStr = "ERROR"
-	else:
-		opStr = opList[0].getString() + "+" + opList[1].getString()
-	return opStr
+    opStr = opList[0].getString() + "+" + opList[1].getString()
+    return opStr
 
 def mkstr_minus(opList):
-	opStr = ""
-	if len(opList) != 2:
-		opStr = "ERROR"
-	else:
-		opStr = opList[0].getString() + "-" + opList[1].getString()
-	return opStr
+    opStr = opList[0].getString() + "-" + opList[1].getString()
+    return opStr
 	
-def mkstr_astrtimes(opList):
-	opStr = ""
-	if len(opList) != 2:
-		opStr = "ERROR"
-	else:
-		opStr = opList[0].getString() + "*" + opList[1].getString()
-	return opStr
+def mkstr_times(opList):
+    opStr = opList[0].getString() + '\u00B7' + opList[1].getString()
+    return opStr
+
+def mkstr_silenttimes(opList):
+    opStr = opList[0].getString() + opList[1].getString()
+    return opStr
 
 def mkstr_slashdiv(opList):
-	opStr = ""
-	if len(opList) != 2:
-		opStr = "ERROR"
-	else:
-		opStr = opList[0].getString() + "/" + opList[1].getString()
-	return opStr
+    opStr = opList[0].getString() + "/" + opList[1].getString()
+    return opStr
 	
 def mkstr_caretpow(opList):
-	opStr = ""
-	if len(opList) != 2:
-		opStr = "ERROR"
-	else:
-		opStr = opList[0].getString() + "^" + opList[1].getString()
-	return opStr
+    opStr = opList[0].getString() + "^" + opList[1].getString()
+    return opStr
 
 def mkstr_fullprns(opList):
-	opStr = ""
-	if len(opList) != 1:
-		opStr = "ERROR"
-	else:
-		opStr = "(" + opList[0].getString() + ")"
-	return opStr
+    opStr = "(" + opList[0].getString() + ")"
+    return opStr
 
 def mkstr_lprns(opList):
-	opStr = ""
-	if len(opList) != 1:
-		opStr = "ERROR"
-	else:
-		opStr = "(" + opList[0].getString() + ")"
-	return opStr
+    opStr = "(" + opList[0].getString() + ")"
+    return opStr
 
 def mkstr_rprns(opList):
-	opStr = ""
-	if len(opList) != 1:
-		opStr = "ERROR"
-	else:
-		opStr = "(" + opList[0].getString() + ")"
-	return opStr
+    opStr = "(" + opList[0].getString() + ")"
+    return opStr
 
 def mkstr_error(opList):
-	return "ERROR"
+    return "ERROR"
 	
 ADD_OP = op.Operator('+', mkstr_plus)
 SUB_OP = op.Operator('-', mkstr_minus)
-MUL_OP = op.Operator('*', mkstr_astrtimes)
+MUL_OP = op.Operator('\u00B7', mkstr_times)
+SMUL_OP = op.Operator('*', mkstr_silenttimes)
 DIV_OP = op.Operator('/', mkstr_slashdiv)
 POW_OP = op.Operator('^', mkstr_caretpow)
 FPRN_OP = op.Operator('()', mkstr_fullprns)
@@ -115,9 +88,11 @@ def t_1L1R_OP_L0(t):
 	return t
 
 def t_1L1R_OP_L1(t):
-	r'\*|/'
-	if t.value == '*' or t.value == '':
+	r'\*|/|\u00B7'
+	if t.value == '\u00B7':
 		t.value = MUL_OP
+	elif t.value == '*':
+		t.value = SMUL_OP
 	elif t.value == '/':
 		t.value = DIV_OP
 	else:
@@ -214,7 +189,7 @@ def p_exp3_clparens(p):
 
 def p_exp3_crparens(p):
     'exp3 : LPAREN exp0 RPAREN RPRN_CURSOR'
-    p[0] = xp.Expression(FPRN_OP, [p[2]]).addCursor(-1)
+    p[0] = xp.Expression(FPRN_OP, [p[2]]).addCursor(1)
 
 def p_exp3_ulparens(p):
     'exp3 : LPAREN exp0 URPAREN'
@@ -230,7 +205,7 @@ def p_exp3_urparens(p):
 
 def p_exp3_curparens(p):
     'exp3 : ULPAREN exp0 RPAREN RPRN_CURSOR'
-    p[0] = xp.Expression(RPRN_OP, [p[2]]).addCursor(-1)
+    p[0] = xp.Expression(RPRN_OP, [p[2]]).addCursor(1)
     
 def p_exp3_number(p):
     'exp3 : NUMBER'
@@ -250,7 +225,7 @@ def p_exp3_var(p):
 
 def p_exp3_empty(p):
     'exp3 : empty'
-    p[0] = xp.NoOpExpression(" ")
+    p[0] = xp.NoOpExpression("")
 
 def p_exp3_cempty(p):
 	'exp3 : UNF_CURSOR empty'
@@ -275,17 +250,6 @@ def p_exp1_exp2ops(p):
     expList = [p[1], p[3]]
     p[0] = xp.Expression(p[2], expList)
 
-#Not sure what this does
-#def p_expression_name(t):
-#    'exp0 : NAME'
-#    try:
-#        t[0] = names[t[1]]
-#    except LookupError:
-#        global error
-#        error=True
-#        print("Undefined name '%s'" % t[1])
-#        t[0] = 0
-
 def p_error(t):
     global error
     error=True
@@ -305,11 +269,14 @@ def process_string(input_str):
             output_str = output_str[:idx] + output_str[idx+1:]
         else:
             idx += 1
+
+    #Replace multiplication operators with unicode version
+    output_str = output_str.replace('*', '\u00B7')
 	
-	#Insert implicit multiplication
+    #Insert implicit multiplication
     output_str = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', output_str)
-    
-	#Close unclosed parentheses (with shadow parens)
+	
+    #Close unclosed parentheses (with shadow parens)
     extr_prns = output_str.count("(") - output_str.count(")")
     if extr_prns > 0:
         output_str = output_str + "\u2986"*extr_prns
