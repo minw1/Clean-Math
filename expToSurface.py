@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 import copy
 
 LATEX_FONT_PATH = st.font_locator("cmu.ttf")
-LATEX_iFONT_PATH = st.font_locator("cmu.ttf")
+LATEX_iFONT_PATH = st.font_locator("cmu_i.ttf")
 LATEX_bFONT_PATH = st.font_locator("cmu_b.ttf")
 LATEX_biFONT_PATH = st.font_locator("cmu_bi.ttf")
 
