@@ -32,7 +32,7 @@ expression = None
 exitmsg, rexitmsg = FONT.render("Please use the console to exit.", st.RED,st.WHITE)
 showmExitMsg = False
 
-allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(",")","."]+list(string.ascii_lowercase)
+allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(",")","."]+list(string.ascii_lowercase)+list(string.ascii_uppercase)
 
 width = 400
 height = 300

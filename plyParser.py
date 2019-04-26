@@ -141,7 +141,7 @@ def t_NUMBER(t):
     return t
 
 # Ignored characters
-t_ignore = " \w"
+t_ignore = " \\"
 
 def t_newline(t):
     r'\n+'
