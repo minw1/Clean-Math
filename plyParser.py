@@ -42,6 +42,10 @@ def mkstr_rprns(opList):
     opStr = opList[0].getString() + ")"
     return opStr
 
+def mkstr_silentprns(opList):
+	opStr = opList[0].getString()
+	return opStr
+
 def mkstr_error(opList):
     return "ERROR"
 	
@@ -54,6 +58,7 @@ POW_OP = op.Operator('^', mkstr_caretpow)
 FPRN_OP = op.Operator('()', mkstr_fullprns)
 LPRN_OP = op.Operator('(', mkstr_lprns)
 RPRN_OP = op.Operator(')', mkstr_rprns)
+SPRN_OP = op.Operator('{}', mkstr_silentprns)
 
 ERR_OP = op.Operator("ERROR", mkstr_error)
 
@@ -129,19 +134,12 @@ def t_VAR(t):
 	return t
 	
 def t_NUMBER(t):
-    r'\d+'
-    try:
-        t.value = int(t.value)
-        t.value = xp.NoOpExpression(str(t.value))
-    except ValueError:
-        global error
-        error=True
-        print("Number value too large %d", t.value)
-        t.value = xp.NoOpExpression('0')
+    r'\d+(\.\d+)'
+    t.value = xp.NoOpExpression(str(t.value))
     return t
 
 # Ignored characters
-t_ignore = " \w"
+t_ignore = " \\"
 
 def t_newline(t):
     r'\n+'
@@ -242,6 +240,10 @@ def p_exp0_exp0ops(p):
 
 def p_exp1_exp1ops(p):
     'exp1 : exp1 1L1R_OP_L1 exp2'
+#    if p[2].strrep == '/':
+#		
+#    else:
+#        expList = [p[1], p[3]]
     expList = [p[1], p[3]]
     p[0] = xp.Expression(p[2], expList)
 
@@ -262,7 +264,7 @@ def process_string(input_str):
     output_str = input_str
 	
     #Remove illegal characters
-    illegal_chars = ['!', '@', '#', '$', '%', '&', '_', '\\', ':', ';', '\"', '\'', '?', '>', '<', ',', '=']
+    illegal_chars = ['!', '@', '#', '$', '%', '&', '_', '\\', ':', ';', '\"', '\'', '?', '>', '<', ',', '=', '.']
     idx = 0
     while idx < len(output_str):
         if output_str[idx] in illegal_chars:
@@ -277,11 +279,17 @@ def process_string(input_str):
     output_str = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', output_str)
 	
     #Close unclosed parentheses (with shadow parens)
-    extr_prns = output_str.count("(") - output_str.count(")")
-    if extr_prns > 0:
-        output_str = output_str + "\u2986"*extr_prns
-    elif extr_prns < 0:
-        output_str = (-1*extr_prns)*"\u2985" + output_str
+    extr_lprns = 0
+    extr_rprns = 0
+    for i in range(0, len(output_str)):
+        if output_str[i] == "(":
+            extr_rprns += 1
+        elif output_str[i] == ")":
+            if extr_rprns > 0:
+                extr_rprns -= 1
+            else:
+                extr_lprns += 1
+    output_str = extr_lprns*"\u2985" + output_str + "\u2986"*extr_rprns
     return output_str
 
 error=False
