@@ -134,12 +134,12 @@ def t_VAR(t):
 	return t
 	
 def t_NUMBER(t):
-    r'\d+(\.\d+)'
+    r'\d+(\.\d+)?'
     t.value = xp.NoOpExpression(str(t.value))
     return t
 
 # Ignored characters
-t_ignore = " \\"
+t_ignore = " "
 
 def t_newline(t):
     r'\n+'
@@ -260,43 +260,10 @@ def p_error(t):
 import ply.yacc as yacc
 parser = yacc.yacc()
 
-def process_string(input_str):
-    output_str = input_str
-	
-    #Remove illegal characters
-    illegal_chars = ['!', '@', '#', '$', '%', '&', '_', '\\', ':', ';', '\"', '\'', '?', '>', '<', ',', '=', '.']
-    idx = 0
-    while idx < len(output_str):
-        if output_str[idx] in illegal_chars:
-            output_str = output_str[:idx] + output_str[idx+1:]
-        else:
-            idx += 1
-
-    #Replace multiplication operators with unicode version
-    output_str = output_str.replace('*', '\u00B7')
-
-    #Insert implicit multiplication
-    output_str = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', output_str)
-	
-    #Close unclosed parentheses (with shadow parens)
-    extr_lprns = 0
-    extr_rprns = 0
-    for i in range(0, len(output_str)):
-        if output_str[i] == "(":
-            extr_rprns += 1
-        elif output_str[i] == ")":
-            if extr_rprns > 0:
-                extr_rprns -= 1
-            else:
-                extr_lprns += 1
-    output_str = extr_lprns*"\u2985" + output_str + "\u2986"*extr_rprns
-    return output_str
-
 error=False
 def get_exp(inputStr):
     global error
     error=False
-    inputStr = process_string(inputStr)
     resultingExpression = parser.parse(inputStr)
     if error:
         raise ValueError("Expression could not parse correctly.")
