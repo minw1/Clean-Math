@@ -19,7 +19,7 @@ class Operator:
         return self.strRep
     def __eq__(self,other):
         if type(other)==Operator:
-            return self.strRep == other.StrRep
+            return self.strRep == other.strRep
         else:
             return self.strRep == other
     def __hash__(self):
