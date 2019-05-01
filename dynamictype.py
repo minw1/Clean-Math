@@ -16,6 +16,41 @@ import expression as xp
 import expToSurface as xts
 import plyParser as pprs
 import expToStr as xtstr
+import re
+
+def process_string(input_str):
+    output_str = input_str
+    #Remove illegal characters
+    illegal_chars = ['!', '@', '#', '$', '%', '&', '_', '\\', ':', ';', '\"', '\'', '?', '>', '<', ',', '=']
+    idx = 0
+    while idx < len(output_str):
+        if output_str[idx] in illegal_chars:
+            output_str = output_str[:idx] + output_str[idx+1:]
+        else:
+            idx += 1
+
+    #Replace multiplication operators with unicode version
+    output_str = output_str.replace('*', '\u00B7')
+
+    #Insert implicit multiplication
+    output_str = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', output_str)
+	
+   #Close unclosed parentheses (with shadow parens)
+    extr_lprns = 0
+    extr_rprns = 0
+    for i in range(0, len(output_str)):
+        if output_str[i] == "(":
+            extr_rprns += 1
+        elif output_str[i] == ")":
+            if extr_rprns > 0:
+                extr_rprns -= 1
+            else:
+                extr_lprns += 1
+    output_str = extr_lprns*"\u2985" + output_str + "\u2986"*extr_rprns
+	
+    #Add brackets for division operands
+	
+    return output_str
 
 
 # Initialize the game engine
@@ -33,7 +68,7 @@ expression = None
 exitmsg, rexitmsg = FONT.render("Please use the console to exit.", st.RED,st.WHITE)
 showmExitMsg = False
 
-allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(",")","."]+list(string.ascii_lowercase)
+allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(",")","."]+list(string.ascii_lowercase)+list(string.ascii_uppercase)
 
 width = 400
 height = 300
@@ -165,10 +200,7 @@ while st.programIsRunning:
             elif event.key == pygame.K_SPACE:
                 text=text[:index]+' '+text[index:]
                 index+=1
-            elif event.unicode == "(":
-                text=text[:index]+'()'+text[index:]
-                index+=1
-            elif event.unicode != ")" and event.unicode in allowed_symbols:# which is one of the digits
+            elif event.unicode in allowed_symbols:# which is one of the digits
                 text=text[:index]+event.unicode+text[index:]
                 index+=1
             elif event.key == pygame.K_LEFT:
@@ -187,9 +219,8 @@ while st.programIsRunning:
 
 
     string = text[:index]+'|'+text[index:]
+    string = process_string(string)
 
-
-    print(string)
     expression = pprs.get_exp(string)
     expression.assign_parents()
     Surface = xts.smartSurface(expression)
@@ -219,7 +250,7 @@ while st.programIsRunning:
             pygame.draw.rect(screen,st.ORANGE,orect.move(100,100))
 
     screen.blit(Surface.surface,(100,100))
-
+    print(string)
 
     
     st.lock.release()
