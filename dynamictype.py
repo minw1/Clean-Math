@@ -15,6 +15,7 @@ from settings import selectedcell
 import expression as xp
 import expToSurface as xts
 import plyParser as pprs
+import expToStr as xtstr
 
 
 # Initialize the game engine
@@ -52,6 +53,7 @@ screen = pygame.display.set_mode(size, pygame.RESIZABLE)
 
 pygame.display.set_caption("Clean Math")
  
+rselect = None
 
 clock = pygame.time.Clock()
 currentTime = time.clock()
@@ -66,6 +68,32 @@ index=0
 import psutil
 
 Surface=None
+
+def sandwich(A,B):#is A inclusively between (B1,B2)?
+    maxi = max(B[0],B[1])
+    mini = min(B[0],B[1])
+    return A>=mini and A<=maxi
+
+
+
+def distPointRect(point,rect): #squared distance of point and rectangle. We don't need the real distance to compare distance sizes.
+    (X,Y) = point
+    (A,B) = rect.topleft
+    (W,Z) = rect.bottomright
+
+    xoffset = 0
+    yoffset = 0
+
+    if not sandwich(X,(A,W)):
+        xoffset = min(abs(X-A),abs(X-W))
+    if not sandwich(Y,(B,Z)):
+        xoffset = min(abs(Y-B),abs(Y-Z))
+
+    return (xoffset**2 + yoffset**2)
+
+
+
+
  
 while st.programIsRunning:
     clock.tick(20)
@@ -92,6 +120,43 @@ while st.programIsRunning:
             secondTap = (mousePX,mousePY)
         if event.type == pygame.MOUSEMOTION and button1:
             secondTap = (mousePX, mousePY)
+        if event.type == pygame.MOUSEBUTTONUP:
+            if(selectedRectangle.size == (0,0)):
+                #a click to move the cursor
+                xtstr.clearCursor(expression)
+                smallestDist = 99999999999999999
+                smallestExp = None
+                xcoorCenter = -1
+
+
+                for hb in Surface.hitboxes:
+                    [irect,orect], expression, op_depth = hb
+                    if type(expression) == xp.NoOpExpression:
+                        dpr = distPointRect((mousePX-100,mousePY-100),irect)
+                        if dpr < smallestDist:
+                            smallestDist = dpr
+                            smallestExp = expression
+                            xcoorCenter = irect.centerx
+
+                if not smallestExp == None:
+                    smallestExp.cursor = True
+                    if mousePX-100 < xcoorCenter:
+                        smallestExp.cursor_idx = 0
+                    else:
+                        smallestExp.cursor_idx = 1
+
+                text = xtstr.expToStr(expression)
+                index = text.index("|")
+                text = text.replace("|","")
+
+
+
+
+                rselect = None
+
+            firstTap = (-1,-1)
+            secondTap = (-1,-1)
+
         ##KEY EVENTS
         if event.type == pygame.KEYDOWN:#if a key is entered        
             if event.key == pygame.K_BACKSPACE and index>0:
@@ -115,8 +180,16 @@ while st.programIsRunning:
             if Surface is not None:
                 expres = Surface.get_at_position((x,y))
                 print('exp high is', expres)
+
             
+
+
+
+
     string = text[:index]+'|'+text[index:]
+
+
+    print(string)
     expression = pprs.get_exp(string)
     expression.assign_parents()
     Surface = xts.smartSurface(expression)
@@ -124,12 +197,25 @@ while st.programIsRunning:
     #pygame.draw.rect(screen,st.ORANGE,selectedRectangle)
 
 
-    selRectInEQSpace = selectedRectangle.move(-100,-100)
-    rselect = Surface.selectFromRect(selRectInEQSpace)
+    selectedRectangle.x = min(firstTap[0],secondTap[0])
+    selectedRectangle.y = min(firstTap[1],secondTap[1])
+    selectedRectangle.w = abs(firstTap[0]-secondTap[0])
+    selectedRectangle.h = abs(firstTap[1]-secondTap[1])
+
+
+    if(selectedRectangle.size == (0,0)):
+        selectedRectangle.x = -1
+        selectedRectangle.y = -1
+
+
+    if (not firstTap == (-1,-1)) and (not secondTap == (-1,-1)):
+        selRectInEQSpace = selectedRectangle.move(-100,-100)
+        rselect = Surface.selectFromRect(selRectInEQSpace)
+
 
     for hb in Surface.hitboxes:
         [irect,orect], expression, op_depth = hb
-        if expression == rselect:
+        if xp.compare_exp(expression,rselect):
             pygame.draw.rect(screen,st.ORANGE,orect.move(100,100))
 
     screen.blit(Surface.surface,(100,100))
@@ -138,12 +224,7 @@ while st.programIsRunning:
     
     st.lock.release()
 
-
-    selectedRectangle.x = min(firstTap[0],secondTap[0])
-    selectedRectangle.y = min(firstTap[1],secondTap[1])
-    selectedRectangle.w = abs(firstTap[0]-secondTap[0])
-    selectedRectangle.h = abs(firstTap[1]-secondTap[1])
-
+ 
 
     # Go ahead and update the screen with what we've drawn.
     # This MUST happen after all the other drawing commands.
