@@ -162,35 +162,27 @@ while st.programIsRunning:
                 smallestDist = 99999999999999999
                 smallestExp = None
                 xcoorCenter = -1
-
-
                 for hb in Surface.hitboxes:
-                    [irect,orect], expression, op_depth = hb
-                    if type(expression) == xp.NoOpExpression:
+                    [irect,orect], hbExp, op_depth = hb
+                    if type(hbExp) == xp.NoOpExpression:
                         dpr = distPointRect((mousePX-100,mousePY-100),irect)
                         if dpr < smallestDist:
                             smallestDist = dpr
-                            smallestExp = expression
+                            smallestExp = hbExp
                             xcoorCenter = irect.centerx
-
                 if not smallestExp == None:
                     smallestExp.cursor = True
                     if mousePX-100 < xcoorCenter:
                         smallestExp.cursor_idx = 0
                     else:
                         smallestExp.cursor_idx = 1
-
                 text = xtstr.expToStr(expression)
                 index = text.index("|")
                 text = text.replace("|","")
-
-
-
-
                 rselect = None
 
-            firstTap = (-1,-1)
-            secondTap = (-1,-1)
+            #firstTap = (-1,-1)
+            #secondTap = (-1,-1)
 
         ##KEY EVENTS
         if event.type == pygame.KEYDOWN:#if a key is entered        
@@ -203,9 +195,9 @@ while st.programIsRunning:
             elif event.unicode in allowed_symbols:# which is one of the digits
                 text=text[:index]+event.unicode+text[index:]
                 index+=1
-            elif event.key == pygame.K_LEFT:
+            elif event.key == pygame.K_LEFT or event.key==pygame.K_UP:
                 index=max(index-1,0)
-            elif event.key == pygame.K_RIGHT:
+            elif event.key == pygame.K_RIGHT or event.key==pygame.K_DOWN:
                 index=min(index+1,len(text))
         if event.type == pygame.MOUSEBUTTONDOWN and (keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]):
             x,y=mousePX-100,mousePY-100
@@ -220,9 +212,10 @@ while st.programIsRunning:
 
     string = text[:index]+'|'+text[index:]
     string = process_string(string)
-
     expression = pprs.get_exp(string)
     expression.assign_parents()
+
+
     Surface = xts.smartSurface(expression)
     screen.fill((255,255,255))
     #pygame.draw.rect(screen,st.ORANGE,selectedRectangle)
@@ -242,17 +235,14 @@ while st.programIsRunning:
     if (not firstTap == (-1,-1)) and (not secondTap == (-1,-1)):
         selRectInEQSpace = selectedRectangle.move(-100,-100)
         rselect = Surface.selectFromRect(selRectInEQSpace)
-
-
     for hb in Surface.hitboxes:
-        [irect,orect], expression, op_depth = hb
-        if xp.compare_exp(expression,rselect):
+        [irect,orect], drawExpression, op_depth = hb
+
+        if rselect == drawExpression:
             pygame.draw.rect(screen,st.ORANGE,orect.move(100,100))
 
-    screen.blit(Surface.surface,(100,100))
-    print(string)
 
-    
+    screen.blit(Surface.surface,(100,100))
     st.lock.release()
 
  
