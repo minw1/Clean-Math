@@ -5,8 +5,8 @@ import xml.etree.ElementTree as ET
 import copy
 import time
 
-LATEX_FONT_PATH = st.font_locator("cmu.ttf")
-LATEX_iFONT_PATH = st.font_locator("cmu_i.ttf")
+LATEX_FONT_PATH = st.font_locator("newfont.ttf")
+LATEX_iFONT_PATH = st.font_locator("newfont.ttf")
 LATEX_bFONT_PATH = st.font_locator("cmu_b.ttf")
 LATEX_biFONT_PATH = st.font_locator("cmu_bi.ttf")
 
@@ -34,6 +34,8 @@ PAREN_SCALE = 1.1
 FONTS={}
 IFONTS={}
 
+EM_SQUARE = 1400
+
 def is_intable(string):
     try:
         i=int(string)
@@ -41,8 +43,8 @@ def is_intable(string):
     except ValueError:
         return False
 
-fontXML = ET.parse('Resources/Fonts/cmu.ttx')
-iFontXML = ET.parse('Resources/Fonts/cmu_i.ttx')
+fontXML = ET.parse('Resources/Fonts/newfont.ttx')
+iFontXML = ET.parse('Resources/Fonts/newfont.ttx')
 
 def get_bounds(xml):
     root = xml.getroot()
@@ -52,8 +54,6 @@ def get_bounds(xml):
     yMin = int(head.find('yMin').get('value'))
     yMax = int(head.find('yMax').get('value'))
     return xMin,xMax,yMin,yMax
-
-EM_SQUARE = 1400
 
 def get_height_offset(char,xml):
     root = xml.getroot()
@@ -224,7 +224,7 @@ class smartSurface:
                 self.surface.blit(firstSurface.surface, (0,finalAbove-firstAbove))
                 self.surface.blit(secondSurface.surface, (firstWidth+self.smallSpacing, finalAbove-secondAbove))
                 self.hitboxes = firstSurface.translateHitboxes([0,finalAbove-firstAbove]) + secondSurface.translateHitboxes([firstWidth+self.smallSpacing, finalAbove-secondAbove])
-                self.hitboxes.append(([pygame.Rect(-1,-1,0,0),self.surface.get_rect()], self.exp, op_depth))
+                
             else:
                 character = exp.op.strRep
                 operatorSurface, operatorRect = font.render(character,st.fontColor,COLORKEY)
@@ -370,5 +370,6 @@ class smartSurface:
 
     def get_size(self):
         return self.surface.get_size()
+
     def get_rect(self):
         return self.surface.get_rect()
