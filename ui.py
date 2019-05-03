@@ -158,7 +158,7 @@ class uiExpression:
 		else:
 			curstring = self.text
 
-		finalstring = process_string(curstring)
+		finalstring = process_string(curstring)[0]
 		self.exp = pprs.get_exp(finalstring)
 		self.exp.assign_parents()
 		self.surf = xts.smartSurface(self.exp)
