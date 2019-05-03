@@ -54,6 +54,7 @@ class Expression:
 
 
 
+
 class NoOpExpression(Expression):
     #Initializer for a no-operator expression
     def __init__(self, strRep, cursor=False, cursor_idx=None):
@@ -78,4 +79,38 @@ class NoOpExpression(Expression):
 
     def assign_parents(self):
         return 0
+
+
+def compare_exp(first,second):
+    if not type(first) == type(second):
+        return False
+    if type(first) == Expression:
+        if not first.op == second.op:
+            return False
+        if not len(first.expList) == len(second.expList):
+            return False
+        for i,j in zip(first.expList, second.expList):
+            if not compare_exp(i,j):
+                return False
+            return True
+    if type(first) == NoOpExpression:
+        if not first.strRep == second.strRep:
+            return False
+        return True
+
+    print("invalid comparison")
+    return False
+
+def flatten(exp):
+    if type(exp) == NoOpExpression:
+        return [exp]
+    allexps = []
+    allexps += [exp]
+    for child in exp.expList:
+        allexps += flatten(child)
+    return allexps
+
+
+        
+
 
