@@ -101,7 +101,7 @@ class uiExpression:
 	def draw(self,screen):
 		screen.blit(self.surf.surface,self.rect.topleft)
 
-	def feed_mousedown(self,mouse_absolute):
+	def feed_mousedown(self,mouse_absolute):#returns if this ui expression was selected by the click
 		mouse_rel = (mouse_absolute[0]-self.rect.topleft[0],mouse_absolute[1]-self.rect.topleft[1])
 		if not self.rect.collidepoint(mouse_absolute):
 			return False
@@ -111,12 +111,22 @@ class uiExpression:
 		xcoorCenter = -1
 		for hb in self.surf.hitboxes:
 			[irect,orect], hbExp, op_depth = hb
-			if type(hbExp) == xp.NoOpExpression:
+
+			acceptable_hitbox = (type(hbExp) == xp.NoOpExpression)
+			''' this cannot be implemented yet
+			if type(hbExp) == xp.Expression:
+				if hbExp.op.strRep == "/":
+					acceptable_hitbox = True
+			'''
+
+			if acceptable_hitbox:
 				dpr = distPointRect(mouse_rel,irect)
 				if dpr < smallestDist:
 					smallestDist = dpr
 					smallestExp = hbExp
 					xcoorCenter = irect.centerx
+
+
 		if not smallestExp == None:
 			smallestExp.cursor = True
 			if mouse_rel[0] < xcoorCenter:
@@ -127,6 +137,7 @@ class uiExpression:
 		self.index = self.text.index("|")
 		self.text = self.text.replace("|","")
 		self.is_active = True
+		return True
 
 
 	def feed_mouseup(self, mouse_absolute):
@@ -159,6 +170,11 @@ class uiExpression:
 					self.feedAllowedSymbol(event.unicode)
 				else:
 					self.feed_keydown(event.key)
+
+class uiEquation:
+	def __init__(self,leftside,rightside):
+		self.leftside = leftside
+		self.rightside = rightside
 
 
 
