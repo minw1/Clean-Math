@@ -3,6 +3,7 @@ import settings as st
 import pygame
 import xml.etree.ElementTree as ET
 import copy
+import time
 
 LATEX_FONT_PATH = st.font_locator("cmu.ttf")
 LATEX_iFONT_PATH = st.font_locator("cmu_i.ttf")
@@ -101,7 +102,7 @@ class smartSurface:
     spacing = 10
     smallSpacing = 5
 
-    def __init__(self, exp, frac_depth=0, script_depth=0, op_depth=0): #depth is number of layers into generation we are.
+    def __init__(self, exp, frac_depth=0, script_depth=0, op_depth=0, cursor_show=True): #depth is number of layers into generation we are.
         self.exp = exp
         self.yline = 0
         st.lock.acquire()
@@ -116,12 +117,11 @@ class smartSurface:
         self.iFont = iFont
         if type(exp) == xp.NoOpExpression:
             is_int = is_intable(exp.strRep)
-            if exp.strRep == "|":
-                middleColor = [(st.fontColor[i]+COLORKEY[i])//2 for i in range(3)]
-                self.surface,rect = font.render('|',middleColor,COLORKEY)
-                self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
-            elif is_int:
-                self.surface,rect = font.render(exp.strRep,st.fontColor,COLORKEY)
+            string = exp.strRep
+            if is_int or (exp.strRep == "" and exp.cursor):
+                if exp.cursor:
+                    string = exp.strRep[:exp.cursor_idx]+'|'+exp.strRep[exp.cursor_idx:]
+                self.surface,rect = font.render(string,st.fontColor,COLORKEY)
                 self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
             elif exp.strRep in (""," "):
                 new_size = round(font_size/SQRT2)
@@ -129,20 +129,22 @@ class smartSurface:
                 self.surface,rect = font2.render('|',COLORKEY,COLORKEY)
                 self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
             else:
-                self.surface,rect = iFont.render(exp.strRep,st.fontColor,COLORKEY)
+                if exp.cursor:
+                    string = exp.strRep[:exp.cursor_idx]+'|'+exp.strRep[exp.cursor_idx:]
+                self.surface,rect = iFont.render(string,st.fontColor,COLORKEY)
                 self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
-            ymin,ymax=get_height_offset_str(exp.strRep,(fontXML if (is_int or exp.strRep == "|") else iFontXML))
+            ymin,ymax=get_height_offset_str(string,(fontXML if (is_int or string == "|") else iFontXML))
             minY,maxY = get_altitudes(ymin,ymax,self.surface.get_size()[1])
             self.yline=(minY+maxY)//2
             self.surface.set_colorkey(COLORKEY)
         elif exp.op.strRep == "()":
             containedExp = exp.expList[0]
-            firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
+            firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1, cursor_show)
             width, height = firstSurface.get_size()
             newFontSize=height*PAREN_SCALE+round(2*PARENTHESES_ADJUSTMENT*font_size)
             newFont = get_font(newFontSize)
-            openParen, openRect = newFont.render("(",st.fontColor,COLORKEY)
-            closeParen, closeRect = newFont.render(")",st.fontColor,COLORKEY)
+            openParen, openRect = newFont.render(("|" if (exp.cursor and exp.cursor_idx==0) else "")+"(",st.fontColor,COLORKEY)
+            closeParen, closeRect = newFont.render(")"+("|" if (exp.cursor and exp.cursor_idx==1) else ""),st.fontColor,COLORKEY)
             openWidth, openHeight = openParen.get_size()
             closeWidth, closeHeight = closeParen.get_size()
             endWidth = openWidth+width+closeWidth
@@ -159,11 +161,11 @@ class smartSurface:
             self.surface.set_colorkey(COLORKEY)            
         elif exp.op.strRep == "(":
             containedExp = exp.expList[0]
-            firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
+            firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1, cursor_show)
             width, height = firstSurface.get_size()
             newFontSize=height*PAREN_SCALE+round(2*PARENTHESES_ADJUSTMENT*font_size)
             newFont = get_font(newFontSize)
-            openParen, openRect = newFont.render("(",st.fontColor,COLORKEY)
+            openParen, openRect = newFont.render(("|" if exp.cursor else "")+"(",st.fontColor,COLORKEY)
             closeParen, closeRect = newFont.render(")",tuple([(x+255)//2 for x in st.fontColor]),COLORKEY)
             openWidth, openHeight = openParen.get_size()
             closeWidth, closeHeight = closeParen.get_size()
@@ -181,12 +183,12 @@ class smartSurface:
             self.surface.set_colorkey(COLORKEY)
         elif exp.op.strRep == ")":
             containedExp = exp.expList[0]
-            firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1)
+            firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1, cursor_show)
             width, height = firstSurface.get_size()
             newFontSize=height*PAREN_SCALE+round(2*PARENTHESES_ADJUSTMENT*font_size)
             newFont = get_font(newFontSize)
             openParen, openRect = newFont.render("(",tuple([(x+255)//2 for x in st.fontColor]),COLORKEY)
-            closeParen, closeRect = newFont.render(")",st.fontColor,COLORKEY)
+            closeParen, closeRect = newFont.render(")"+("|" if exp.cursor else ""),st.fontColor,COLORKEY)
             openWidth, openHeight = openParen.get_size()
             closeWidth, closeHeight = closeParen.get_size()
             endWidth = openWidth+width+closeWidth
@@ -202,8 +204,8 @@ class smartSurface:
             self.yline = expLocation[1]+firstSurface.yline
             self.surface.set_colorkey(COLORKEY)
         elif exp.op.strRep in self.simpleOps:
-            firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth, op_depth+1)
-            secondSurface = smartSurface(exp.expList[1], frac_depth, script_depth, op_depth+1)
+            firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth, op_depth+1, cursor_show)
+            secondSurface = smartSurface(exp.expList[1], frac_depth, script_depth, op_depth+1, cursor_show)
 
             firstWidth, firstHeight = firstSurface.get_size()
             secondWidth, secondHeight = secondSurface.get_size()
@@ -254,8 +256,8 @@ class smartSurface:
             self.yline = finalBelow
 
         elif exp.op.strRep == "^":
-            firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth, op_depth+1)
-            secondSurface = smartSurface(exp.expList[1],frac_depth,script_depth+1, op_depth+1)
+            firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth, op_depth+1, cursor_show)
+            secondSurface = smartSurface(exp.expList[1],frac_depth,script_depth+1, op_depth+1, cursor_show)
             firstWidth, firstHeight = firstSurface.get_size()
             secondWidth, secondHeight = secondSurface.get_size()
             firstYline, secondYline = firstSurface.yline,secondSurface.yline
@@ -278,8 +280,8 @@ class smartSurface:
 
             numeratorExp = exp.expList[0]
             denominatorExp = exp.expList[1]
-            numSurface = smartSurface(numeratorExp, frac_depth+1, script_depth, op_depth+1)
-            denomSurface = smartSurface(denominatorExp, frac_depth+1, script_depth, op_depth+1)
+            numSurface = smartSurface(numeratorExp, frac_depth+1, script_depth, op_depth+1, cursor_show)
+            denomSurface = smartSurface(denominatorExp, frac_depth+1, script_depth, op_depth+1, cursor_show)
             numWidth, numHeight = numSurface.get_size()
             denomWidth, denomHeight = denomSurface.get_size()
             vinculumWidth = max(numWidth, denomWidth)+round(2*FRAC_ADJUSTMENT*font_size)
@@ -305,7 +307,7 @@ class smartSurface:
             self.surface.set_colorkey(COLORKEY)
         elif exp.op.strRep == "{}":
             expression = exp.expList[0]
-            otherSurf = smartSurface(expression, frac_depth, script_depth)
+            otherSurf = smartSurface(expression, frac_depth, script_depth, cursor_show)
             self.surface = otherSurf.surface
             self.hitboxes = otherSurf.hitboxes
             self.yline = otherSurf.yline
