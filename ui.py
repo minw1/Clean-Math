@@ -103,7 +103,7 @@ class uiExpression:
 
 	def feed_mousedown(self,mouse_absolute):
 		mouse_rel = (mouse_absolute[0]-self.rect.topleft[0],mouse_absolute[1]-self.rect.topleft[1])
-		if not self.rect.collidepoint(mouse_rel):
+		if not self.rect.collidepoint(mouse_absolute):
 			return False
 		xtstr.clearCursor(self.exp)
 		smallestDist = 99999999999999999
@@ -124,7 +124,7 @@ class uiExpression:
 			else:
 				smallestExp.cursor_idx = 1 #this needs to become more sophisticated later
 		self.text = xtstr.expToStr(self.exp)
-		self.index = text.index("|")
+		self.index = self.text.index("|")
 		self.text = self.text.replace("|","")
 		self.is_active = True
 
