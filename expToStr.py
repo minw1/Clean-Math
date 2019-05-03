@@ -19,11 +19,23 @@ def wrap(stri,foReallyThough):
 		return "(" + stri + ")"
 	else:
 		return stri
+
+
+def clearCursor(exp):
+	exp.cursor = False
+	if type(exp) == xp.Expression:
+		for child in exp.expList:
+			clearCursor(child)
+
 def expToStr(exp):
 	if(type(exp)==xp.NoOpExpression):
 		if(exp.strRep == " "):
 			return ""
-		return exp.strRep
+		sr = exp.strRep
+		if exp.cursor:
+			return sr[:exp.cursor_idx] + "|" + sr[exp.cursor_idx:]
+		else:
+			return sr
 	if(exp.op == "()"):
 		return wrap(expToStr(exp.expList[0]), True)
 
@@ -40,5 +52,5 @@ def expToStr(exp):
 		if exp.op.strRep == "*":
 			return wrap(expToStr(exp.expList[0]),firstLower) + wrap(expToStr(exp.expList[1]),secondLower)
 		if exp.op.strRep == '\u00B7':
-			return wrap(expToStr(exp.expList[0]),firstLower) + "*" + wrap(expToStr(exp.expList[1]),secondLower)
+			return wrap(expToStr(exp.expList[0]),firstLower) + '*' + wrap(expToStr(exp.expList[1]),secondLower)
 		return wrap(expToStr(exp.expList[0]),firstLower) + exp.op.strRep + wrap(expToStr(exp.expList[1]),secondLower)

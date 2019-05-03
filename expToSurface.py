@@ -224,7 +224,7 @@ class smartSurface:
                 self.surface.blit(firstSurface.surface, (0,finalAbove-firstAbove))
                 self.surface.blit(secondSurface.surface, (firstWidth+self.smallSpacing, finalAbove-secondAbove))
                 self.hitboxes = firstSurface.translateHitboxes([0,finalAbove-firstAbove]) + secondSurface.translateHitboxes([firstWidth+self.smallSpacing, finalAbove-secondAbove])
-                
+                self.hitboxes.append(([pygame.Rect(-1,-1,0,0),self.surface.get_rect()], self.exp, op_depth))
             else:
                 character = exp.op.strRep
                 operatorSurface, operatorRect = font.render(character,st.fontColor,COLORKEY)
@@ -370,3 +370,5 @@ class smartSurface:
 
     def get_size(self):
         return self.surface.get_size()
+    def get_rect(self):
+        return self.surface.get_rect()
