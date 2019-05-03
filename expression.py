@@ -27,8 +27,6 @@ class Expression:
         if type(self)==NoOpExpression:
             return self.strRep
         returnString = self.op.makeStr(self.expList)
-        if self.parens:
-            returnString = "(" + returnString + ")"
         return returnString
 
     #Evaluates expression
