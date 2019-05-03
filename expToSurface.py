@@ -368,3 +368,5 @@ class smartSurface:
 
     def get_size(self):
         return self.surface.get_size()
+    def get_rect(self):
+        return self.surface.get_rect()
