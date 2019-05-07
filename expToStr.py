@@ -30,7 +30,10 @@ def clearCursor(exp):
 def expToStr(exp):
 	if(type(exp)==xp.NoOpExpression):
 		if(exp.strRep == " "):
+			if exp.cursor:
+				return "|"
 			return ""
+
 		sr = exp.strRep
 		if exp.cursor:
 			return sr[:exp.cursor_idx] + "|" + sr[exp.cursor_idx:]
