@@ -57,13 +57,12 @@ while st.programIsRunning:
             surface = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
             width = event.w
             height = event.h
-            
-    ui.uiExpression.static_handle_events(events,mousePos)
-
+    for ui in uiList:
+        ui.handle_events(events,mousePos)
     screen.fill((255,255,255))
-
-    ui.uiExpression.static_update()
-    ui.uiExpression.static_draw(screen)
+    for ui in uiList:
+        ui.update()
+        ui.draw(screen)
     st.lock.release()
     pygame.display.flip()
  
