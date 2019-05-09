@@ -75,8 +75,13 @@ def process_shadow_parens(input_str):
     
     return output_str
 
-def process_frac_brackets(input_str):
+def process_brackets(input_str):
     output_str = input_str
+
+    # Determine if brackets are correct
+    b_crct = True
+    b_ref = [0]*len(output_str)
+	
     
 
 def process_string(input_str):
@@ -90,16 +95,15 @@ def process_string(input_str):
         else:
             str_idx += 1
 
-    #Replace multiplication operators with unicode version
+	#Replace multiplication operators with unicode version
     output_str = output_str.replace('*', '\u00B7')
 
     #Process shadow parens
     output_str = process_shadow_parens(output_str)
-    #Insert implicit multiplication
-    output_str = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', output_str)
 
     #Add brackets for division operands
 
     #Edit cursor index
     index = output_str.index("|")
     return (output_str, index)
+	
