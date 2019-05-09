@@ -64,17 +64,16 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 			curstring = self.text
 		print("cur:" + curstring)
 
-		finalstring = process_string(curstring)[0]
-
-		self.text = finalstring
-		self.index = process_string(curstring)[1]
-
+		finalstring = proc.process_string(curstring)[0]
 
 		self.exp = pprs.get_exp(finalstring)
 		self.exp.assign_parents()
 		self.surf = xts.smartSurface(self.exp)
 		self.rect.size = self.surf.get_rect().size
 
+		#must happen after this frame is drawn-- so that cursor is still there to be replaced next frame
+		self.text = finalstring.replace("|","")
+		self.index = proc.process_string(curstring)[1]
 
 	def static_update():
 		for ui in uiExpression.allUiExpressions:

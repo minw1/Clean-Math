@@ -100,6 +100,9 @@ def process_string(input_str):
 
     #Add brackets for division operands
 
+    if("|" in output_str):
     #Edit cursor index
-    index = output_str.index("|")
+        index = output_str.index("|")
+    else:
+        index = -1
     return (output_str, index)
