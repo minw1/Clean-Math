@@ -61,8 +61,8 @@ while st.programIsRunning:
         ui.handle_events(events,mousePos)
     screen.fill((255,255,255))
     for ui in uiList:
-    	ui.update()
-    	ui.draw(screen)
+        ui.update()
+        ui.draw(screen)
     st.lock.release()
     pygame.display.flip()
  
