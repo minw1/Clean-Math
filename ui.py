@@ -10,7 +10,7 @@ import os
 import random
 import gridOps as go
 import time
-from copy import deepcopy
+import copy
 from settings import selectedcell
 import expression as xp
 import expToSurface as xts
@@ -45,6 +45,8 @@ def distPointRect(point,rect): #squared distance of point and rectangle. We don'
 allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(",")","."]+list(string.ascii_lowercase)+list(string.ascii_uppercase)
 
 
+
+
 class uiExpression: #static methods operate on the whole list of created uiExpressions
 	allUiExpressions = []
 
@@ -64,15 +66,20 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 			curstring = self.text
 		print("cur:" + curstring)
 
+
 		finalstring = proc.process_string(curstring)[0]
 
 		self.exp = pprs.get_exp(finalstring)
+
 		self.exp.assign_parents()
+
 		self.surf = xts.smartSurface(self.exp)
+
 		self.rect.size = self.surf.get_rect().size
 
 		#must happen after this frame is drawn-- so that cursor is still there to be replaced next frame
 		self.text = finalstring.replace("|","")
+
 		self.index = proc.process_string(curstring)[1]
 
 	def static_update():
@@ -174,15 +181,66 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 					self.feedAllowedSymbol(event.unicode)
 				else:
 					self.feed_keydown(event.key)
+			if event.type == pygame.VIDEORESIZE:
+				self.mult_by(xp.NoOpExpression("2"))
+
 
 	def static_handle_events(events,mouse_absolute):
 		for ui in uiExpression.allUiExpressions:
 			ui.handle_events(events,mouse_absolute)
 
+	def mult_by(self,factor):
+		newexp = xp.Expression('\u00B7',[copy.copy(self.exp),factor])
+		self.exp = newexp
+		self.exp.assign_parents()
+		self.text = xtstr.expToStr(self.exp)
+		self.text = self.text.replace("|","")
+	def add_to(self,toadd):
+		newexp = xp.Expression('+',[copy.copy(self.exp),toadd])
+		self.exp = newexp
+		self.exp.assign_parents()
+		self.text = xtstr.expToStr(self.exp)
+		self.text = self.text.replace("|","")
+	def sub_this_from(self,positive):
+		newexp = xp.Expression('-',[positive,copy.copy(self.exp)])
+		self.exp = newexp
+		self.exp.assign_parents()
+		self.text = xtstr.expToStr(self.exp)
+		self.text = self.text.replace("|","")
+	def sub_from_this(self,negative):
+		newexp = xp.Expression('-',[copy.copy(self.exp),negative])
+		self.exp = newexp
+		self.exp.assign_parents()
+		self.text = xtstr.expToStr(self.exp)
+		self.text = self.text.replace("|","")
+	def raise_to(self,ponent):
+		newexp = xp.Expression('^',[copy.copy(self.exp),ponent])
+		self.exp = newexp
+		self.exp.assign_parents()
+		self.text = xtstr.expToStr(self.exp)
+		self.text = self.text.replace("|","")
+
+
+	def find_all_adds(exp,pos):
+		if type(exp) == xp.NoOpExpression:
+			return [(exp,pos)]
+		if exp.op == "+":
+			return find_all_adds(exp.expList[0],pos) + find_all_adds(exp.expList[1],pos)
+		elif exp.op == "-":
+			return find_all_adds(exp.expList[0],pos) + find_all_adds(exp.expList[1],not pos)
+		else:
+			return [(exp,pos)]
+
+
+	#def tidy_up_addition(self):
+
+
+
+
+
 class uiEquation:
-	def __init__(self,leftside,rightside):
+	alluiEquations = []
+	def __init__(self,leftside,rightside,topleft):
 		self.leftside = leftside
 		self.rightside = rightside
-
-
 
