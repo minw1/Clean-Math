@@ -19,10 +19,14 @@ import expToStr as xtstr
 import re
 import processString as proc
 
-MILLIS_SHOW = 500
-#number of milliseconds for cursor to show
-MILLIS_HIDE = 300
 
+
+MILLIS_SHOW = 200
+#number of milliseconds for cursor to show
+MILLIS_HIDE = 200
+
+SHOW_INPUT_DELAY = 200
+#how long after key input will the cursor show
 
 def sandwich(A,B):#is A inclusively between (B1,B2)?
 		maxi = max(B[0],B[1])
@@ -32,6 +36,13 @@ def sandwich(A,B):#is A inclusively between (B1,B2)?
 
 
 def distPointRect(point,rect): #squared distance of point and rectangle. We don't need the real distance to compare distance sizes.
+
+		print(rect)
+		print(point)
+		print(rect.collidepoint(point))
+		if rect.collidepoint(point):
+			return 0
+
 		(X,Y) = point
 		(A,B) = rect.topleft
 		(W,Z) = rect.bottomright
@@ -48,14 +59,19 @@ def distPointRect(point,rect): #squared distance of point and rectangle. We don'
 
 allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(",")","."]+list(string.ascii_lowercase)+list(string.ascii_uppercase)
 
+
+
+
 def show_cursor():
     n=round(time.clock()*1000)
-    return n%(MILLIS_SHOW+MILLIS_HIDE)<MILLIS_SHOW
+    return (n%(MILLIS_SHOW+MILLIS_HIDE)<MILLIS_SHOW) #or (time_since_input<200)
 
 
 
 class uiExpression: #static methods operate on the whole list of created uiExpressions
 	allUiExpressions = []
+	last_input_time = 0
+	time_since_input = 0
 
 	def __init__(self,topleft):
 		self.text = ""
@@ -67,6 +83,9 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 		uiExpression.allUiExpressions += [self]
 
 	def update(self):
+		uiExpression.time_since_input = (time.clock()-uiExpression.last_input_time)*1000
+
+
 		if self.is_active:
 			curstring = self.text[:self.index]+'|'+self.text[self.index:]
 		else:
@@ -79,7 +98,8 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 		self.exp = pprs.get_exp(finalstring)
 
 		self.exp.assign_parents()
-		self.surf = xts.smartSurface(self.exp, cursor_show=show_cursor())
+
+		self.surf = xts.smartSurface(self.exp, cursor_show= (show_cursor() or (uiExpression.time_since_input<200)) )
 
 		self.rect.size = self.surf.get_rect().size
 
@@ -91,6 +111,8 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 	def static_update():
 		for ui in uiExpression.allUiExpressions:
 			ui.update()
+		
+
 
 	def draw(self,screen):
 		screen.blit(self.surf.surface,self.rect.topleft)
@@ -133,7 +155,13 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 			if mouse_rel[0] < xcoorCenter:
 				smallestExp.cursor_idx = 0
 			else:
-				smallestExp.cursor_idx = 1 #this needs to become more sophisticated later
+				print("AAA\nAAA\nAAA")
+				print(smallestExp.strRep)
+				print(len(smallestExp.strRep))
+
+
+				smallestExp.cursor_idx = len(smallestExp.strRep)#this needs to become more sophisticated later
+				
 
 		self.text = xtstr.expToStr(self.exp)
 		self.index = self.text.index("|")
@@ -183,12 +211,15 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				self.feed_mousedown(mouse_absolute)
 			if event.type == pygame.KEYDOWN and self.is_active:
+				print('here')
+				uiExpression.last_input_time = time.clock()
+
 				if event.unicode in allowed_symbols:
 					self.feedAllowedSymbol(event.unicode)
 				else:
 					self.feed_keydown(event.key)
-			if event.type == pygame.VIDEORESIZE:
-				self.mult_by(xp.NoOpExpression("2"))
+			#if event.type == pygame.VIDEORESIZE:
+			#	self.mult_by(xp.NoOpExpression("2"))
 
 
 	def static_handle_events(events,mouse_absolute):
