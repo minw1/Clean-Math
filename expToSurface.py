@@ -5,12 +5,20 @@ import xml.etree.ElementTree as ET
 import copy
 import time
 
-LATEX_FONT_PATH = st.font_locator("newfont.ttf")
-LATEX_iFONT_PATH = st.font_locator("newfont.ttf")
-LATEX_bFONT_PATH = st.font_locator("cmu_b.ttf")
-LATEX_biFONT_PATH = st.font_locator("cmu_bi.ttf")
+FONT_PATH = st.font_locator("final.ttf")
 
 SQRT2 = 1.4142135623731
+
+DEFAULT_FONT_SIZE = 48
+FRAC_ADJUSTMENT = 0.3
+FRAC_VERTICAL_TOLERANCE = 0.2
+VINCULUM_SIZE = 0.05
+PAREN_SCALE = 1.3
+
+FONTS={}
+
+BOTTOM_EM = 0
+TOP_EM = 1386
 
 def makeSmaller(font_size, n):
     return round(font_size/SQRT2**n)
@@ -24,17 +32,7 @@ def tinyShift(color):
         newcolor = (color[0]+1,color[1],color[2])
     return newcolor
 
-DEFAULT_FONT_SIZE = 48
-PARENTHESES_ADJUSTMENT = 0.05
-FRAC_ADJUSTMENT = 0.3
-FRAC_VERTICAL_TOLERANCE = 0.4
-VINCULUM_SIZE = 0.05
-PAREN_SCALE = 1.1
-
-FONTS={}
-IFONTS={}
-
-EM_SQUARE = 1400
+fontXML = ET.parse('Resources/Fonts/final.ttx')
 
 def is_intable(string):
     try:
@@ -42,9 +40,6 @@ def is_intable(string):
         return True
     except ValueError:
         return False
-
-fontXML = ET.parse('Resources/Fonts/newfont.ttx')
-iFontXML = ET.parse('Resources/Fonts/newfont.ttx')
 
 def get_bounds(xml):
     root = xml.getroot()
@@ -56,25 +51,28 @@ def get_bounds(xml):
     return xMin,xMax,yMin,yMax
 
 def get_height_offset(char,xml):
-    root = xml.getroot()
+    try:
+        root = xml.getroot()
 
-    #get the character's name
-    hex_val = hex(ord(char))
-    cmap = root.find('cmap').find('cmap_format_4')
-    charnode = [child for child in cmap.getchildren() if child.get('code')==hex_val][0]
-    name = charnode.get('name')
+        #get the character's name
+        hex_val = hex(ord(char))
+        cmap = root.find('cmap').find('cmap_format_4')
+        charnode = [child for child in cmap.getchildren() if child.get('code')==hex_val][0]
+        name = charnode.get('name')
 
-    if name=="space":
-        return get_height_offset("|",xml)#0,EM_SQUARE
+        if name=="space":
+            return get_height_offset("|",xml)#BOTTOM_EM, TOP_EM
 
-    #find its boundary
-    glyf_font = fontXML.getroot().find('glyf')
-    glyph = [child for child in glyf_font.getchildren() if child.get('name')==name][0]
-    ymin,ymax=int(glyph.get('yMin')),int(glyph.get('yMax'))
-    return ymin,ymax
+        #find its boundary
+        glyf_font = fontXML.getroot().find('glyf')
+        glyph = [child for child in glyf_font.getchildren() if child.get('name')==name][0]
+        ymin,ymax=int(glyph.get('yMin')),int(glyph.get('yMax'))
+        return ymin,ymax
+    except IndexError:
+        return BOTTOM_EM, TOP_EM
 
 def get_height_offset_str(string,xml):
-    if string=='': return 0,EM_SQUARE
+    if string=='': return BOTTOM_EM, TOP_EM
     yMins,yMaxs=[],[]
     for char in string:
         ymin,ymax=get_height_offset(char,xml)
@@ -83,18 +81,17 @@ def get_height_offset_str(string,xml):
     return min(yMins),max(yMaxs)
 
 def get_altitudes(ymin,ymax,height):
-    return round(height*(-ymin)/(ymax-ymin)),round(height*(EM_SQUARE-ymin)/(ymax-ymin))
+    return height-round(height*(BOTTOM_EM-ymin)/(ymax-ymin)),height-round(height*(TOP_EM-ymin)/(ymax-ymin))
 
 def get_font(font_size):
-    font = FONTS[font_size] if font_size in FONTS else pygame.freetype.Font(LATEX_FONT_PATH, font_size)
+    font = FONTS[font_size] if font_size in FONTS else pygame.freetype.Font(FONT_PATH, font_size)
     FONTS[font_size] = font
     return font
 
-def get_iFont(font_size):
-    iFont = IFONTS[font_size] if font_size in IFONTS else pygame.freetype.Font(LATEX_iFONT_PATH, font_size)
-    IFONTS[font_size]=iFont
-    return iFont
-    
+def update_xml(name):
+    from fontTools import ttLib
+    t=ttLib.ttFont.TTFont('Resources/Fonts/'+name+'.ttf')
+    t.saveXML('Resources/Fonts/'+name+'.ttx')
 
 class smartSurface:
 
@@ -102,217 +99,220 @@ class smartSurface:
     spacing = 10
     smallSpacing = 5
 
-    def __init__(self, exp, frac_depth=0, script_depth=0, op_depth=0, cursor_show=True): #depth is number of layers into generation we are.
+    def __init__(self, exp, frac_depth=0, script_depth=0, op_depth=0, cursor_show=True): #depth is number of layers into generation we are
         self.exp = exp
-        self.yline = 0
-        st.lock.acquire()
+        self.y_bot = 0 #bot and top are with reference to bottom of surface
+        self.y_top = 0
+        self.y_mid = 0
+        cursor_char = '|' if cursor_show else '\u0192'
+        self.surface = pygame.Surface((0,0))
+        
         COLORKEY = tinyShift(st.backgroundColor)
-        self.surface = None
-        self.hitboxes = [] #(rect, self.exp, op_depth)
+        st.lock.acquire()
+        self.hitboxes = [] #([irect,orect], self.exp, op_depth)
         font_size = makeSmaller(DEFAULT_FONT_SIZE, script_depth+max(frac_depth-1,0))
         self.font_size = font_size
         font = get_font(font_size)
         self.font = font
-        iFont = get_iFont(font_size)
-        self.iFont = iFont
+        
         if type(exp) == xp.NoOpExpression:
-            is_int = is_intable(exp.strRep)
             string = exp.strRep
-            if is_int or (exp.strRep == "" and exp.cursor):
-                if exp.cursor:
-                    string = exp.strRep[:exp.cursor_idx]+'|'+exp.strRep[exp.cursor_idx:]
-                self.surface,rect = font.render(string,st.fontColor,COLORKEY)
-                self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
-            elif exp.strRep in (""," "):
-                new_size = round(font_size/SQRT2)
-                font2 = get_font(new_size)
-                self.surface,rect = font2.render('|',COLORKEY,COLORKEY)
-                self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
-            else:
-                if exp.cursor:
-                    string = exp.strRep[:exp.cursor_idx]+'|'+exp.strRep[exp.cursor_idx:]
-                self.surface,rect = iFont.render(string,st.fontColor,COLORKEY)
-                self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
-            ymin,ymax=get_height_offset_str(string,(fontXML if (is_int or string == "|") else iFontXML))
-            minY,maxY = get_altitudes(ymin,ymax,self.surface.get_size()[1])
-            self.yline=(minY+maxY)//2
-            self.surface.set_colorkey(COLORKEY)
-        elif exp.op.strRep == "()":
+            if exp.cursor:
+                string = string[:exp.cursor_idx]+cursor_char+string[exp.cursor_idx:]
+            self.surface, rect = font.render(string,st.fontColor,COLORKEY)
+            ymin,ymax = get_height_offset_str(string, fontXML)
+            self.y_bot, self.y_top = get_altitudes(ymin,ymax,self.surface.get_size()[1])
+            self.y_mid = (self.y_bot+self.y_top)//2
+
+            self.hitboxes.append(([rect, rect], self.exp, op_depth))
+        elif exp.op.strRep in ["()","(",")"]: #parens are irrevocably broken
+            avg_color = [(st.fontColor[i]+st.backgroundColor[i])//2 for i in range(3)]
+            left_color = st.fontColor if "(" in exp.op.strRep else avg_color
+            right_color = st.fontColor if ")" in exp.op.strRep else avg_color
             containedExp = exp.expList[0]
             firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1, cursor_show)
-            width, height = firstSurface.get_size()
-            newFontSize=height*PAREN_SCALE+round(2*PARENTHESES_ADJUSTMENT*font_size)
+            old_width, old_height = firstSurface.get_size()
+            old_top = firstSurface.y_top
+            old_bot = firstSurface.y_bot
+            old_mid = firstSurface.y_mid
+            internal_height = old_bot-old_top
+            newFontSize=round(internal_height*PAREN_SCALE) #FIX THIS
             newFont = get_font(newFontSize)
-            openParen, openRect = newFont.render(("|" if (exp.cursor and exp.cursor_idx==0) else "")+"(",st.fontColor,COLORKEY)
-            closeParen, closeRect = newFont.render(")"+("|" if (exp.cursor and exp.cursor_idx==1) else ""),st.fontColor,COLORKEY)
-            openWidth, openHeight = openParen.get_size()
-            closeWidth, closeHeight = closeParen.get_size()
-            endWidth = openWidth+width+closeWidth
-            endHeight = max(openHeight, height, closeHeight)
-            self.surface = pygame.Surface((endWidth,endHeight))
-            self.surface.fill(COLORKEY)
-            self.surface.blit(openParen,(0,(endHeight-openHeight)//2))
-            self.surface.blit(closeParen,(endWidth-closeWidth,(endHeight-closeHeight)//2))
-            expLocation = (openWidth, (endHeight-height)//2)
-            self.surface.blit(firstSurface.surface, expLocation)
-            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation)
+            left, rect = newFont.render("(",left_color,COLORKEY)
+            right, rect = newFont.render(")",right_color,COLORKEY)
+            left_width, left_height = left.get_size()
+            right_width, right_height = right.get_size()
+            
+            paren_height = max(left_height,right_height)
+            
+            total_width = left_width+old_width+right_width
+
+            paren_above = paren_below = (paren_height-internal_height)//2
+            exp_above = old_top
+            exp_below = old_height-old_bot
+
+            finalAbove = max(exp_above,paren_above)
+            finalBelow = max(exp_below,paren_below)
+
+            total_height=finalAbove+internal_height+finalBelow
+
+            leftParenAlt = finalAbove-(left_height-internal_height)//2
+            rightParenAlt = finalAbove-(right_height-internal_height)//2
+            expAlt = finalAbove-exp_above
+            expLoc = (left_width,expAlt)
+
+            
+            self.surface = pygame.Surface((total_width,total_height))
+            self.surface.fill((COLORKEY))
+
+            self.surface.blit(left, (0,leftParenAlt))
+            self.surface.blit(right, (total_width-right_width,rightParenAlt))
+            self.surface.blit(firstSurface.surface, expLoc)
+
+            self.y_bot = expAlt+old_bot
+            self.y_mid = expAlt+old_mid
+            self.y_top = expAlt+old_top
+            
+            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLoc)
             self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
-            self.yline = expLocation[1]+firstSurface.yline
-            self.surface.set_colorkey(COLORKEY)            
-        elif exp.op.strRep == "(":
-            containedExp = exp.expList[0]
-            firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1, cursor_show)
-            width, height = firstSurface.get_size()
-            newFontSize=height*PAREN_SCALE+round(2*PARENTHESES_ADJUSTMENT*font_size)
-            newFont = get_font(newFontSize)
-            openParen, openRect = newFont.render(("|" if exp.cursor else "")+"(",st.fontColor,COLORKEY)
-            closeParen, closeRect = newFont.render(")",tuple([(x+255)//2 for x in st.fontColor]),COLORKEY)
-            openWidth, openHeight = openParen.get_size()
-            closeWidth, closeHeight = closeParen.get_size()
-            endWidth = openWidth+width+closeWidth
-            endHeight = max(openHeight, height, closeHeight)
-            self.surface = pygame.Surface((endWidth,endHeight))
-            self.surface.fill(COLORKEY)
-            self.surface.blit(openParen,(0,(endHeight-openHeight)//2))
-            self.surface.blit(closeParen,(endWidth-closeWidth,(endHeight-closeHeight)//2))
-            expLocation = (openWidth, (endHeight-height)//2)
-            self.surface.blit(firstSurface.surface, expLocation)
-            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation)
-            self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
-            self.yline = expLocation[1]+firstSurface.yline
-            self.surface.set_colorkey(COLORKEY)
-        elif exp.op.strRep == ")":
-            containedExp = exp.expList[0]
-            firstSurface = smartSurface(containedExp, frac_depth, script_depth, op_depth+1, cursor_show)
-            width, height = firstSurface.get_size()
-            newFontSize=height*PAREN_SCALE+round(2*PARENTHESES_ADJUSTMENT*font_size)
-            newFont = get_font(newFontSize)
-            openParen, openRect = newFont.render("(",tuple([(x+255)//2 for x in st.fontColor]),COLORKEY)
-            closeParen, closeRect = newFont.render(")"+("|" if exp.cursor else ""),st.fontColor,COLORKEY)
-            openWidth, openHeight = openParen.get_size()
-            closeWidth, closeHeight = closeParen.get_size()
-            endWidth = openWidth+width+closeWidth
-            endHeight = max(openHeight, height, closeHeight)
-            self.surface = pygame.Surface((endWidth,endHeight))
-            self.surface.fill(COLORKEY)
-            self.surface.blit(openParen,(0,(endHeight-openHeight)//2))
-            self.surface.blit(closeParen,(endWidth-closeWidth,(endHeight-closeHeight)//2))
-            expLocation = (openWidth, (endHeight-height)//2)
-            self.surface.blit(firstSurface.surface, expLocation)
-            self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLocation)
-            self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
-            self.yline = expLocation[1]+firstSurface.yline
-            self.surface.set_colorkey(COLORKEY)
         elif exp.op.strRep in self.simpleOps:
+            use_spacing = exp.op.strRep != "*"
+            
             firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth, op_depth+1, cursor_show)
             secondSurface = smartSurface(exp.expList[1], frac_depth, script_depth, op_depth+1, cursor_show)
 
             firstWidth, firstHeight = firstSurface.get_size()
             secondWidth, secondHeight = secondSurface.get_size()
-            firstYline, secondYline = firstSurface.yline,secondSurface.yline
 
-            if exp.op.strRep == '*': #silent multiplication
-                firstAbove = firstHeight-firstYline
-                secondAbove = secondHeight-secondYline
-                finalAbove = max(firstAbove, secondAbove)
-                finalBelow = max(firstYline, secondYline)
-                finalHeight = finalAbove+finalBelow
-                finalWidth = firstWidth+self.smallSpacing+secondWidth
+            first_bot, first_mid, first_top = firstSurface.y_bot, firstSurface.y_mid, firstSurface.y_top
+            second_bot, second_mid, second_top = secondSurface.y_bot, secondSurface.y_mid, secondSurface.y_top
 
-                self.surface = pygame.Surface((finalWidth, finalHeight))
-                self.surface.fill(COLORKEY)
-                self.surface.blit(firstSurface.surface, (0,finalAbove-firstAbove))
-                self.surface.blit(secondSurface.surface, (firstWidth+self.smallSpacing, finalAbove-secondAbove))
-                self.hitboxes = firstSurface.translateHitboxes([0,finalAbove-firstAbove]) + secondSurface.translateHitboxes([firstWidth+self.smallSpacing, finalAbove-secondAbove])
-                
-            else:
-                character = exp.op.strRep
-                operatorSurface, operatorRect = font.render(character,st.fontColor,COLORKEY)
-                operatorWidth, operatorHeight = operatorSurface.get_size()
+            operatorSurface = pygame.Surface((0,0))
+            op_bot = op_top = op_mid = 0
+            if use_spacing: #not silent mul
+                operatorSurface, rect = font.render(exp.op.strRep,st.fontColor,COLORKEY)
+                ymin,ymax = get_height_offset_str(exp.op.strRep, fontXML)
+                op_bot,op_top = get_altitudes(ymin,ymax,operatorSurface.get_size()[1])
+                op_mid = (op_bot+op_top)//2
 
-                firstAbove = firstHeight-firstYline
-                secondAbove = secondHeight-secondYline
-                ymin,ymax = get_height_offset(character,fontXML)
-                opmin,opmax = get_altitudes(ymin,ymax,operatorHeight)
-                operatorYline = (opmin+opmax)//2
-                operatorAbove = operatorHeight-operatorYline
+            opWidth, opHeight = operatorSurface.get_size()
 
-                finalAbove = max(firstAbove, secondAbove, operatorAbove)
-                finalBelow = max(firstYline, secondYline, operatorYline)
-                finalHeight = finalAbove+finalBelow
-                finalWidth = firstWidth+operatorWidth+secondWidth+2*self.spacing
+            finalWidth = (self.spacing*(1+3*use_spacing))//2+firstWidth+secondWidth+opWidth
+            firstBelow = firstHeight - first_mid
+            secondBelow = secondHeight - second_mid
+            opBelow = opHeight - op_mid
 
-                self.surface = pygame.Surface((finalWidth, finalHeight))
-                self.surface.fill(COLORKEY)
-                self.surface.blit(firstSurface.surface, (0,finalAbove-firstAbove))
-                self.surface.blit(operatorSurface, (firstWidth+self.spacing, finalAbove-operatorAbove))
-                self.surface.blit(secondSurface.surface, (finalWidth-secondWidth,finalAbove-secondAbove))
-
-                operatorLoc = pygame.Rect(firstWidth+self.spacing,finalAbove-operatorAbove,operatorRect.w,operatorRect.h)
-                self.hitboxes = firstSurface.translateHitboxes([0,finalAbove-firstAbove]) + secondSurface.translateHitboxes([finalWidth-secondWidth,finalAbove-secondAbove])
-                self.hitboxes.append(([operatorLoc,self.surface.get_rect()],self.exp,op_depth))
-                
-            self.surface.set_colorkey(COLORKEY)
-            self.yline = finalBelow
-
-        elif exp.op.strRep == "^":
-            firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth, op_depth+1, cursor_show)
-            secondSurface = smartSurface(exp.expList[1],frac_depth,script_depth+1, op_depth+1, cursor_show)
-            firstWidth, firstHeight = firstSurface.get_size()
-            secondWidth, secondHeight = secondSurface.get_size()
-            firstYline, secondYline = firstSurface.yline,secondSurface.yline
-
-
-            finalWidth = firstWidth + secondWidth
-            finalHeight = firstHeight + secondHeight-secondYline
-            self.yline = firstYline
+            finalAbove = max(first_mid, second_mid, op_mid)
+            finalBelow = max(firstBelow, secondBelow, opBelow)
+            finalHeight = finalAbove + finalBelow
 
             self.surface = pygame.Surface((finalWidth, finalHeight))
-            self.surface.fill(COLORKEY)
-            self.surface.blit(firstSurface.surface, (0,secondHeight-secondYline))
-            self.surface.blit(secondSurface.surface, (firstWidth,0))
-            self.hitboxes = firstSurface.translateHitboxes([0,secondHeight-secondYline]) + secondSurface.translateHitboxes([firstWidth,0])
+            self.surface.fill((COLORKEY))
+            
+            firstLoc = (0, finalAbove - first_mid)
+            secondLoc = (finalWidth-secondWidth, finalAbove - second_mid)
+            opLoc = (firstWidth+self.spacing*use_spacing, finalAbove - op_mid)
+            opRect = pygame.Rect(opLoc[0],opLoc[1],opWidth,opHeight)
 
-            self.surface.set_colorkey(COLORKEY)
-            self.hitboxes.append(([pygame.Rect(0,0,0,0),self.surface.get_rect()],self.exp,op_depth))
+            self.surface.blit(firstSurface.surface, firstLoc)
+            self.surface.blit(secondSurface.surface, secondLoc)
+            self.surface.blit(operatorSurface, opLoc)
 
+            self.y_mid = finalAbove
+            self.y_bot = self.y_mid-min(first_mid-first_bot,second_mid-second_bot,op_mid-op_bot)
+            self.y_top = self.y_mid+min(first_top-first_mid,second_top-second_mid,op_top-op_mid)
+                
+            self.hitboxes = self.hitboxes + firstSurface.translateHitboxes(firstLoc) + secondSurface.translateHitboxes(secondLoc)
+            self.hitboxes.append(([opRect,self.surface.get_rect()],self.exp,op_depth))
+            self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
+                
+            
+        elif exp.op.strRep == "^":
+            
+            firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth, op_depth+1, cursor_show)
+            secondSurface = smartSurface(exp.expList[1], frac_depth, script_depth+1, op_depth+1, cursor_show)
+
+            firstWidth, firstHeight = firstSurface.get_size()
+            secondWidth, secondHeight = secondSurface.get_size()
+
+            first_bot, first_mid, first_top = firstSurface.y_bot, firstSurface.y_mid, firstSurface.y_top
+            second_bot, second_mid, second_top = secondSurface.y_bot, secondSurface.y_mid, secondSurface.y_top
+
+            finalWidth = firstWidth + secondWidth
+            firstAbove = first_top
+            secondAbove = second_mid
+            firstBelow = firstHeight-first_top
+            secondBelow = secondHeight-second_mid
+
+            finalAbove = max(firstAbove, secondAbove)
+            finalBelow = max(firstBelow, secondBelow)
+            finalHeight = finalAbove + finalBelow
+
+            self.surface = pygame.Surface((finalWidth, finalHeight))
+            self.surface.fill((COLORKEY))
+
+            firstLoc = (0, finalAbove - firstAbove)
+            secondLoc = (finalWidth - secondWidth, finalAbove - secondAbove)
+
+            self.surface.blit(firstSurface.surface, firstLoc)
+            self.surface.blit(secondSurface.surface, secondLoc)
+
+            self.y_mid = first_mid+firstLoc[1]
+            self.y_bot = first_bot+firstLoc[1]
+            self.y_top = min(finalAbove - secondAbove + second_top, finalAbove - firstAbove + first_top)
+                
+            self.hitboxes = self.hitboxes + firstSurface.translateHitboxes(firstLoc) + secondSurface.translateHitboxes(secondLoc)
+            self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
+            
         elif exp.op.strRep == "frac" or exp.op.strRep == "/":
+            
+            firstSurface = smartSurface(exp.expList[0], frac_depth+1, script_depth, op_depth+1, cursor_show)
+            secondSurface = smartSurface(exp.expList[1], frac_depth+1, script_depth, op_depth+1, cursor_show)
 
-            numeratorExp = exp.expList[0]
-            denominatorExp = exp.expList[1]
-            numSurface = smartSurface(numeratorExp, frac_depth+1, script_depth, op_depth+1, cursor_show)
-            denomSurface = smartSurface(denominatorExp, frac_depth+1, script_depth, op_depth+1, cursor_show)
-            numWidth, numHeight = numSurface.get_size()
-            denomWidth, denomHeight = denomSurface.get_size()
-            vinculumWidth = max(numWidth, denomWidth)+round(2*FRAC_ADJUSTMENT*font_size)
+            firstWidth, firstHeight = firstSurface.get_size()
+            secondWidth, secondHeight = secondSurface.get_size()
+
+            first_bot, first_mid, first_top = firstSurface.y_bot, firstSurface.y_mid, firstSurface.y_top
+            second_bot, second_mid, second_top = secondSurface.y_bot, secondSurface.y_mid, secondSurface.y_top
+
+            vinculumWidth = max(firstWidth, secondWidth)+round(2*FRAC_ADJUSTMENT*font_size)
             vinculumHeight = round(VINCULUM_SIZE*font_size)
 
-            endWidth = vinculumWidth
-            endHeight = numHeight + vinculumHeight + denomHeight + round(2*FRAC_VERTICAL_TOLERANCE*font_size)
-            
-            self.surface = pygame.Surface((endWidth, endHeight))
-            self.surface.fill(COLORKEY)
-            numLocation = ((endWidth-numWidth)//2,0)
-            denomLocation = ((endWidth-denomWidth)//2,endHeight-denomHeight)
-            vincHeight = numHeight+round(FRAC_VERTICAL_TOLERANCE*font_size)
-            self.surface.blit(numSurface.surface, numLocation)
-            self.surface.blit(denomSurface.surface, denomLocation)
+            finalWidth = vinculumWidth
+            finalHeight = firstHeight + vinculumHeight + secondHeight + round(2*FRAC_VERTICAL_TOLERANCE*font_size)
+            vincAltitude = firstHeight+round(FRAC_VERTICAL_TOLERANCE*font_size)
 
-            vincRect = pygame.Rect(0,vincHeight,vinculumWidth,vinculumHeight)
+            self.surface = pygame.Surface((finalWidth, finalHeight))
+            self.surface.fill((COLORKEY))
 
+            firstLoc = ((finalWidth-firstWidth)//2,0)
+            secondLoc = ((finalWidth-secondWidth)//2,finalHeight-secondHeight)
+
+            self.surface.blit(firstSurface.surface, firstLoc)
+            self.surface.blit(secondSurface.surface, secondLoc)
+
+            vincRect = pygame.Rect(0,vincAltitude,vinculumWidth,vinculumHeight)
             pygame.draw.rect(self.surface, st.fontColor, vincRect)
-            self.hitboxes = self.hitboxes+numSurface.translateHitboxes(numLocation)+denomSurface.translateHitboxes(denomLocation)
+
+            self.y_mid = vincAltitude+vinculumHeight//2
+            self.y_bot = secondLoc[1]+second_bot
+            self.y_top = first_top
+                
+            self.hitboxes = self.hitboxes + firstSurface.translateHitboxes(firstLoc) + secondSurface.translateHitboxes(secondLoc)
             self.hitboxes.append(([vincRect,self.surface.get_rect()],self.exp,op_depth))
-            self.yline = vincHeight + (vinculumHeight//2)
-            self.surface.set_colorkey(COLORKEY)
+            self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
+            
         elif exp.op.strRep == "{}":
             expression = exp.expList[0]
             otherSurf = smartSurface(expression, frac_depth, script_depth, cursor_show)
             self.surface = otherSurf.surface
             self.hitboxes = otherSurf.hitboxes
-            self.yline = otherSurf.yline
+            self.y_bot = otherSurf.y_bot
+            self.y_top = otherSurf.y_top
+            self.y_mid = otherSurf.y_mid
         else:
             print('Unknown operator in',exp)
+        self.surface.set_colorkey(COLORKEY)
         st.lock.release()
 
     def translateHitboxes(self,coordinates):

@@ -19,6 +19,10 @@ import expToStr as xtstr
 import re
 import processString as proc
 
+MILLIS_SHOW = 500
+#number of milliseconds for cursor to show
+MILLIS_HIDE = 300
+
 
 def sandwich(A,B):#is A inclusively between (B1,B2)?
 		maxi = max(B[0],B[1])
@@ -44,6 +48,9 @@ def distPointRect(point,rect): #squared distance of point and rectangle. We don'
 
 allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(",")","."]+list(string.ascii_lowercase)+list(string.ascii_uppercase)
 
+def show_cursor():
+    n=round(time.clock()*1000)
+    return n%(MILLIS_SHOW+MILLIS_HIDE)<MILLIS_SHOW
 
 
 
@@ -54,7 +61,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 		self.text = ""
 		self.index = 0
 		self.exp = xp.NoOpExpression("")
-		self.surf = xts.smartSurface(self.exp)
+		self.surf = xts.smartSurface(self.exp, cursor_show=show_cursor())
 		self.rect = pygame.Rect(topleft,(self.surf.get_rect().w, self.surf.get_rect().h))
 		self.is_active = False
 		uiExpression.allUiExpressions += [self]
@@ -72,8 +79,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 		self.exp = pprs.get_exp(finalstring)
 
 		self.exp.assign_parents()
-
-		self.surf = xts.smartSurface(self.exp)
+		self.surf = xts.smartSurface(self.exp, cursor_show=show_cursor())
 
 		self.rect.size = self.surf.get_rect().size
 
