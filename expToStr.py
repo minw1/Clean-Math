@@ -39,16 +39,16 @@ def expToStr(exp):
 			return sr[:exp.cursor_idx] + "|" + sr[exp.cursor_idx:]
 		else:
 			return sr
-	if(exp.op == "()"):
+	if(exp.op.strRep == "()"):
 		return wrap(expToStr(exp.expList[0]), True)
 
-	if(exp.op == "("):
+	if(exp.op.strRep == "("):
 		return "(" + expToStr(exp.expList[0])
 
-	if(exp.op == ")"):
+	if(exp.op.strRep == ")"):
 		return expToStr(exp.expList[0]) + ")"
 
-	elif exp.op in precedents:
+	elif exp.op.strRep in precedents:
 		firstLower = pre(exp.expList[0].op)<pre(exp.op)#is first op lower precedence than the exp op?
 		secondLower = pre(exp.expList[1].op)<pre(exp.op)
 
@@ -56,4 +56,11 @@ def expToStr(exp):
 			return wrap(expToStr(exp.expList[0]),firstLower) + wrap(expToStr(exp.expList[1]),secondLower)
 		if exp.op.strRep == '\u00B7':
 			return wrap(expToStr(exp.expList[0]),firstLower) + '*' + wrap(expToStr(exp.expList[1]),secondLower)
+		if exp.op.strRep == "/":
+			if exp.cursor:
+				if exp.cursor_idx == 0:
+					return "|" + exp.expList[0] + "/" +  exp.expList[1]
+				if exp.cursor_idx == 1:
+					return exp.expList[0] + "/" +  exp.expList[1]
+
 		return wrap(expToStr(exp.expList[0]),firstLower) + exp.op.strRep + wrap(expToStr(exp.expList[1]),secondLower)

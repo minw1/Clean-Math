@@ -124,7 +124,9 @@ class smartSurface:
             self.y_bot, self.y_top = get_altitudes(ymin,ymax,self.surface.get_size()[1])
             self.y_mid = (self.y_bot+self.y_top)//2
 
-            self.hitboxes.append(([rect, rect], self.exp, op_depth))
+            self.hitboxes.append(([self.surface.get_rect(), self.surface.get_rect()], self.exp, op_depth))
+
+
         elif exp.op.strRep in ["()","(",")"]: #parens are irrevocably broken
             avg_color = [(st.fontColor[i]+st.backgroundColor[i])//2 for i in range(3)]
             left_color = st.fontColor if "(" in exp.op.strRep else avg_color
@@ -224,7 +226,6 @@ class smartSurface:
                 
             self.hitboxes = self.hitboxes + firstSurface.translateHitboxes(firstLoc) + secondSurface.translateHitboxes(secondLoc)
             self.hitboxes.append(([opRect,self.surface.get_rect()],self.exp,op_depth))
-            self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
                 
             
         elif exp.op.strRep == "^":
@@ -262,7 +263,7 @@ class smartSurface:
             self.y_top = min(finalAbove - secondAbove + second_top, finalAbove - firstAbove + first_top)
                 
             self.hitboxes = self.hitboxes + firstSurface.translateHitboxes(firstLoc) + secondSurface.translateHitboxes(secondLoc)
-            self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
+            self.hitboxes.append(([pygame.Rect(-100,-100,0,0),self.surface.get_rect()],self.exp,op_depth))
             
         elif exp.op.strRep == "frac" or exp.op.strRep == "/":
             
@@ -300,8 +301,7 @@ class smartSurface:
                 
             self.hitboxes = self.hitboxes + firstSurface.translateHitboxes(firstLoc) + secondSurface.translateHitboxes(secondLoc)
             self.hitboxes.append(([vincRect,self.surface.get_rect()],self.exp,op_depth))
-            self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
-            
+
         elif exp.op.strRep == "{}":
             expression = exp.expList[0]
             otherSurf = smartSurface(expression, frac_depth, script_depth, cursor_show)
