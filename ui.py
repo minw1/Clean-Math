@@ -69,7 +69,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 			curstring = self.text[:self.index]+'|'+self.text[self.index:]
 		else:
 			curstring = self.text
-		print("cur:" + curstring)
+		#print("cur:" + curstring)
 
 		finalstring = proc.process_string(curstring)[0]
 
