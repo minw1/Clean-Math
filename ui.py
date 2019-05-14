@@ -21,6 +21,7 @@ import processString as proc
 
 
 
+
 MILLIS_SHOW = 200
 #number of milliseconds for cursor to show
 MILLIS_HIDE = 200
@@ -90,7 +91,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 			curstring = self.text[:self.index]+'|'+self.text[self.index:]
 		else:
 			curstring = self.text
-		print("cur:" + curstring)
+		#print("cur:" + curstring)
 
 
 		finalstring = proc.process_string(curstring)[0]
@@ -155,11 +156,6 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 			if mouse_rel[0] < xcoorCenter:
 				smallestExp.cursor_idx = 0
 			else:
-				print("AAA\nAAA\nAAA")
-				print(smallestExp.strRep)
-				print(len(smallestExp.strRep))
-
-
 				smallestExp.cursor_idx = len(smallestExp.strRep)#this needs to become more sophisticated later
 				
 
