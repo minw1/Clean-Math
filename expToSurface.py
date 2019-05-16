@@ -365,6 +365,44 @@ class smartSurface:
         self.surface.set_colorkey(COLORKEY)
         st.lock.release()
 
+    def format_eq(firstSurface, secondSurface):
+
+        firstWidth, firstHeight = firstSurface.get_size()
+        secondWidth, secondHeight = secondSurface.get_size()
+
+        first_bot, first_mid, first_top = firstSurface.y_bot, firstSurface.y_mid, firstSurface.y_top
+        second_bot, second_mid, second_top = secondSurface.y_bot, secondSurface.y_mid, secondSurface.y_top
+        
+        operatorSurface, rect = font.render(exp.op.strRep,st.fontColor,COLORKEY)
+        ymin,ymax = get_height_offset_str('=', fontXML)
+        op_bot,op_top = get_altitudes(ymin,ymax,operatorSurface.get_size()[1])
+        op_mid = (op_bot+op_top)//2
+
+        opWidth, opHeight = operatorSurface.get_size()
+
+        finalWidth = 2*smartSurface.spacing+firstWidth+secondWidth+opWidth
+        firstBelow = firstHeight - first_mid
+        secondBelow = secondHeight - second_mid
+        opBelow = opHeight - op_mid
+
+        finalAbove = max(first_mid, second_mid, op_mid)
+        finalBelow = max(firstBelow, secondBelow, opBelow)
+        finalHeight = finalAbove + finalBelow
+
+        surface = pygame.Surface((finalWidth, finalHeight))
+        surface.fill((COLORKEY))
+        
+        firstLoc = (0, finalAbove - first_mid)
+        secondLoc = (finalWidth-secondWidth, finalAbove - second_mid)
+        opLoc = (firstWidth+smartSurface.spacing, finalAbove - op_mid)
+        opRect = pygame.Rect(opLoc[0],opLoc[1],opWidth,opHeight)
+
+        surface.blit(firstSurface.surface, firstLoc)
+        surface.blit(secondSurface.surface, secondLoc)
+        surface.blit(operatorSurface, opLoc)
+
+        return surface,(opLoc[0]+opWidth//2, opLoc[1]+opBelow)
+
     def translateHitboxes(self,coordinates):
         newHitboxes = []
         for hb in self.hitboxes:
