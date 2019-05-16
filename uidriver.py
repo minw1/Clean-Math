@@ -37,6 +37,8 @@ uiEq1.is_active = True
 
 uiList = [uiEq1]
 
+SHOW_HITBOXES = True
+
 while st.programIsRunning:
     clock.tick(20)
     st.lock.acquire()
@@ -63,6 +65,14 @@ while st.programIsRunning:
     for ui in uiList:
         ui.update()
         ui.draw(screen)
+        if SHOW_HITBOXES:
+            for x in ui.surf.hitboxes:
+                [irect,orect], hbExp, op_depth = x
+                print(hbExp,irect)
+                transrect = irect.move(ui.rect.topleft)
+                pygame.draw.rect(screen,(255,0,0),transrect,1)
+
+
     st.lock.release()
     pygame.display.flip()
  

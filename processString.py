@@ -24,7 +24,7 @@ def process_shadow_parens(input_str):
         else:
             r_add = False
 
-    print("Left Index: " + str(l_idx) + "\nRight Index: " + str(r_idx))
+    #print("Left Index: " + str(l_idx) + "\nRight Index: " + str(r_idx))
     # Turn shadow parens contained within the string (and not adjacent to parens) into actual parens
     for i in range(l_idx, r_idx+1):
         if output_str[i] == '\u2985':
