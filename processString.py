@@ -113,7 +113,7 @@ def process_brackets(input_str):
             b_shift = 1
             b_depth = -1
             while not b_found:
-                if i+b_shift => len(output_str):
+                if i+b_shift >= len(output_str):
                     b_found = True
                     b_crct = False
                 elif output_str[i+b_shift] == '}':
@@ -250,7 +250,7 @@ def process_brackets(input_str):
                 l_shift = 1
                 b_depth = -1
                 while not l_found:
-                    if i+l_shift => len(output_str):
+                    if i+l_shift >= len(output_str):
                         l_found = True
                     elif output_str[i+l_shift] == '}':
                         if b_depth == -1:
@@ -299,6 +299,7 @@ def process_brackets(input_str):
                 if b_missing[i][0]:
                     # Search for index at which to place bracket
                     # Place bracket and edit references
+                    pass
                     
                 #  If right opening bracket is missing, place it
                 if b_missing[i][2]:
@@ -317,6 +318,7 @@ def process_brackets(input_str):
                 if b_missing[i][4]:
                     # Search for index at which to place bracket
                     # Place bracket and edit references
+                    pass
 
 def process_string(input_str):
     output_str = input_str
