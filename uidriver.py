@@ -31,13 +31,16 @@ pygame.display.set_caption("Clean Math")
 clock = pygame.time.Clock()
 currentTime = time.clock()
 
-
+'''
 uiEq1 = ui.uiExpression((100,100))
 uiEq1.is_active = True
 
 uiList = [uiEq1]
+'''
 
 SHOW_HITBOXES = True
+
+ui.uiMaster.init()
 
 while st.programIsRunning:
     clock.tick(20)
@@ -59,9 +62,16 @@ while st.programIsRunning:
             surface = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
             width = event.w
             height = event.h
+    '''
     for ui in uiList:
         ui.handle_events(events,mousePos)
+    '''
+    ui.uiMaster.handle_events(events,mousePos)
+
     screen.fill((255,255,255))
+    
+
+    '''
     for ui in uiList:
         ui.update()
         ui.draw(screen)
@@ -71,6 +81,8 @@ while st.programIsRunning:
                 print(hbExp,irect)
                 transrect = irect.move(ui.rect.topleft)
                 pygame.draw.rect(screen,(255,0,0),transrect,1)
+    '''
+    ui.uiMaster.draw(screen)
 
 
     st.lock.release()

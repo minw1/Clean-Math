@@ -29,6 +29,11 @@ MILLIS_HIDE = 200
 SHOW_INPUT_DELAY = 200
 #how long after key input will the cursor show
 
+
+def elemwiseAdd(a,b):
+    return [sum(x) for x in zip(a,b)]
+
+
 def sandwich(A,B):#is A inclusively between (B1,B2)?
     maxi = max(B[0],B[1])
     mini = min(B[0],B[1])
@@ -37,9 +42,6 @@ def sandwich(A,B):#is A inclusively between (B1,B2)?
 
 
 def distPointRect(point,rect): #squared distance of point and rectangle. We don't need the real distance to compare distance sizes.
-    print(rect)
-    print(point)
-    print(rect.collidepoint(point))
     if rect.collidepoint(point):
         return 0
 
@@ -79,7 +81,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
         self.index = 0
         self.exp = xp.NoOpExpression("")
         self.surf = xts.smartSurface(self.exp, cursor_show=show_cursor())
-        self.rect = pygame.Rect((self.orig_topleft[0], self.orig_topleft[1]-self.surf.y_mid),(self.surf.get_rect().w, self.surf.get_rect().h))
+        self.rect = pygame.Rect((self.orig_topleft[0], self.orig_topleft[1]),(self.surf.get_rect().w, self.surf.get_rect().h))
         self.is_active = False
         uiExpression.allUiExpressions += [self]
 
@@ -108,7 +110,6 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 
         self.index = proc.process_string(curstring)[1]
 
-        print(self.surf.get_size(),self.surf.hitboxes)
 
     def static_update():
         for ui in uiExpression.allUiExpressions:
@@ -116,6 +117,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
     
     def draw(self,screen):
         screen.blit(self.surf.surface,self.rect.topleft)
+
 
     def static_draw(screen):
         for ui in uiExpression.allUiExpressions:
@@ -206,7 +208,6 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.feed_mousedown(mouse_absolute)
             if event.type == pygame.KEYDOWN and self.is_active:
-                print('here')
                 uiExpression.last_input_time = time.clock()
 
                 if event.unicode in allowed_symbols:
@@ -275,4 +276,79 @@ class uiEquation:
     def __init__(self,leftside,rightside,topleft):
         self.leftside = leftside
         self.rightside = rightside
+        self.topleft = topleft
+        uiEquation.alluiEquations += [self]
+
+    def draw(self,screen):
+        self.leftside.update()
+        self.rightside.update()
+        form = xts.smartSurface.format_eq(self.leftside.surf,self.rightside.surf)
+        self.leftside.orig_topleft = elemwiseAdd(form[2][0],self.topleft)
+        self.rightside.orig_topleft = elemwiseAdd(form[2][1],self.topleft)
+
+        print(form[2][0]+self.topleft)
+
+        self.leftside.update()
+        self.rightside.update()
+
+
+        for x in self.leftside.surf.hitboxes:
+                [irect,orect], hbExp, op_depth = x
+                transrect = irect.move(self.leftside.rect.topleft)
+                pygame.draw.rect(screen,(255,0,0),transrect,1)
+
+        for x in self.rightside.surf.hitboxes:
+                [irect,orect], hbExp, op_depth = x
+                transrect = irect.move(self.rightside.rect.topleft)
+                pygame.draw.rect(screen,(255,0,0),transrect,1)
+
+        screen.blit(form[0],self.topleft)
+
+    def static_draw(screen):
+        for uq in uiEquation.alluiEquations:
+            uq.draw(screen)
+
+    def handle_events(self,events,mouse_absolute):
+        self.leftside.handle_events(events,mouse_absolute)
+        self.rightside.handle_events(events,mouse_absolute)
+    def static_handle_events(events,mouse_absolute):
+        for uq in uiEquation.alluiEquations:
+            uq.handle_events(events,mouse_absolute)
+
+class uiMaster:
+    typing_first_expression = True
+    uiEq1 = uiExpression((100,100))
+    
+    def init():
+        uiMaster.uiEq1.is_active = True
+
+    def handle_events(events,mouse_absolute):
+        if uiMaster.typing_first_expression:
+            if uiMaster.uiEq1.is_active:
+                for event in events:
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_EQUALS:
+                            if not(pygame.key.get_mods() & pygame.KMOD_SHIFT):
+                                uiMaster.typing_first_expression = False
+                                uiMaster.uiEq1.is_active = False
+                                rightsideui = uiExpression((0,0))
+                                rightsideui.is_active = True
+                                newEQ = uiEquation(uiMaster.uiEq1,rightsideui,(100,100))
+
+
+            uiMaster.uiEq1.handle_events(events,mouse_absolute)
+        else:
+            uiEquation.static_handle_events(events,mouse_absolute)
+
+    def draw(screen):
+        if uiMaster.typing_first_expression:
+            uiMaster.uiEq1.update()
+            uiMaster.uiEq1.draw(screen)
+        else:
+            uiEquation.static_draw(screen)
+
+
+
+
+
 
