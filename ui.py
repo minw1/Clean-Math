@@ -286,8 +286,6 @@ class uiEquation:
         self.leftside.orig_topleft = elemwiseAdd(form[2][0],self.topleft)
         self.rightside.orig_topleft = elemwiseAdd(form[2][1],self.topleft)
 
-        print(form[2][0]+self.topleft)
-
         self.leftside.update()
         self.rightside.update()
 
