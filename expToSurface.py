@@ -372,8 +372,9 @@ class smartSurface:
 
         first_bot, first_mid, first_top = firstSurface.y_bot, firstSurface.y_mid, firstSurface.y_top
         second_bot, second_mid, second_top = secondSurface.y_bot, secondSurface.y_mid, secondSurface.y_top
-        
-        font = get_font(24)
+
+        font_size = max(firstSurface.font_size,secondSurface.font_size)
+        font = get_font(font_size)
         operatorSurface, rect = font.render("=",st.fontColor,COLORKEY)
         ymin,ymax = get_height_offset_str('=', fontXML)
         op_bot,op_top = get_altitudes(ymin,ymax,operatorSurface.get_size()[1])
@@ -401,8 +402,9 @@ class smartSurface:
         surface.blit(firstSurface.surface, firstLoc)
         surface.blit(secondSurface.surface, secondLoc)
         surface.blit(operatorSurface, opLoc)
-
-        return surface,(opLoc[0]+opWidth//2, opLoc[1]+opBelow), (firstLoc,secondLoc)
+        surface.set_colorkey(COLORKEY)
+        
+        return surface, opLoc, (firstLoc,secondLoc)
 
     def translateHitboxes(self,coordinates):
         newHitboxes = []
