@@ -76,12 +76,12 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
     time_since_input = 0
 
     def __init__(self,topleft):
-        self.orig_topleft = topleft
+        self.midleft = topleft
         self.text = ""
         self.index = 0
         self.exp = xp.NoOpExpression("")
         self.surf = xts.smartSurface(self.exp, cursor_show=show_cursor())
-        self.rect = pygame.Rect((self.orig_topleft[0], self.orig_topleft[1]),(self.surf.get_rect().w, self.surf.get_rect().h))
+        self.rect = pygame.Rect((self.midleft[0], self.midleft[1]),(self.surf.get_rect().w, self.surf.get_rect().h))
         self.is_active = False
         uiExpression.allUiExpressions += [self]
 
@@ -103,7 +103,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
         self.surf = xts.smartSurface(self.exp, cursor_show= (show_cursor() or (uiExpression.time_since_input<200)))
 
         self.rect.size = self.surf.get_rect().size
-        self.rect.topleft = self.orig_topleft[0], self.orig_topleft[1]-self.surf.y_mid
+        self.rect.topleft = self.midleft[0], self.midleft[1]-self.surf.y_mid
 
         #must happen after this frame is drawn-- so that cursor is still there to be replaced next frame
         self.text = finalstring.replace("|","")
@@ -273,18 +273,20 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 
 class uiEquation:
     alluiEquations = []
-    def __init__(self,leftside,rightside,topleft):
+    def __init__(self,leftside,rightside,eqmid):
         self.leftside = leftside
         self.rightside = rightside
-        self.topleft = topleft
+        self.eqmid = eqmid
         uiEquation.alluiEquations += [self]
 
     def draw(self,screen):
         self.leftside.update()
         self.rightside.update()
-        form = xts.smartSurface.format_eq(self.leftside.surf,self.rightside.surf)
-        self.leftside.orig_topleft = elemwiseAdd(form[2][0],self.topleft)
-        self.rightside.orig_topleft = elemwiseAdd(form[2][1],self.topleft)
+        surface, opLoc, (firstLoc,secondLoc) = xts.smartSurface.format_eq(self.leftside.surf,self.rightside.surf)
+        self.leftside.midleft = elemwiseAdd(elemwiseAdd(firstLoc,self.eqmid),(-opLoc[0],0))
+        self.rightside.midleft = elemwiseAdd(elemwiseAdd(secondLoc,self.eqmid),(-opLoc[0],0))
+        
+        print(surface.get_size(), self.leftside.surf.get_size(), self.rightside.surf.get_size())
 
         self.leftside.update()
         self.rightside.update()
@@ -292,15 +294,17 @@ class uiEquation:
 
         for x in self.leftside.surf.hitboxes:
                 [irect,orect], hbExp, op_depth = x
-                transrect = irect.move(self.leftside.rect.topleft)
+                transrect = irect.move(self.leftside.midleft).move((0,-opLoc[1]))
                 pygame.draw.rect(screen,(255,0,0),transrect,1)
 
         for x in self.rightside.surf.hitboxes:
                 [irect,orect], hbExp, op_depth = x
-                transrect = irect.move(self.rightside.rect.topleft)
+                transrect = irect.move(self.rightside.midleft).move((0,-opLoc[1]))
                 pygame.draw.rect(screen,(255,0,0),transrect,1)
 
-        screen.blit(form[0],self.topleft)
+        
+        topleft = self.eqmid[0]-opLoc[0], self.eqmid[1]-opLoc[1]
+        screen.blit(surface,topleft)
 
     def static_draw(screen):
         for uq in uiEquation.alluiEquations:
@@ -331,7 +335,7 @@ class uiMaster:
                                 uiMaster.uiEq1.is_active = False
                                 rightsideui = uiExpression((0,0))
                                 rightsideui.is_active = True
-                                newEQ = uiEquation(uiMaster.uiEq1,rightsideui,(100,100))
+                                newEQ = uiEquation(uiMaster.uiEq1,rightsideui,(500,100))
 
 
             uiMaster.uiEq1.handle_events(events,mouse_absolute)
