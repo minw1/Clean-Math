@@ -18,7 +18,7 @@ import plyParser as pprs
 import expToStr as xtstr
 import re
 import processString as proc
-
+import saver
 
 
 
@@ -75,8 +75,8 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
     last_input_time = 0
     time_since_input = 0
 
-    def __init__(self,topleft):
-        self.midleft = topleft
+    def __init__(self,midleft):
+        self.midleft = midleft
         self.text = ""
         self.index = 0
         self.exp = xp.NoOpExpression("")
@@ -319,33 +319,42 @@ class uiEquation:
 
 class uiMaster:
     typing_first_expression = True
-    uiEq1 = uiExpression((100,100))
+    uiEx1 = uiExpression((100,100))
     
     def init():
-        uiMaster.uiEq1.is_active = True
+        uiMaster.uiEx1.is_active = True
+        print(id(uiMaster))
 
     def handle_events(events,mouse_absolute):
-        if uiMaster.typing_first_expression:
-            if uiMaster.uiEq1.is_active:
-                for event in events:
-                    if event.type == pygame.KEYDOWN:
+        
+
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if uiMaster.typing_first_expression:
+                    if uiMaster.uiEx1.is_active:
                         if event.key == pygame.K_EQUALS:
                             if not(pygame.key.get_mods() & pygame.KMOD_SHIFT):
                                 uiMaster.typing_first_expression = False
-                                uiMaster.uiEq1.is_active = False
+                                uiMaster.uiEx1.is_active = False
                                 rightsideui = uiExpression((0,0))
                                 rightsideui.is_active = True
-                                newEQ = uiEquation(uiMaster.uiEq1,rightsideui,(500,100))
+                                newEQ = uiEquation(uiMaster.uiEx1,rightsideui,(500,100))
+                if event.unicode == "`":
+                    saver.saveCM("testfile",uiMaster,uiEquation)
+                if event.unicode == "'":
+                    saver.openCM("testfile",uiMaster,uiEquation)
+
+                    print("text:", uiMaster.uiEx1.text)
 
 
-            uiMaster.uiEq1.handle_events(events,mouse_absolute)
+            uiMaster.uiEx1.handle_events(events,mouse_absolute)
         else:
             uiEquation.static_handle_events(events,mouse_absolute)
 
     def draw(screen):
         if uiMaster.typing_first_expression:
-            uiMaster.uiEq1.update()
-            uiMaster.uiEq1.draw(screen)
+            uiMaster.uiEx1.update()
+            uiMaster.uiEx1.draw(screen)
         else:
             uiEquation.static_draw(screen)
 
