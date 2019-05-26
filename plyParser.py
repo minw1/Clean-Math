@@ -65,7 +65,7 @@ ERR_OP = op.Operator("ERROR", mkstr_error)
 tokens = (
     'VAR', 'NUMBER',
     '1L1R_OP_L0', '1L1R_OP_L1', '1L1R_OP_R2',
-    'LPAREN','RPAREN', 'ULPAREN', 'URPAREN', 'LBRACK','RBRACK', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'LPRN_CURSOR', 'RPRN_CURSOR', 'LBRK_CURSOR', 'RBRK_CURSOR'
+    'LPAREN','RPAREN', 'ULPAREN', 'URPAREN', 'LBRACK', 'RBRACK', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'LPRN_CURSOR', 'RPRN_CURSOR', 'LBRK_CURSOR', 'RBRK_CURSOR'
     )
 
 # Tokens
@@ -131,9 +131,9 @@ def t_VAR_CURSOR(t):
     return t
 	
 def t_VAR(t):
-	r'[a-zA-Z]'
-	t.value = xp.NoOpExpression(t.value)
-	return t
+    r'[a-zA-Z]'
+    t.value = xp.NoOpExpression(t.value)
+    return t
 	
 def t_NUMBER(t):
     r'\d+(\.\d+)?'
@@ -206,7 +206,7 @@ def p_exp3_urparens(p):
 def p_exp3_curparens(p):
     'exp3 : ULPAREN exp0 RPAREN RPRN_CURSOR'
     p[0] = xp.Expression(RPRN_OP, [p[2]]).addCursor(1)	
-''''''
+
 def p_exp3_bracks(p):
     'exp3 : LBRACK exp0 RBRACK'
     p[0] = xp.Expression(SPRN_OP, [p[2]])
@@ -218,7 +218,7 @@ def p_exp3_clbracks(p):
 def p_exp3_crbracks(p):
     'exp3 : LBRACK exp0 RBRACK RBRK_CURSOR'
     p[0] = xp.Expression(SPRN_OP, [p[2]]).addCursor(1)
-''''''
+
 def p_exp3_number(p):
     'exp3 : NUMBER'
     p[0] = p[1]
