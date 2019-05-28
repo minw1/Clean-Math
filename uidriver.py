@@ -48,7 +48,7 @@ while st.programIsRunning:
 
 
 
-    keys = pygame.key.get_pressed();#returns dict with keys, pygame keys and values as bools if pressed
+    keys = pygame.key.get_pressed() #returns dict with keys, pygame keys and values as bools if pressed
     mousePos = pygame.mouse.get_pos()
     (button1,button2,button3) = pygame.mouse.get_pressed()
     events = pygame.event.get()
