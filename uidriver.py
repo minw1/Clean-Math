@@ -23,8 +23,8 @@ import psutil
 pygame.init()
 
 
-width = 400
-height = 300
+width = 800
+height = 600
 size = [width, height]
 screen = pygame.display.set_mode(size, pygame.RESIZABLE)
 pygame.display.set_caption("Clean Math")
@@ -55,6 +55,7 @@ while st.programIsRunning:
 
     for event in events: # User did something
         ##SYSTEM EVENTS##
+
         if event.type == pygame.QUIT: # If user clicked close
             pygame.quit()
         if event.type == pygame.VIDEORESIZE:
