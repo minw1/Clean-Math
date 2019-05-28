@@ -414,8 +414,8 @@ class uiMaster:
                     print("text:", uiMaster.uiEx1.text)
 
 
-            uiMaster.uiEx1.handle_events(events,mouse_absolute)
-            uiEquation.static_handle_events(events,mouse_absolute)
+        uiMaster.uiEx1.handle_events(events,mouse_absolute)
+        uiEquation.static_handle_events(events,mouse_absolute)
 
     def draw(screen):
         if uiMaster.typing_first_expression:
