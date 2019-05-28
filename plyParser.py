@@ -43,8 +43,8 @@ def mkstr_rprns(opList):
     return opStr
 
 def mkstr_silentprns(opList):
-	opStr = opList[0].getString()
-	return opStr
+    opStr = opList[0].getString()
+    return opStr
 
 def mkstr_error(opList):
     return "ERROR"
@@ -65,7 +65,7 @@ ERR_OP = op.Operator("ERROR", mkstr_error)
 tokens = (
     'VAR', 'NUMBER',
     '1L1R_OP_L0', '1L1R_OP_L1', '1L1R_OP_R2',
-    'LPAREN','RPAREN', 'ULPAREN', 'URPAREN', 'LBRACK','RBRACK', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'LPRN_CURSOR', 'RPRN_CURSOR'
+    'LPAREN','RPAREN', 'ULPAREN', 'URPAREN', 'LBRACK', 'RBRACK', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'LPRN_CURSOR', 'RPRN_CURSOR', 'LBRK_CURSOR', 'RBRK_CURSOR'
     )
 
 # Tokens
@@ -81,57 +81,59 @@ t_UNF_CURSOR  = r'((?<=[^a-zA-Z\d\)])|(?<=^))\|(?=[^a-zA-Z\d\(]|$)'
 #t_PRN_CURSOR = r'\|(?=\()|(?<=\))\|'
 t_LPRN_CURSOR = r'\|(?=\()'
 t_RPRN_CURSOR = r'(?<=\))\|'
+t_LBRK_CURSOR = r'\|(?=\{)'
+t_RBRK_CURSOR = r'(?<=\})\|'
 
 def t_1L1R_OP_L0(t):
-	r'\+|-'
-	if t.value == "+":
-		t.value = ADD_OP
-	elif t.value == '-':
-		t.value = SUB_OP
-	else:
-		t.value = ERR_OP
-	return t
+    r'\+|-'
+    if t.value == "+":
+            t.value = ADD_OP
+    elif t.value == '-':
+            t.value = SUB_OP
+    else:
+            t.value = ERR_OP
+    return t
 
 def t_1L1R_OP_L1(t):
-	r'\*|/|\u00B7'
-	if t.value == '\u00B7':
-		t.value = MUL_OP
-	elif t.value == '*':
-		t.value = SMUL_OP
-	elif t.value == '/':
-		t.value = DIV_OP
-	else:
-		t.value = ERR_OP
-	return t	
+    r'\*|/|\u00B7'
+    if t.value == '\u00B7':
+            t.value = MUL_OP
+    elif t.value == '*':
+            t.value = SMUL_OP
+    elif t.value == '/':
+            t.value = DIV_OP
+    else:
+            t.value = ERR_OP
+    return t	
 
 def t_1L1R_OP_R2(t):
-	r'\^'
-	if t.value == '^':
-		t.value = POW_OP
-	else:
-		t.value = ERR_OP
-	return t
-	
+    r'\^'
+    if t.value == '^':
+            t.value = POW_OP
+    else:
+            t.value = ERR_OP
+    return t
+    
 def t_NUM_CURSOR(t):
-	r'(\d+\|\d*)|(\d*\|\d+)'
-	numString = t.value
-	cursor_idx = numString.index('|')
-	numString = numString.replace('|', '')
-	t.value = xp.NoOpExpression(numString, True, cursor_idx)
-	return t
-	
+    r'(\d+\|\d*)|(\d*\|\d+)'
+    numString = t.value
+    cursor_idx = numString.index('|')
+    numString = numString.replace('|', '')
+    t.value = xp.NoOpExpression(numString, True, cursor_idx)
+    return t
+    
 def t_VAR_CURSOR(t):
-	r'([a-zA-Z]\|)|(\|[a-zA-Z])'
-	varString = t.value
-	cursor_idx = varString.index('|')
-	varString = varString.replace('|', '')
-	t.value = xp.NoOpExpression(varString, True, cursor_idx)
-	return t
+    r'([a-zA-Z]\|)|(\|[a-zA-Z])'
+    varString = t.value
+    cursor_idx = varString.index('|')
+    varString = varString.replace('|', '')
+    t.value = xp.NoOpExpression(varString, True, cursor_idx)
+    return t
 	
 def t_VAR(t):
-	r'[a-zA-Z]'
-	t.value = xp.NoOpExpression(t.value)
-	return t
+    r'[a-zA-Z]'
+    t.value = xp.NoOpExpression(t.value)
+    return t
 	
 def t_NUMBER(t):
     r'\d+(\.\d+)?'
@@ -166,16 +168,16 @@ def p_statement_exp0(p):
     p[0] = p[1]
 
 def p_exp0_exp1(p):
-	'exp0 : exp1'
-	p[0] = p[1]
+    'exp0 : exp1'
+    p[0] = p[1]
 
 def p_exp1_exp2(p):
-	'exp1 : exp2'
-	p[0] = p[1]	
+    'exp1 : exp2'
+    p[0] = p[1]	
 
 def p_exp2_exp3(p):
-	'exp2 : exp3'
-	p[0] = p[1]	
+    'exp2 : exp3'
+    p[0] = p[1]	
 
 def p_exp3_parens(p):
     'exp3 : LPAREN exp0 RPAREN'
@@ -203,8 +205,20 @@ def p_exp3_urparens(p):
 
 def p_exp3_curparens(p):
     'exp3 : ULPAREN exp0 RPAREN RPRN_CURSOR'
-    p[0] = xp.Expression(RPRN_OP, [p[2]]).addCursor(1)
-    
+    p[0] = xp.Expression(RPRN_OP, [p[2]]).addCursor(1)	
+
+def p_exp3_bracks(p):
+    'exp3 : LBRACK exp0 RBRACK'
+    p[0] = xp.Expression(SPRN_OP, [p[2]])
+
+def p_exp3_clbracks(p):
+    'exp3 : LBRK_CURSOR LBRACK exp0 RBRACK'
+    p[0] = xp.Expression(SPRN_OP, [p[3]]).addCursor(0)
+
+def p_exp3_crbracks(p):
+    'exp3 : LBRACK exp0 RBRACK RBRK_CURSOR'
+    p[0] = xp.Expression(SPRN_OP, [p[2]]).addCursor(1)
+
 def p_exp3_number(p):
     'exp3 : NUMBER'
     p[0] = p[1]

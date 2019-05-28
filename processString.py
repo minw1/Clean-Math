@@ -1,4 +1,6 @@
 import re
+import string
+admissible = [str(i) for i in range(10)]+list(string.ascii_lowercase)+list(string.ascii_uppercase)+['|','^']
 
 def process_shadow_parens(input_str):
     output_str = input_str
@@ -76,7 +78,7 @@ def process_shadow_parens(input_str):
     return output_str
 
 # Place a bracket in a string (note: this only makes sense in reference to process_brackets
-def place_bracket(input_str, b_ref, b_missing, op_indices, id, idx, add_idx, b_left):
+def place_bracket(input_str, b_ref, b_missing, op_indices, i, id, idx, add_idx, b_left):
     b_char = '}'
     if b_left:
         b_char = '{'
@@ -85,6 +87,7 @@ def place_bracket(input_str, b_ref, b_missing, op_indices, id, idx, add_idx, b_l
     output_str = input_str
     output_str = output_str[:idx] + b_char + output_str[idx:]
     b_missing[i][add_idx] = False
+    b_missing = b_missing[:idx]+[[False,False,False,False]]+b_missing[idx:]
     b_ref = b_ref[:idx] + [id] + b_ref[idx:]
     for j in range(0, len(op_indices)):
         if op_indices[j] > idx:
@@ -94,15 +97,15 @@ def place_bracket(input_str, b_ref, b_missing, op_indices, id, idx, add_idx, b_l
                 b_ref[j] += 1
     return (output_str, b_ref, b_missing, op_indices)
 
-def process_brackets(input_str):
+'''def process_brackets(input_str):
     output_str = input_str
 
     # Determine if brackets are correct
     b_crct = True
     b_ref = [0]*len(output_str)
-    b_missing = [[False, False, False, False]]*len(output_str)
+    b_missing = [[False, False, False, False] for counter in range(len(output_str))]
     op_indices = []
-    for m in re.finditer('\^|\/'):
+    for m in re.finditer('\^|\/', output_str):
         op_indices.append(m.start())
     
     #  Search for missing brackets
@@ -116,6 +119,8 @@ def process_brackets(input_str):
                 if i+b_shift >= len(output_str):
                     b_found = True
                     b_crct = False
+                    b_missing[i][0] = True
+                    print(i)
                 elif output_str[i+b_shift] == '}':
                     if b_depth == -1:
                         b_found = True
@@ -218,7 +223,8 @@ def process_brackets(input_str):
                         if output_str[i+b_shift] == '^' or output_str[i+b_shift] == '{':
                             b_depth += -1
                         b_shift += 1
-    
+    print(b_missing)
+    print(output_str)
     #  Search for and eliminate extra brackets
     for i in range(0, len(output_str)):
         if (output_str[i] == '{' or output_str[i] == '}') and b_ref[i] == 0:
@@ -236,35 +242,51 @@ def process_brackets(input_str):
             b_ref = b_ref[0, i] + b_ref[i+1, len(output_str)-1]
             b_missing = b_missing[0, i] + b_missing[i+1, len(output_str)-1]
             output_str = output_str[0:i] + output_str[i+1, len(output_str)-1]
+    print('its',b_missing)
     
     # If brackets are incorrect, correct them
     i = 0
+    b_crct = False
     while not b_crct:
         if i >= len(output_str):
             b_crct = True
         elif b_missing[i] != [False, False, False, False]:
             # If it's an exponent, close bracket
             if output_str[i] == '^':
-                # Find location at which to place bracket
                 l_found = False
                 l_shift = 1
                 b_depth = -1
+                p_depth = 0
                 while not l_found:
                     if i+l_shift >= len(output_str):
+                        print('found from length')
                         l_found = True
                     elif output_str[i+l_shift] == '}':
                         if b_depth == -1:
+                            print('found from depth')
                             l_found = True
                         else:
                             b_depth += 1
                     elif output_str[i+l_shift] == '{' or output_str[i+l_shift] == '^':
                         b_depth += -1
                         l_shift += 1
+                    elif output_str[i+l_shift] in ('(','\u2985'):
+                        p_depth += 1
+                        l_shift += 1
+                    elif output_str[i+l_shift] in (')','\u2986'):
+                        p_depth -= 1
+                        if p_depth == -1:
+                            print('found from closepar')
+                            l_shift -= 1
+                            l_found = True
+                        else:
+                            l_shift += 1
                     elif b_depth != -1:
                         l_shift += 1
-                    elif re.search(r'[0-9a-zA-Z\|]', output_str[i]) != None:
+                    elif output_str[i+l_shift] in admissible:
                         l_shift += 1
                     else:
+                        print('found from else')
                         l_found = True
                 
                 # Place bracket and edit references
@@ -272,7 +294,7 @@ def process_brackets(input_str):
                 idx = i+l_shift
                 add_idx = 0
                 b_left = False
-                updated_info = place_bracket(output_str, b_ref, b_missing, op_indices, id, idx, add_idx, b_left)
+                updated_info = place_bracket(output_str, b_ref, b_missing, op_indices, i, id, idx, add_idx, b_left)
                 output_str = updated_info[0]
                 b_ref = updated_info[1]
                 b_missing = updated_info[2]
@@ -280,6 +302,7 @@ def process_brackets(input_str):
                 
                 # Advance index
                 i += 1
+                
             # If it's a fraction, close brackets
             elif output_str[i] == '/':
                 # (Open and)+ close left brackets
@@ -287,19 +310,74 @@ def process_brackets(input_str):
                 if b_missing[i][1]:
                     # Place bracket and edit references
                     id = i+1
-                    idx = i-1
+                    idx = i
                     add_idx = 1
                     b_left = False
-                    updated_info = place_bracket(output_str, b_ref, b_missing, op_indices, id, idx, add_idx, b_left)
+                    updated_info = place_bracket(output_str, b_ref, b_missing, op_indices, i, id, idx, add_idx, b_left)
+                    print(output_str,'before1')
                     output_str = updated_info[0]
+                    print(output_str,'after1')
+                    print(b_missing,'after1')
                     b_ref = updated_info[1]
                     b_missing = updated_info[2]
                     op_indices = updated_info[3]
                 #  If left closing bracket is missing, place it
                 if b_missing[i][0]:
-                    # Search for index at which to place bracket
+                    # Find location at which to place bracket
+                    l_found = False
+                    l_shift = -1
+                    b_depth = 0
+                    p_depth = 0
+                    while not l_found:
+                        print(b_depth, output_str[i+l_shift])
+                        if i+l_shift <= 0:
+                            print('found from length')
+                            l_found = True
+                        elif output_str[i+l_shift] == '{' or output_str[i+l_shift] == '^':
+                            if b_depth == -1:
+                                print('found from depth')
+                                l_found = True
+                            else:
+                                b_depth += 1
+                        elif output_str[i+l_shift] == '}':
+                            b_depth += -1
+                            l_shift -= 1
+                        elif output_str[i+l_shift] in (')','\u2986'):
+                            p_depth += 1
+                            l_shift -= 1
+                        elif output_str[i+l_shift] in ('(','\u2985'):
+                            p_depth -= 1
+                            if p_depth == -1:
+                                print('found from closepar')
+                                l_shift -= 1
+                                l_found = True
+                            else:
+                                l_shift -= 1
+                        elif b_depth != -1:
+                            l_shift -= 1
+                        elif output_str[i+l_shift] in admissible:
+                            l_shift -= 1
+                        else:
+                            print('found from else')
+                            l_shift+=1
+                            l_found = True
+                    print(i,l_shift)
                     # Place bracket and edit references
-                    pass
+                    id = i+1
+                    idx = i+l_shift
+                    add_idx = 0
+                    b_left = True
+                    updated_info = place_bracket(output_str, b_ref, b_missing, op_indices, i, id, idx, add_idx, b_left)
+                    print(output_str,'before0')
+                    output_str = updated_info[0]
+                    print(output_str,'after0')
+                    print(b_missing,'after0')
+                    b_ref = updated_info[1]
+                    b_missing = updated_info[2]
+                    op_indices = updated_info[3]
+                    
+                    # Advance index
+                    i += 1
                     
                 #  If right opening bracket is missing, place it
                 if b_missing[i][2]:
@@ -308,17 +386,288 @@ def process_brackets(input_str):
                     idx = i+1
                     add_idx = 2
                     b_left = True
-                    updated_info = place_bracket(output_str, b_ref, b_missing, op_indices, id, idx, add_idx, b_left)
+                    updated_info = place_bracket(output_str, b_ref, b_missing, op_indices, i, id, idx, add_idx, b_left)
+                    print(output_str,'before2')
                     output_str = updated_info[0]
+                    print(output_str,'after2')
+                    print(b_missing,'after2')
                     b_ref = updated_info[1]
                     b_missing = updated_info[2]
                     op_indices = updated_info[3]
                 
                 #  If right closing bracket is missing, place it
-                if b_missing[i][4]:
-                    # Search for index at which to place bracket
+                if b_missing[i][3]:
+                    # Find location at which to place bracket
+                    l_found = False
+                    l_shift = 1
+                    b_depth = 0
+                    p_depth = 0
+                    while not l_found:
+                        if i+l_shift >= len(output_str):
+                            print('found from length')
+                            l_found = True
+                        elif output_str[i+l_shift] == '}':
+                            if b_depth == -1:
+                                print('found from depth')
+                                l_found = True
+                            else:
+                                b_depth -= 1
+                        elif output_str[i+l_shift] == '{' or output_str[i+l_shift] == '^':
+                            b_depth += 1
+                            l_shift += 1
+                        elif output_str[i+l_shift] in ('(','\u2985'):
+                            p_depth += 1
+                            l_shift += 1
+                        elif output_str[i+l_shift] in (')','\u2986'):
+                            p_depth -= 1
+                            if p_depth == -1:
+                                print('found from closepar')
+                                l_shift -= 1
+                                l_found = True
+                            else:
+                                l_shift += 1
+                        elif b_depth >= 1 or p_depth >= 1:
+                            l_shift += 1
+                        elif output_str[i+l_shift] in admissible:
+                            l_shift += 1
+                        else:
+                            print('found from else')
+                            l_found = True
+                    
                     # Place bracket and edit references
-                    pass
+                    id = i+1
+                    idx = i+l_shift
+                    add_idx = 0
+                    b_left = False
+                    updated_info = place_bracket(output_str, b_ref, b_missing, op_indices, i, id, idx, add_idx, b_left)
+                    output_str = updated_info[0]
+                    b_ref = updated_info[1]
+                    b_missing = updated_info[2]
+                    op_indices = updated_info[3]
+                    
+                    # Advance index
+                    i += 1
+        else:
+            i += 1
+    return output_str'''
+
+def add_close_brack(input_str, b_depth=0, p_depth=0):
+    '''takes a string without an opening bracket and adds a closing bracket at the first place it should be'''
+    if len(input_str) == 0:
+        return '}'
+    first_char = input_str[0]
+    if first_char in ('(','\u2985'):
+        return first_char+add_close_brack(input_str[1:],b_depth,p_depth+1)
+    if first_char in (')','\u2986'):
+        if p_depth == 1:
+            return first_char+'}'+input_str[1:]
+        elif p_depth == 0:
+            return '}'+input_str
+        else:
+            return first_char+add_close_brack(input_str[1:],b_depth,p_depth-1)
+    if first_char == '{':
+        return first_char+add_close_brack(input_str[1:],b_depth+1,p_depth)
+    if first_char == '}':
+        if b_depth == 1:
+            return first_char+'}'+input_str[1:]
+        elif b_depth == 0:
+            return '}'+input_str
+        else:
+            return first_char+add_close_brack(input_str[1:],b_depth-1,p_depth)
+    if first_char in admissible:
+        return first_char+add_close_brack(input_str[1:],b_depth,p_depth)
+    return '}'+input_str
+
+def robust_reverse(input_str):
+    rev = input_str[::-1]
+    chars = ''
+    for char in rev:
+        if char == ')': chars+='('
+        elif char == '(': chars+=')'
+        elif char == '\u2985': chars+='\u2986'
+        elif char == '\u2986': chars+='\u2985'
+        elif char == '}': chars+='{'
+        elif char == '{': chars+='}'
+        else: chars += char
+    return chars
+
+def add_close_brack_reverse(input_str, b_depth=0, p_depth=0):
+    rev = robust_reverse(input_str)
+    bracked = add_close_brack(rev, b_depth, p_depth)
+    return robust_reverse(bracked)
+    
+    
+def process_brackets(input_str):
+    print(input_str)
+    output_str = input_str
+
+    # Determine if brackets are correct
+    b_crct = True
+    b_ref = [0]*len(output_str)
+    b_missing = [[False, False, False, False] for counter in range(len(output_str))]
+    op_indices = []
+    for m in re.finditer('\^|\/', output_str):
+        op_indices.append(m.start())
+    
+    #  Search for missing brackets
+    for i in op_indices:
+        id = i+1
+        if output_str[i] == '^':
+            #Check for right-adjacent bracket
+            if i+1 < len(output_str) and output_str[i+1] == '{': # Checks for right-adjacent bracket
+                if b_ref[i+1] == 0:
+                    b_ref[i+1] == id
+                else:
+                    b_crct = False
+                    b_missing[i][0] = True
+                    b_missing[i][1] = True
+            elif i+2 < len(output_str) and output_str[i+1] == '|' and output_str[i+2] == '{':
+                if b_ref[i+2] == 0:
+                    b_ref[i+2] == id
+                else:
+                    b_crct = False
+                    b_missing[i][0] = True
+                    b_missing[i][1] = True
+            else:
+                b_missing[i][0] = True
+                b_missing[i][1] = True
+
+            print(b_missing)
+            if not b_missing[i][0]:
+                b_found = False
+                b_shift = 1
+                b_depth = -1
+                while not b_found:
+                    
+                    if i+b_shift >= len(output_str):
+                        b_found = True
+                        b_crct = False
+                        b_missing[i][0] = True
+                        print(i)
+                    elif output_str[i+b_shift] == '}':
+                        if b_depth == -1:
+                            b_found = True
+                            if b_ref[i+b_shift] == 0:
+                                b_ref[i+b_shift] = id
+                        else:
+                            b_depth += 1
+                    else:
+                        if output_str[i+b_shift] == '{':
+                            b_depth += -1
+                        b_shift += 1
+                        
+        elif output_str[i] == '/':
+            # Check if adjacent brackets are missing
+            if i-1 >= 0 and output_str[i-1] == '}': # Checks for left-adjacent bracket
+                if b_ref[i-1] == 0:
+                    b_ref[i-1] == id
+                else:
+                    b_crct = False
+                    b_missing[i][0] = True
+                    b_missing[i][1] = True
+            elif i-2 >=0 and output_str[i-1] == '|' and output_str[i-2] == '}':
+                if b_ref[i-2] == 0:
+                    b_ref[i-2] == id
+                else:
+                    b_crct = False
+                    b_missing[i][0] = True
+                    b_missing[i][1] = True
+            else:
+                b_missing[i][0] = True
+                b_missing[i][1] = True
+            
+            if i+1 < len(output_str) and output_str[i+1] == '{': # Checks for right-adjacent bracket
+                if b_ref[i+1] == 0:
+                    b_ref[i+1] == id
+                else:
+                    b_crct = False
+                    b_missing[i][2] = True
+                    b_missing[i][3] = True
+            elif i+2 <= len(output_str) and output_str[i+1] == '|' and output_str[i+2] == '{':
+                if b_ref[i+2] == 0:
+                    b_ref[i+2] == id
+                else:
+                    b_crct = False
+                    b_missing[i][2] = True
+                    b_missing[i][3] = True
+            else:
+                b_missing[i][2] = True
+                b_missing[i][3] = True
+            
+            # If the left-adjacent bracket isn't missing, search for closing bracket
+            if not b_missing[i][1]:
+                b_found = False
+                b_shift = -2
+                b_depth = -1
+                while not b_found:
+                    if i+b_shift < 0:
+                        b_found = True
+                        b_crct = False
+                        b_missing[i][0] = True
+                    elif output_str[i+b_shift] == '{':
+                        if b_depth == -1:
+                            b_found = True
+                            if b_ref[i+b_shift] == 0:
+                                b_ref[i+b_shift] = id
+                            else:
+                                b_crct = False
+                                b_missing[i][0] = True
+                        else:
+                            b_depth += 1
+                    else:
+                        if output_str[i+b_shift] == '}':
+                            b_depth += -1
+                        b_shift -= 1
+            # If the right-adjacent bracket isn't missing, search for closing bracket
+            if not b_missing[i][2]:
+                b_found = False
+                b_shift = 2
+                b_depth = -1
+                while not b_found:
+                    if i+b_shift >= len(output_str):
+                        b_found = True
+                        b_crct = False
+                        b_missing[i][3] = True
+                    elif output_str[i+b_shift] == '}':
+                        if b_depth == -1:
+                            b_found = True
+                            if b_ref[i+b_shift] == 0:
+                                b_ref[i+b_shift] = id
+                            else:
+                                b_crct = False
+                                b_missing[i][3] = True
+                        else:
+                            b_depth += 1
+                    else:
+                        if output_str[i+b_shift] == '{':
+                            b_depth += -1
+                        b_shift += 1
+
+    #Determine what index to fix
+    op_idx = [i for i in range(len(b_missing)) if b_missing[i] != [False,False,False,False]]
+    if op_idx == []: return output_str
+    op_idx = op_idx[0]
+    if output_str[op_idx] == '^':
+        end_part = output_str[op_idx+1:]
+        new_str = output_str[:op_idx+1]
+        if b_missing[0]: new_str += '{'
+        else: end_part = end_part[1:]
+        new_str += add_close_brack(end_part)
+        return process_brackets(new_str)
+        
+    elif output_str[op_idx] == '/':
+        brack_miss = b_missing[op_idx]
+        
+        start_part = output_str[:op_idx]
+        end_part = output_str[op_idx+1:]
+
+        if not b_missing[1]: start_part = start_part[:-1]
+        if not b_missing[2]: end_part = end_part[1:]
+            
+        new_str = add_close_brack_reverse(start_part)+'}/{'+add_close_brack(end_part)
+        return process_brackets(new_str)
+    
+    return output_str
 
 def process_string(input_str):
     output_str = input_str
@@ -337,11 +686,16 @@ def process_string(input_str):
     #Process shadow parens
     output_str = process_shadow_parens(output_str)
 
-    #Add brackets for division operands
-
+    #Add brackets for division and exponentiation operands
+    output_str = process_brackets(output_str)
+    
     if("|" in output_str):
     #Edit cursor index
         index = output_str.index("|")
     else:
         index = -1
     return (output_str, index)
+
+z=process_brackets
+v=z('1+2^|')
+print(v)

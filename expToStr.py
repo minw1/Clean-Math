@@ -19,6 +19,11 @@ def wrap(stri,foReallyThough):
 		return "(" + stri + ")"
 	else:
 		return stri
+def wrapBrack(stri,foReallyThough):
+	if foReallyThough:
+		return "{" + stri + "}"
+	else:
+		return stri
 
 
 def clearCursor(exp):
@@ -41,6 +46,8 @@ def expToStr(exp):
 			return sr
 	if(exp.op.strRep == "()"):
 		return wrap(expToStr(exp.expList[0]), True)
+	if(exp.op.strRep == "{}"):
+		return wrapBrack(expToStr(exp.expList[0]), True)
 
 	if(exp.op.strRep == "("):
 		return "(" + expToStr(exp.expList[0])
