@@ -103,7 +103,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
         self.exp = pprs.get_exp(finalstring)
 
         self.exp.assign_parents()
-        self.surf = xts.smartSurface(self.exp, cursor_show= (show_cursor() or (uiExpression.time_since_input<200)))
+        self.surf = xts.smartSurface(self.exp, cursor_show = (show_cursor() or (uiExpression.time_since_input<200)))
 
         self.rect.size = self.surf.get_rect().size
         self.rect.topleft = self.midleft[0], self.midleft[1]-self.surf.y_mid
@@ -191,6 +191,8 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 
     def feed_keydown(self, keydown):
         if keydown == pygame.K_BACKSPACE and self.index>0:
+            while self.text[self.index-1] in ('{','}'):
+                self.index-=1
             self.text = self.text[:self.index-1] + self.text[self.index:]
             self.index-=1
         elif keydown == pygame.K_SPACE:

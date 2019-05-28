@@ -104,7 +104,9 @@ def update_xml(name):
 class smartSurface:
 
     simpleOps = {'+','-','*',u'\u00B7'}
-    mathrmOps = {'sin','cos','tan','cot','sec','csc','sinh','cosh','tanh','coth','sech','csch','log','exp','gcd','lcm','ord'}
+    mathrmOps = {'sin','cos','tan','cot','sec','csc','sinh','cosh','tanh','coth','sech','csch',
+                 'arcsin','arccos','arctan','arccot','arcsec','arccsc','arcsinh','arccosh','arctanh','arccoth','arcsech','arccsch',
+                 'log','exp','gcd','lcm','ord'}
     spacing = 10
     smallSpacing = 5
 
@@ -357,7 +359,7 @@ class smartSurface:
 
         elif exp.op.strRep == "{}":
             expression = exp.expList[0]
-            otherSurf = smartSurface(expression, frac_depth, script_depth, cursor_show, silent, silentExp)
+            otherSurf = smartSurface(expression, frac_depth, script_depth, op_depth, cursor_show, silent, silentExp)
             self.surface = otherSurf.surface
             self.hitboxes = otherSurf.hitboxes
             self.y_bot = otherSurf.y_bot
