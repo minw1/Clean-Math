@@ -144,7 +144,7 @@ def add_close_brack_reverse(input_str, b_depth=0, p_depth=0):
     
     
 def process_brackets(input_str):
-    print('input_str to pbrack',input_str)
+    #print('input_str to pbrack',input_str)
     output_str = input_str
 
     # Determine if brackets are correct
@@ -314,7 +314,7 @@ def process_brackets(input_str):
     return output_str
 
 def process_string(input_str):
-    print('processing',input_str)
+    #print('processing',input_str)
     output_str = input_str
     #Remove illegal characters
     illegal_chars = ['!', '@', '#', '$', '%', '&', '_', '\\', ':', ';', '\"', '\'', '?', '>', '<', ',', '=']
@@ -342,9 +342,9 @@ def process_string(input_str):
         index = output_str.index("|")
     else:
         index = -1
-    print('output',output_str)
+    #print('output',output_str)
     return (output_str, index)
 
 z=process_brackets
 v=z('1+2^|')
-print(v)
+#print(v)

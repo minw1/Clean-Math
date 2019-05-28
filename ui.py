@@ -342,7 +342,7 @@ class uiMaster:
 
 
     def handle_events(events,mouse_absolute):
-        
+        contOrCommand = False
         for event in events:
 
             contOrCommand = (pygame.key.get_pressed()[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL)
@@ -366,7 +366,7 @@ class uiMaster:
 
                                     res = client.query(cut)
                                     toget = ""
-                                    print(res)
+
 
                                     try:
                                         for pod in res.pods:
@@ -386,14 +386,13 @@ class uiMaster:
                                     rightsideui.text = toget
                                     rightsideui.is_active = False
 
-                                    print(toget)
+
 
                                     
 
 
                                     newEQ = uiEquation(newleft,rightsideui,(200,uiMaster.currenty-uiMaster.ychange))
-                                    print(uiMaster.currenty-uiMaster.ychange)
-                                    print("BBB", uiMaster.uiEx1.midleft)
+
                                 '''
                                 else:
                                     uiMaster.typing_first_expression = False
@@ -406,16 +405,16 @@ class uiMaster:
 
 
 
-                if event.unicode == "`":
-                    saver.saveCM("testfile",uiMaster,uiEquation)
-                if event.unicode == "'":
-                    saver.openCM("testfile",uiMaster,uiEquation)
-
-                    print("text:", uiMaster.uiEx1.text)
+                if event.unicode == "s" and contOrCommand:
+                    saver.saveCM(input("file name?"),uiMaster,uiEquation)
+                if event.unicode == "o" and contOrCommand:
+                    saver.openCM(input("file name?"),uiMaster,uiEquation)
 
 
-        uiMaster.uiEx1.handle_events(events,mouse_absolute)
-        uiEquation.static_handle_events(events,mouse_absolute)
+
+        if not contOrCommand:
+            uiMaster.uiEx1.handle_events(events,mouse_absolute)
+            uiEquation.static_handle_events(events,mouse_absolute)
 
     def draw(screen):
         if uiMaster.typing_first_expression:
