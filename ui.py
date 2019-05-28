@@ -19,7 +19,10 @@ import expToStr as xtstr
 import re
 import processString as proc
 import saver
+import wolframalpha
 
+APP_ID = "8T8YA5-3V337TXULH"
+client = wolframalpha.Client(APP_ID)
 
 
 MILLIS_SHOW = 200
@@ -109,6 +112,15 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
         self.text = finalstring.replace("|","")
 
         self.index = proc.process_string(curstring)[1]
+
+    def get_finalstring(self):
+        if self.is_active:
+            curstring = self.text[:self.index]+'|'+self.text[self.index:]
+        else:
+            curstring = self.text
+        #print("cur:" + curstring)
+
+        return proc.process_string(curstring)[0]
 
 
     def static_update():
@@ -286,7 +298,6 @@ class uiEquation:
         self.leftside.midleft = elemwiseAdd(elemwiseAdd(firstLoc,self.eqmid),(-opLoc[0],0))
         self.rightside.midleft = elemwiseAdd(elemwiseAdd(secondLoc,self.eqmid),(-opLoc[0],0))
         
-        print(surface.get_size(), self.leftside.surf.get_size(), self.rightside.surf.get_size())
 
         self.leftside.update()
         self.rightside.update()
@@ -319,26 +330,60 @@ class uiEquation:
 
 class uiMaster:
     typing_first_expression = True
-    uiEx1 = uiExpression((100,100))
+    uiEx1 = uiExpression((500,100))
     
     def init():
         uiMaster.uiEx1.is_active = True
-        print(id(uiMaster))
+
 
     def handle_events(events,mouse_absolute):
         
-
         for event in events:
+
+            contOrCommand = (pygame.key.get_pressed()[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL)
             if event.type == pygame.KEYDOWN:
                 if uiMaster.typing_first_expression:
                     if uiMaster.uiEx1.is_active:
                         if event.key == pygame.K_EQUALS:
                             if not(pygame.key.get_mods() & pygame.KMOD_SHIFT):
-                                uiMaster.typing_first_expression = False
-                                uiMaster.uiEx1.is_active = False
-                                rightsideui = uiExpression((0,0))
-                                rightsideui.is_active = True
-                                newEQ = uiEquation(uiMaster.uiEx1,rightsideui,(500,100))
+                                if(contOrCommand):
+                                    uiMaster.typing_first_expression = False
+                                    uiMaster.uiEx1.is_active = False
+                                    rightsideui = uiExpression((0,0))
+                                    rightsideui.is_active = True
+                                    print(uiMaster.uiEx1.get_finalstring())
+                                    res = client.query(uiMaster.uiEx1.get_finalstring())
+                                    toget = ""
+                                    print(res)
+
+                                    try:
+                                        for pod in res.pods:
+                                            if pod.title == "Alternate forms":
+                                                toget = pod.text
+                                            if pod.title == "Expanded form":
+                                                toget = pod.text
+                                        if toget == "":
+                                            toget = next(res.results).text
+                                        toget = toget.replace(" ","")
+                                    except:
+                                        print("no results found")
+                                        toget == "error"
+
+                                    
+
+                                    rightsideui.text = toget
+                                    print(toget)
+                                    newEQ = uiEquation(uiMaster.uiEx1,rightsideui,(500,100))
+                                else:
+                                    uiMaster.typing_first_expression = False
+                                    uiMaster.uiEx1.is_active = False
+                                    rightsideui = uiExpression((0,0))
+                                    rightsideui.is_active = True
+                                    newEQ = uiEquation(uiMaster.uiEx1,rightsideui,(500,100))
+
+
+
+
                 if event.unicode == "`":
                     saver.saveCM("testfile",uiMaster,uiEquation)
                 if event.unicode == "'":
