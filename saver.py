@@ -56,6 +56,7 @@ def openCM(filename,uim,uiq):
 
 		#reatding and setting qdata
 		newAllUiEquations = []
+		uiq.alluiEquations =[]
 
 		for q in fdata['qdata']:
 			leftside = ui.uiExpression((0,0))
@@ -64,7 +65,7 @@ def openCM(filename,uim,uiq):
 			leftside.text = q['leftside']
 			rightside.text = q['rightside']
 			neq = ui.uiEquation(leftside,rightside,q['eqmid'])
-			newalluiEquations += [neq]
+			newallUiEquations += [neq]
 
 		uiq.alluiEquations = newAllUiEquations
 
