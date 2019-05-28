@@ -27,9 +27,18 @@ width = 800
 height = 600
 size = [width, height]
 screen = pygame.display.set_mode(size, pygame.RESIZABLE)
+scrollblock = pygame.Surface((10000,10000))
+
+
 pygame.display.set_caption("Clean Math")
 clock = pygame.time.Clock()
 currentTime = time.clock()
+
+
+
+xscroll = 0
+yscroll = 0
+scrollspeed = 5
 
 '''
 uiEq1 = ui.uiExpression((100,100))
@@ -63,6 +72,21 @@ while st.programIsRunning:
             surface = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
             width = event.w
             height = event.h
+
+
+
+    if mousePos[0] > (width-20):
+        xscroll += scrollspeed
+    if mousePos[0] < (20):
+        xscroll -= scrollspeed
+    if mousePos[1] > (height-20):
+        yscroll += scrollspeed
+    if mousePos[1] < (20):
+        yscroll -= scrollspeed
+
+
+
+
     '''
     for ui in uiList:
         ui.handle_events(events,mousePos)
@@ -70,6 +94,9 @@ while st.programIsRunning:
     ui.uiMaster.handle_events(events,mousePos)
 
     screen.fill((255,255,255))
+    scrollblock.fill((255,255,255))
+
+
     
 
     '''
@@ -83,7 +110,9 @@ while st.programIsRunning:
                 transrect = irect.move(ui.rect.topleft)
                 pygame.draw.rect(screen,(255,0,0),transrect,1)
     '''
-    ui.uiMaster.draw(screen)
+    ui.uiMaster.draw(scrollblock)
+
+    screen.blit(scrollblock, (-xscroll,-yscroll))
 
 
     st.lock.release()

@@ -302,7 +302,7 @@ class uiEquation:
         self.leftside.update()
         self.rightside.update()
 
-
+        '''
         for x in self.leftside.surf.hitboxes:
                 [irect,orect], hbExp, op_depth = x
                 transrect = irect.move(self.leftside.midleft).move((0,-opLoc[1]))
@@ -312,7 +312,7 @@ class uiEquation:
                 [irect,orect], hbExp, op_depth = x
                 transrect = irect.move(self.rightside.midleft).move((0,-opLoc[1]))
                 pygame.draw.rect(screen,(255,0,0),transrect,1)
-
+        '''
         
         topleft = self.eqmid[0]-opLoc[0], self.eqmid[1]-opLoc[1]
         screen.blit(surface,topleft)
@@ -330,7 +330,12 @@ class uiEquation:
 
 class uiMaster:
     typing_first_expression = True
-    uiEx1 = uiExpression((500,100))
+    uiEx1 = uiExpression((200,200))
+
+    currenty = 200
+    ychange = 200
+
+
     
     def init():
         uiMaster.uiEx1.is_active = True
@@ -347,12 +352,19 @@ class uiMaster:
                         if event.key == pygame.K_EQUALS:
                             if not(pygame.key.get_mods() & pygame.KMOD_SHIFT):
                                 if(contOrCommand):
-                                    uiMaster.typing_first_expression = False
-                                    uiMaster.uiEx1.is_active = False
+                                    newleft = uiExpression((0,0))
+                                    newleft.text = uiMaster.uiEx1.text
+                                    uiMaster.currenty+= uiMaster.ychange
+
+                                    uiMaster.uiEx1.midleft = (200,uiMaster.currenty)
+
                                     rightsideui = uiExpression((0,0))
                                     rightsideui.is_active = True
-                                    print(uiMaster.uiEx1.get_finalstring())
-                                    res = client.query(uiMaster.uiEx1.get_finalstring())
+        
+                                    cut = uiMaster.uiEx1.get_finalstring().replace("|","")
+
+
+                                    res = client.query(cut)
                                     toget = ""
                                     print(res)
 
@@ -370,16 +382,26 @@ class uiMaster:
                                         toget == "error"
 
                                     
-
+                                    uiMaster.uiEx1.text = ""
                                     rightsideui.text = toget
+                                    rightsideui.is_active = False
+
                                     print(toget)
-                                    newEQ = uiEquation(uiMaster.uiEx1,rightsideui,(500,100))
+
+                                    
+
+
+                                    newEQ = uiEquation(newleft,rightsideui,(200,uiMaster.currenty-uiMaster.ychange))
+                                    print(uiMaster.currenty-uiMaster.ychange)
+                                    print("BBB", uiMaster.uiEx1.midleft)
+                                '''
                                 else:
                                     uiMaster.typing_first_expression = False
                                     uiMaster.uiEx1.is_active = False
                                     rightsideui = uiExpression((0,0))
                                     rightsideui.is_active = True
                                     newEQ = uiEquation(uiMaster.uiEx1,rightsideui,(500,100))
+                                '''
 
 
 
@@ -393,14 +415,12 @@ class uiMaster:
 
 
             uiMaster.uiEx1.handle_events(events,mouse_absolute)
-        else:
             uiEquation.static_handle_events(events,mouse_absolute)
 
     def draw(screen):
         if uiMaster.typing_first_expression:
             uiMaster.uiEx1.update()
             uiMaster.uiEx1.draw(screen)
-        else:
             uiEquation.static_draw(screen)
 
 

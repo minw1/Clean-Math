@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = '1L1R_OP_L0 1L1R_OP_L1 1L1R_OP_R2 LBRACK LPAREN LPRN_CURSOR NUMBER NUM_CURSOR RBRACK RPAREN RPRN_CURSOR ULPAREN UNF_CURSOR URPAREN VAR VAR_CURSORstatement : exp0exp0 : exp1exp1 : exp2exp2 : exp3exp3 : LPAREN exp0 RPARENexp3 : LPRN_CURSOR LPAREN exp0 RPARENexp3 : LPAREN exp0 RPAREN RPRN_CURSORexp3 : LPAREN exp0 URPARENexp3 : LPRN_CURSOR LPAREN exp0 URPARENexp3 : ULPAREN exp0 RPARENexp3 : ULPAREN exp0 RPAREN RPRN_CURSORexp3 : NUMBERexp3 : NUM_CURSORexp3 : VAR_CURSORexp3 : VARexp3 : emptyexp3 : UNF_CURSOR emptyempty :exp0 : exp0 1L1R_OP_L0 exp1exp1 : exp1 1L1R_OP_L1 exp2exp2 : exp3 1L1R_OP_R2 exp2'
+_lr_signature = '1L1R_OP_L0 1L1R_OP_L1 1L1R_OP_R2 LBRACK LBRK_CURSOR LPAREN LPRN_CURSOR NUMBER NUM_CURSOR RBRACK RBRK_CURSOR RPAREN RPRN_CURSOR ULPAREN UNF_CURSOR URPAREN VAR VAR_CURSORstatement : exp0exp0 : exp1exp1 : exp2exp2 : exp3exp3 : LPAREN exp0 RPARENexp3 : LPRN_CURSOR LPAREN exp0 RPARENexp3 : LPAREN exp0 RPAREN RPRN_CURSORexp3 : LPAREN exp0 URPARENexp3 : LPRN_CURSOR LPAREN exp0 URPARENexp3 : ULPAREN exp0 RPARENexp3 : ULPAREN exp0 RPAREN RPRN_CURSORexp3 : LBRACK exp0 RBRACKexp3 : LBRK_CURSOR LBRACK exp0 RBRACKexp3 : LBRACK exp0 RBRACK RBRK_CURSORexp3 : NUMBERexp3 : NUM_CURSORexp3 : VAR_CURSORexp3 : VARexp3 : emptyexp3 : UNF_CURSOR emptyempty :exp0 : exp0 1L1R_OP_L0 exp1exp1 : exp1 1L1R_OP_L1 exp2exp2 : exp3 1L1R_OP_R2 exp2'
     
-_lr_action_items = {'LPAREN':([0,6,7,8,15,16,17,19,],[6,6,19,6,6,6,6,6,]),'LPRN_CURSOR':([0,6,8,15,16,17,19,],[7,7,7,7,7,7,7,]),'ULPAREN':([0,6,8,15,16,17,19,],[8,8,8,8,8,8,8,]),'NUMBER':([0,6,8,15,16,17,19,],[9,9,9,9,9,9,9,]),'NUM_CURSOR':([0,6,8,15,16,17,19,],[10,10,10,10,10,10,10,]),'VAR_CURSOR':([0,6,8,15,16,17,19,],[11,11,11,11,11,11,11,]),'VAR':([0,6,8,15,16,17,19,],[12,12,12,12,12,12,12,]),'UNF_CURSOR':([0,6,8,15,16,17,19,],[14,14,14,14,14,14,14,]),'1L1R_OP_R2':([0,5,6,8,9,10,11,12,13,14,15,16,17,19,21,25,26,28,29,30,31,32,],[-18,17,-18,-18,-12,-13,-14,-15,-16,-18,-18,-18,-18,-18,-17,-5,-8,-10,-7,-6,-9,-11,]),'1L1R_OP_L1':([0,3,4,5,6,8,9,10,11,12,13,14,15,16,17,19,21,22,23,24,25,26,28,29,30,31,32,],[-18,16,-3,-4,-18,-18,-12,-13,-14,-15,-16,-18,-18,-18,-18,-18,-17,16,-20,-21,-5,-8,-10,-7,-6,-9,-11,]),'1L1R_OP_L0':([0,2,3,4,5,6,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,],[-18,15,-2,-3,-4,-18,-18,-12,-13,-14,-15,-16,-18,-18,-18,-18,15,-18,15,-17,-19,-20,-21,-5,-8,15,-10,-7,-6,-9,-11,]),'$end':([0,1,2,3,4,5,9,10,11,12,13,14,15,16,17,21,22,23,24,25,26,28,29,30,31,32,],[-18,0,-1,-2,-3,-4,-12,-13,-14,-15,-16,-18,-18,-18,-18,-17,-19,-20,-21,-5,-8,-10,-7,-6,-9,-11,]),'RPAREN':([3,4,5,6,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,],[-2,-3,-4,-18,-18,-12,-13,-14,-15,-16,-18,-18,-18,-18,25,-18,28,-17,-19,-20,-21,-5,-8,30,-10,-7,-6,-9,-11,]),'URPAREN':([3,4,5,6,9,10,11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,28,29,30,31,32,],[-2,-3,-4,-18,-12,-13,-14,-15,-16,-18,-18,-18,-18,26,-18,-17,-19,-20,-21,-5,-8,31,-10,-7,-6,-9,-11,]),'RPRN_CURSOR':([25,28,],[29,32,]),}
+_lr_action_items = {'LPAREN':([0,6,7,8,9,17,18,19,21,24,],[6,6,21,6,6,6,6,6,6,6,]),'LPRN_CURSOR':([0,6,8,9,17,18,19,21,24,],[7,7,7,7,7,7,7,7,7,]),'ULPAREN':([0,6,8,9,17,18,19,21,24,],[8,8,8,8,8,8,8,8,8,]),'LBRACK':([0,6,8,9,10,17,18,19,21,24,],[9,9,9,9,24,9,9,9,9,9,]),'LBRK_CURSOR':([0,6,8,9,17,18,19,21,24,],[10,10,10,10,10,10,10,10,10,]),'NUMBER':([0,6,8,9,17,18,19,21,24,],[11,11,11,11,11,11,11,11,11,]),'NUM_CURSOR':([0,6,8,9,17,18,19,21,24,],[12,12,12,12,12,12,12,12,12,]),'VAR_CURSOR':([0,6,8,9,17,18,19,21,24,],[13,13,13,13,13,13,13,13,13,]),'VAR':([0,6,8,9,17,18,19,21,24,],[14,14,14,14,14,14,14,14,14,]),'UNF_CURSOR':([0,6,8,9,17,18,19,21,24,],[16,16,16,16,16,16,16,16,16,]),'1L1R_OP_R2':([0,5,6,8,9,11,12,13,14,15,16,17,18,19,21,24,25,29,30,32,33,35,36,37,38,39,40,],[-21,19,-21,-21,-21,-15,-16,-17,-18,-19,-21,-21,-21,-21,-21,-21,-20,-5,-8,-10,-12,-7,-6,-9,-11,-14,-13,]),'1L1R_OP_L1':([0,3,4,5,6,8,9,11,12,13,14,15,16,17,18,19,21,24,25,26,27,28,29,30,32,33,35,36,37,38,39,40,],[-21,18,-3,-4,-21,-21,-21,-15,-16,-17,-18,-19,-21,-21,-21,-21,-21,-21,-20,18,-23,-24,-5,-8,-10,-12,-7,-6,-9,-11,-14,-13,]),'1L1R_OP_L0':([0,2,3,4,5,6,8,9,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,],[-21,17,-2,-3,-4,-21,-21,-21,-15,-16,-17,-18,-19,-21,-21,-21,-21,17,-21,17,17,-21,-20,-22,-23,-24,-5,-8,17,-10,-12,17,-7,-6,-9,-11,-14,-13,]),'$end':([0,1,2,3,4,5,11,12,13,14,15,16,17,18,19,25,26,27,28,29,30,32,33,35,36,37,38,39,40,],[-21,0,-1,-2,-3,-4,-15,-16,-17,-18,-19,-21,-21,-21,-21,-20,-22,-23,-24,-5,-8,-10,-12,-7,-6,-9,-11,-14,-13,]),'RPAREN':([3,4,5,6,8,11,12,13,14,15,16,17,18,19,20,21,22,25,26,27,28,29,30,31,32,33,35,36,37,38,39,40,],[-2,-3,-4,-21,-21,-15,-16,-17,-18,-19,-21,-21,-21,-21,29,-21,32,-20,-22,-23,-24,-5,-8,36,-10,-12,-7,-6,-9,-11,-14,-13,]),'URPAREN':([3,4,5,6,11,12,13,14,15,16,17,18,19,20,21,25,26,27,28,29,30,31,32,33,35,36,37,38,39,40,],[-2,-3,-4,-21,-15,-16,-17,-18,-19,-21,-21,-21,-21,30,-21,-20,-22,-23,-24,-5,-8,37,-10,-12,-7,-6,-9,-11,-14,-13,]),'RBRACK':([3,4,5,9,11,12,13,14,15,16,17,18,19,23,24,25,26,27,28,29,30,32,33,34,35,36,37,38,39,40,],[-2,-3,-4,-21,-15,-16,-17,-18,-19,-21,-21,-21,-21,33,-21,-20,-22,-23,-24,-5,-8,-10,-12,40,-7,-6,-9,-11,-14,-13,]),'RPRN_CURSOR':([29,32,],[35,38,]),'RBRK_CURSOR':([33,],[39,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'statement':([0,],[1,]),'exp0':([0,6,8,19,],[2,18,20,27,]),'exp1':([0,6,8,15,19,],[3,3,3,22,3,]),'exp2':([0,6,8,15,16,17,19,],[4,4,4,4,23,24,4,]),'exp3':([0,6,8,15,16,17,19,],[5,5,5,5,5,5,5,]),'empty':([0,6,8,14,15,16,17,19,],[13,13,13,21,13,13,13,13,]),}
+_lr_goto_items = {'statement':([0,],[1,]),'exp0':([0,6,8,9,21,24,],[2,20,22,23,31,34,]),'exp1':([0,6,8,9,17,21,24,],[3,3,3,3,26,3,3,]),'exp2':([0,6,8,9,17,18,19,21,24,],[4,4,4,4,4,27,28,4,4,]),'exp3':([0,6,8,9,17,18,19,21,24,],[5,5,5,5,5,5,5,5,5,]),'empty':([0,6,8,9,16,17,18,19,21,24,],[15,15,15,15,25,15,15,15,15,15,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -27,25 +27,28 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> statement","S'",1,None,None,None),
-  ('statement -> exp0','statement',1,'p_statement_exp0','plyParser.py',202),
-  ('exp0 -> exp1','exp0',1,'p_exp0_exp1','plyParser.py',206),
-  ('exp1 -> exp2','exp1',1,'p_exp1_exp2','plyParser.py',210),
-  ('exp2 -> exp3','exp2',1,'p_exp2_exp3','plyParser.py',214),
-  ('exp3 -> LPAREN exp0 RPAREN','exp3',3,'p_exp3_parens','plyParser.py',218),
-  ('exp3 -> LPRN_CURSOR LPAREN exp0 RPAREN','exp3',4,'p_exp3_clparens','plyParser.py',222),
-  ('exp3 -> LPAREN exp0 RPAREN RPRN_CURSOR','exp3',4,'p_exp3_crparens','plyParser.py',226),
-  ('exp3 -> LPAREN exp0 URPAREN','exp3',3,'p_exp3_ulparens','plyParser.py',230),
-  ('exp3 -> LPRN_CURSOR LPAREN exp0 URPAREN','exp3',4,'p_exp3_culparens','plyParser.py',234),
-  ('exp3 -> ULPAREN exp0 RPAREN','exp3',3,'p_exp3_urparens','plyParser.py',238),
-  ('exp3 -> ULPAREN exp0 RPAREN RPRN_CURSOR','exp3',4,'p_exp3_curparens','plyParser.py',242),
-  ('exp3 -> NUMBER','exp3',1,'p_exp3_number','plyParser.py',246),
-  ('exp3 -> NUM_CURSOR','exp3',1,'p_exp3_cnumber','plyParser.py',250),
-  ('exp3 -> VAR_CURSOR','exp3',1,'p_exp3_cvar','plyParser.py',254),
-  ('exp3 -> VAR','exp3',1,'p_exp3_var','plyParser.py',258),
-  ('exp3 -> empty','exp3',1,'p_exp3_empty','plyParser.py',262),
-  ('exp3 -> UNF_CURSOR empty','exp3',2,'p_exp3_cempty','plyParser.py',266),
-  ('empty -> <empty>','empty',0,'p_empty','plyParser.py',270),
-  ('exp0 -> exp0 1L1R_OP_L0 exp1','exp0',3,'p_exp0_exp0ops','plyParser.py',274),
-  ('exp1 -> exp1 1L1R_OP_L1 exp2','exp1',3,'p_exp1_exp1ops','plyParser.py',279),
-  ('exp2 -> exp3 1L1R_OP_R2 exp2','exp2',3,'p_exp1_exp2ops','plyParser.py',284),
+  ('statement -> exp0','statement',1,'p_statement_exp0','plyParser.py',167),
+  ('exp0 -> exp1','exp0',1,'p_exp0_exp1','plyParser.py',171),
+  ('exp1 -> exp2','exp1',1,'p_exp1_exp2','plyParser.py',175),
+  ('exp2 -> exp3','exp2',1,'p_exp2_exp3','plyParser.py',179),
+  ('exp3 -> LPAREN exp0 RPAREN','exp3',3,'p_exp3_parens','plyParser.py',183),
+  ('exp3 -> LPRN_CURSOR LPAREN exp0 RPAREN','exp3',4,'p_exp3_clparens','plyParser.py',187),
+  ('exp3 -> LPAREN exp0 RPAREN RPRN_CURSOR','exp3',4,'p_exp3_crparens','plyParser.py',191),
+  ('exp3 -> LPAREN exp0 URPAREN','exp3',3,'p_exp3_ulparens','plyParser.py',195),
+  ('exp3 -> LPRN_CURSOR LPAREN exp0 URPAREN','exp3',4,'p_exp3_culparens','plyParser.py',199),
+  ('exp3 -> ULPAREN exp0 RPAREN','exp3',3,'p_exp3_urparens','plyParser.py',203),
+  ('exp3 -> ULPAREN exp0 RPAREN RPRN_CURSOR','exp3',4,'p_exp3_curparens','plyParser.py',207),
+  ('exp3 -> LBRACK exp0 RBRACK','exp3',3,'p_exp3_bracks','plyParser.py',211),
+  ('exp3 -> LBRK_CURSOR LBRACK exp0 RBRACK','exp3',4,'p_exp3_clbracks','plyParser.py',215),
+  ('exp3 -> LBRACK exp0 RBRACK RBRK_CURSOR','exp3',4,'p_exp3_crbracks','plyParser.py',219),
+  ('exp3 -> NUMBER','exp3',1,'p_exp3_number','plyParser.py',223),
+  ('exp3 -> NUM_CURSOR','exp3',1,'p_exp3_cnumber','plyParser.py',227),
+  ('exp3 -> VAR_CURSOR','exp3',1,'p_exp3_cvar','plyParser.py',231),
+  ('exp3 -> VAR','exp3',1,'p_exp3_var','plyParser.py',235),
+  ('exp3 -> empty','exp3',1,'p_exp3_empty','plyParser.py',239),
+  ('exp3 -> UNF_CURSOR empty','exp3',2,'p_exp3_cempty','plyParser.py',243),
+  ('empty -> <empty>','empty',0,'p_empty','plyParser.py',247),
+  ('exp0 -> exp0 1L1R_OP_L0 exp1','exp0',3,'p_exp0_exp0ops','plyParser.py',251),
+  ('exp1 -> exp1 1L1R_OP_L1 exp2','exp1',3,'p_exp1_exp1ops','plyParser.py',256),
+  ('exp2 -> exp3 1L1R_OP_R2 exp2','exp2',3,'p_exp1_exp2ops','plyParser.py',265),
 ]
