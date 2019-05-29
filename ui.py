@@ -103,7 +103,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
         self.exp = pprs.get_exp(finalstring)
 
         self.exp.assign_parents()
-        self.surf = xts.smartSurface(self.exp, cursor_show = (show_cursor() or (uiExpression.time_since_input<200)))
+        self.surf = xts.smartSurface(self.exp, cursor_show= (show_cursor() or (uiExpression.time_since_input<200)))
 
         self.rect.size = self.surf.get_rect().size
         self.rect.topleft = self.midleft[0], self.midleft[1]-self.surf.y_mid
@@ -191,27 +191,15 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 
     def feed_keydown(self, keydown):
         if keydown == pygame.K_BACKSPACE and self.index>0:
-            while self.text[self.index-1] in ('{','}'):
-                self.index-=1
             self.text = self.text[:self.index-1] + self.text[self.index:]
             self.index-=1
         elif keydown == pygame.K_SPACE:
             self.text = self.text[:self.index]+" "+self.text[self.index:]
             self.index+=1
         elif keydown == pygame.K_LEFT or keydown==pygame.K_UP:
-            if self.index>=3 and self.text[self.index-3:self.index]=='}/{':
-                self.index -= 3
-            elif self.index>=2 and self.text[self.index-2:self.index]=='^{':
-                self.index -= 2
-            else:
-                self.index=max(self.index-1,0)
+            self.index=max(self.index-1,0)
         elif keydown == pygame.K_RIGHT or keydown==pygame.K_DOWN:
-            if self.text[self.index+1:self.index+4]=='}/{':
-                self.index += 3
-            elif self.text[self.index+1:self.index+3]=='^{':
-                self.index += 2
-            else:
-                self.index=min(self.index+1,len(self.text))
+            self.index=min(self.index+1,len(self.text))
         else:
             return False #some other symbol
 
@@ -225,7 +213,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 
     def static_feedAllowedSymbol(symbol):
         for ui in uiExpression.allUiExpressions:
-            ui.feedAllowedSymbol(symbol)
+            ui.feed_AllowedSymbol(symbol)
 
     def handle_events(self, events, mouse_absolute):
         for event in events:
@@ -239,7 +227,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
                 else:
                     self.feed_keydown(event.key)
             #if event.type == pygame.VIDEORESIZE:
-            #	self.mult_by(xp.NoOpExpression("2"))
+            #   self.mult_by(xp.NoOpExpression("2"))
 
 
     def static_handle_events(events,mouse_absolute):
@@ -314,17 +302,16 @@ class uiEquation:
         self.leftside.update()
         self.rightside.update()
 
-
+        '''
         for x in self.leftside.surf.hitboxes:
                 [irect,orect], hbExp, op_depth = x
                 transrect = irect.move(self.leftside.midleft).move((0,-opLoc[1]))
                 pygame.draw.rect(screen,(255,0,0),transrect,1)
-
         for x in self.rightside.surf.hitboxes:
                 [irect,orect], hbExp, op_depth = x
                 transrect = irect.move(self.rightside.midleft).move((0,-opLoc[1]))
                 pygame.draw.rect(screen,(255,0,0),transrect,1)
-
+        '''
         
         topleft = self.eqmid[0]-opLoc[0], self.eqmid[1]-opLoc[1]
         screen.blit(surface,topleft)
@@ -342,7 +329,12 @@ class uiEquation:
 
 class uiMaster:
     typing_first_expression = True
-    uiEx1 = uiExpression((500,100))
+    uiEx1 = uiExpression((200,200))
+
+    currenty = 200
+    ychange = 200
+
+
     
     def init():
         uiMaster.uiEx1.is_active = True
@@ -359,12 +351,19 @@ class uiMaster:
                         if event.key == pygame.K_EQUALS:
                             if not(pygame.key.get_mods() & pygame.KMOD_SHIFT):
                                 if(contOrCommand):
-                                    uiMaster.typing_first_expression = False
-                                    uiMaster.uiEx1.is_active = False
+                                    newleft = uiExpression((0,0))
+                                    newleft.text = uiMaster.uiEx1.text
+                                    uiMaster.currenty+= uiMaster.ychange
+
+                                    uiMaster.uiEx1.midleft = (200,uiMaster.currenty)
+
                                     rightsideui = uiExpression((0,0))
                                     rightsideui.is_active = True
-                                    print(uiMaster.uiEx1.get_finalstring())
-                                    res = client.query(uiMaster.uiEx1.get_finalstring())
+        
+                                    cut = uiMaster.uiEx1.get_finalstring().replace("|","")
+
+
+                                    res = client.query(cut)
                                     toget = ""
                                     print(res)
 
@@ -381,17 +380,29 @@ class uiMaster:
                                         print("no results found")
                                         toget == "error"
 
+                                    toget = toget.replace("{","").replace("}","")
+
+                                    
+                                    uiMaster.uiEx1.text = ""
+                                    rightsideui.text = toget
+                                    rightsideui.is_active = False
+
+                                    print(toget)
+
                                     
 
-                                    rightsideui.text = toget
-                                    print(toget)
-                                    newEQ = uiEquation(uiMaster.uiEx1,rightsideui,(500,100))
+
+                                    newEQ = uiEquation(newleft,rightsideui,(200,uiMaster.currenty-uiMaster.ychange))
+                                    print(uiMaster.currenty-uiMaster.ychange)
+                                    print("BBB", uiMaster.uiEx1.midleft)
+                                '''
                                 else:
                                     uiMaster.typing_first_expression = False
                                     uiMaster.uiEx1.is_active = False
                                     rightsideui = uiExpression((0,0))
                                     rightsideui.is_active = True
                                     newEQ = uiEquation(uiMaster.uiEx1,rightsideui,(500,100))
+                                '''
 
 
 
@@ -405,19 +416,10 @@ class uiMaster:
 
 
         uiMaster.uiEx1.handle_events(events,mouse_absolute)
-        #else:
-        #    print('huh')
-        #    uiEquation.static_handle_events(events,mouse_absolute)
+        uiEquation.static_handle_events(events,mouse_absolute)
 
     def draw(screen):
         if uiMaster.typing_first_expression:
             uiMaster.uiEx1.update()
             uiMaster.uiEx1.draw(screen)
-        else:
             uiEquation.static_draw(screen)
-
-
-
-
-
-
