@@ -98,9 +98,14 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
             curstring = self.text
         #print("cur:" + curstring)
 
-        finalstring = proc.process_string(curstring)[0]
+        try:
+            finalstring = proc.process_string(curstring)[0]
+        except:
+            print("Failed Processing: ",curstring)
 
+        print("to getexp:", finalstring)
         self.exp = pprs.get_exp(finalstring)
+
 
         self.exp.assign_parents()
         self.surf = xts.smartSurface(self.exp, cursor_show= (show_cursor() or (uiExpression.time_since_input<200)))
@@ -329,7 +334,9 @@ class uiEquation:
 
 class uiMaster:
     typing_first_expression = True
-    uiEx1 = uiExpression((200,200))
+    xoffset = 500
+
+    uiEx1 = uiExpression((xoffset,200))
 
     currenty = 200
     ychange = 200
@@ -355,7 +362,7 @@ class uiMaster:
                                     newleft.text = uiMaster.uiEx1.text
                                     uiMaster.currenty+= uiMaster.ychange
 
-                                    uiMaster.uiEx1.midleft = (200,uiMaster.currenty)
+                                    uiMaster.uiEx1.midleft = (uiMaster.xoffset,uiMaster.currenty)
 
                                     rightsideui = uiExpression((0,0))
                                     rightsideui.is_active = True
@@ -387,12 +394,12 @@ class uiMaster:
                                     rightsideui.text = toget
                                     rightsideui.is_active = False
 
-                                    print(toget)
+                                    print("CCC",toget)
 
                                     
 
 
-                                    newEQ = uiEquation(newleft,rightsideui,(200,uiMaster.currenty-uiMaster.ychange))
+                                    newEQ = uiEquation(newleft,rightsideui,(uiMaster.xoffset,uiMaster.currenty-uiMaster.ychange))
                                     print(uiMaster.currenty-uiMaster.ychange)
                                     print("BBB", uiMaster.uiEx1.midleft)
                                 '''

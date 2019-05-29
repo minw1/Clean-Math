@@ -91,7 +91,7 @@ while st.programIsRunning:
     for ui in uiList:
         ui.handle_events(events,mousePos)
     '''
-    ui.uiMaster.handle_events(events,mousePos)
+    ui.uiMaster.handle_events(events,(mousePos[0]+xscroll,mousePos[1]+yscroll))
 
     screen.fill((255,255,255))
     scrollblock.fill((255,255,255))
