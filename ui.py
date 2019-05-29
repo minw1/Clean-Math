@@ -199,14 +199,14 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
             self.text = self.text[:self.index]+" "+self.text[self.index:]
             self.index+=1
         elif keydown == pygame.K_LEFT or keydown==pygame.K_UP:
-            if self.index>=3 and self.text[self.index-3:self.index]=='}\{':
+            if self.index>=3 and self.text[self.index-3:self.index]=='}/{':
                 self.index -= 3
             elif self.index>=2 and self.text[self.index-2:self.index]=='^{':
                 self.index -= 2
             else:
                 self.index=max(self.index-1,0)
         elif keydown == pygame.K_RIGHT or keydown==pygame.K_DOWN:
-            if self.text[self.index+1:self.index+4]=='}\{':
+            if self.text[self.index+1:self.index+4]=='}/{':
                 self.index += 3
             elif self.text[self.index+1:self.index+3]=='^{':
                 self.index += 2
