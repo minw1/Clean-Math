@@ -199,9 +199,19 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
             self.text = self.text[:self.index]+" "+self.text[self.index:]
             self.index+=1
         elif keydown == pygame.K_LEFT or keydown==pygame.K_UP:
-            self.index=max(self.index-1,0)
+            if self.index>=3 and self.text[self.index-3:self.index]=='}\{':
+                self.index -= 3
+            elif self.index>=2 and self.text[self.index-2:self.index]=='^{':
+                self.index -= 2
+            else:
+                self.index=max(self.index-1,0)
         elif keydown == pygame.K_RIGHT or keydown==pygame.K_DOWN:
-            self.index=min(self.index+1,len(self.text))
+            if self.text[self.index+1:self.index+4]=='}\{':
+                self.index += 3
+            elif self.text[self.index+1:self.index+3]=='^{':
+                self.index += 2
+            else:
+                self.index=min(self.index+1,len(self.text))
         else:
             return False #some other symbol
 
@@ -215,7 +225,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 
     def static_feedAllowedSymbol(symbol):
         for ui in uiExpression.allUiExpressions:
-            ui.feed_AllowedSymbol(symbol)
+            ui.feedAllowedSymbol(symbol)
 
     def handle_events(self, events, mouse_absolute):
         for event in events:
@@ -304,7 +314,7 @@ class uiEquation:
         self.leftside.update()
         self.rightside.update()
 
-        '''
+
         for x in self.leftside.surf.hitboxes:
                 [irect,orect], hbExp, op_depth = x
                 transrect = irect.move(self.leftside.midleft).move((0,-opLoc[1]))
@@ -314,7 +324,7 @@ class uiEquation:
                 [irect,orect], hbExp, op_depth = x
                 transrect = irect.move(self.rightside.midleft).move((0,-opLoc[1]))
                 pygame.draw.rect(screen,(255,0,0),transrect,1)
-        '''
+
         
         topleft = self.eqmid[0]-opLoc[0], self.eqmid[1]-opLoc[1]
         screen.blit(surface,topleft)
@@ -332,19 +342,14 @@ class uiEquation:
 
 class uiMaster:
     typing_first_expression = True
-    uiEx1 = uiExpression((200,200))
-
-    currenty = 200
-    ychange = 200
-
-
+    uiEx1 = uiExpression((500,100))
     
     def init():
         uiMaster.uiEx1.is_active = True
 
 
     def handle_events(events,mouse_absolute):
-        contOrCommand = False
+        
         for event in events:
 
             contOrCommand = (pygame.key.get_pressed()[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL)
@@ -354,21 +359,14 @@ class uiMaster:
                         if event.key == pygame.K_EQUALS:
                             if not(pygame.key.get_mods() & pygame.KMOD_SHIFT):
                                 if(contOrCommand):
-                                    newleft = uiExpression((0,0))
-                                    newleft.text = uiMaster.uiEx1.text
-                                    uiMaster.currenty+= uiMaster.ychange
-
-                                    uiMaster.uiEx1.midleft = (200,uiMaster.currenty)
-
+                                    uiMaster.typing_first_expression = False
+                                    uiMaster.uiEx1.is_active = False
                                     rightsideui = uiExpression((0,0))
                                     rightsideui.is_active = True
-        
-                                    cut = uiMaster.uiEx1.get_finalstring().replace("|","")
-
-
-                                    res = client.query(cut)
+                                    print(uiMaster.uiEx1.get_finalstring())
+                                    res = client.query(uiMaster.uiEx1.get_finalstring())
                                     toget = ""
-
+                                    print(res)
 
                                     try:
                                         for pod in res.pods:
@@ -384,44 +382,38 @@ class uiMaster:
                                         toget == "error"
 
                                     
-                                    uiMaster.uiEx1.text = ""
+
                                     rightsideui.text = toget
-                                    rightsideui.is_active = False
-
-
-
-                                    
-
-
-                                    newEQ = uiEquation(newleft,rightsideui,(200,uiMaster.currenty-uiMaster.ychange))
-
-                                '''
+                                    print(toget)
+                                    newEQ = uiEquation(uiMaster.uiEx1,rightsideui,(500,100))
                                 else:
                                     uiMaster.typing_first_expression = False
                                     uiMaster.uiEx1.is_active = False
                                     rightsideui = uiExpression((0,0))
                                     rightsideui.is_active = True
                                     newEQ = uiEquation(uiMaster.uiEx1,rightsideui,(500,100))
-                                '''
 
 
 
 
-                if event.unicode == "s" and contOrCommand:
-                    saver.saveCM(input("file name?"),uiMaster,uiEquation)
-                if event.unicode == "o" and contOrCommand:
-                    saver.openCM(input("file name?"),uiMaster,uiEquation)
+                if event.unicode == "`":
+                    saver.saveCM("testfile",uiMaster,uiEquation)
+                if event.unicode == "'":
+                    saver.openCM("testfile",uiMaster,uiEquation)
+
+                    print("text:", uiMaster.uiEx1.text)
 
 
-
-        if not contOrCommand:
-            uiMaster.uiEx1.handle_events(events,mouse_absolute)
-            uiEquation.static_handle_events(events,mouse_absolute)
+        uiMaster.uiEx1.handle_events(events,mouse_absolute)
+        #else:
+        #    print('huh')
+        #    uiEquation.static_handle_events(events,mouse_absolute)
 
     def draw(screen):
         if uiMaster.typing_first_expression:
             uiMaster.uiEx1.update()
             uiMaster.uiEx1.draw(screen)
+        else:
             uiEquation.static_draw(screen)
 
 

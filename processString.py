@@ -114,9 +114,7 @@ def add_close_brack(input_str, b_depth=0, p_depth=0):
     if first_char == '{':
         return first_char+add_close_brack(input_str[1:],b_depth+1,p_depth)
     if first_char == '}':
-        if b_depth == 1:
-            return first_char+'}'+input_str[1:]
-        elif b_depth == 0:
+        if b_depth == 0:
             return '}'+input_str
         else:
             return first_char+add_close_brack(input_str[1:],b_depth-1,p_depth)
@@ -287,34 +285,65 @@ def process_brackets(input_str):
                             b_depth += -1
                         b_shift += 1
 
-    #Determine what index to fix
-    op_idx = [i for i in range(len(b_missing)) if b_missing[i] != [False,False,False,False]]
-    if op_idx == []: return output_str
-    op_idx = op_idx[0]
+
+    ops_missing = [b_missing[i] for i in op_indices]
+
+    for i in range(len(op_indices)):
+        op_idx = op_indices[i]
+        output_str, adj = fix(output_str, ops_missing[i], op_idx)
+        ops_missing[i] = [False,False,False,False]
+        for j in range(i+1,len(op_indices)):
+            op_indices[j]+=adj
+    return output_str
+
+def fix(input_str, b_missing, op_idx):
+
+    output_str = input_str
+    
     if output_str[op_idx] == '^':
-        end_part = output_str[op_idx+1:]
+        '''end_part = output_str[op_idx+1:]
         new_str = output_str[:op_idx+1]
         if b_missing[0]: new_str += '{'
         else: end_part = end_part[1:]
-        new_str += add_close_brack(end_part)
-        return process_brackets(new_str)
-        
-    elif output_str[op_idx] == '/':
-        brack_miss = b_missing[op_idx]
+        new_str += add_close_brack(end_part)'''
         
         start_part = output_str[:op_idx]
         end_part = output_str[op_idx+1:]
 
-        if not b_missing[1]: start_part = start_part[:-1]
-        if not b_missing[2]: end_part = end_part[1:]
+        if not b_missing[0]:
+            if '{' in end_part: 
+                brack_ind = end_part.index('{') #this is necessary if we have a |{
+                end_part = end_part[:brack_ind]+end_part[brack_ind+1:]
+
+        new_end_part = add_close_brack(end_part) if b_missing[1] else end_part
+
+        new_str = start_part+'^{'+new_end_part
+        return new_str, 0
+        
+    elif output_str[op_idx] == '/':
+        
+        start_part = output_str[:op_idx]
+        end_part = output_str[op_idx+1:]
+
+        if not b_missing[1]:
+            if '}' in start_part: 
+                brack_ind = start_part.rfind('}') #this is necessary if we have a }|
+                start_part = start_part[:brack_ind]+start_part[brack_ind+1:]
+
+        if not b_missing[2]:
+            if '{' in end_part: 
+                brack_ind = end_part.index('{') #this is necessary if we have a |{
+                end_part = end_part[:brack_ind]+end_part[brack_ind+1:]
+
+        new_start_part = add_close_brack_reverse(start_part) if b_missing[0] else start_part
+        new_end_part = add_close_brack(end_part) if b_missing[3] else end_part
             
-        new_str = add_close_brack_reverse(start_part)+'}/{'+add_close_brack(end_part)
-        return process_brackets(new_str)
+        new_str = new_start_part+'}/{'+new_end_part
+        return new_str, b_missing[0]+b_missing[1]
     
     return output_str
 
 def process_string(input_str):
-    #print('processing',input_str)
     output_str = input_str
     #Remove illegal characters
     illegal_chars = ['!', '@', '#', '$', '%', '&', '_', '\\', ':', ';', '\"', '\'', '?', '>', '<', ',', '=']
@@ -342,9 +371,4 @@ def process_string(input_str):
         index = output_str.index("|")
     else:
         index = -1
-    #print('output',output_str)
     return (output_str, index)
-
-z=process_brackets
-v=z('1+2^|')
-#print(v)
