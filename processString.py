@@ -285,15 +285,15 @@ def process_brackets(input_str):
                             b_depth += -1
                         b_shift += 1
 
-
     ops_missing = [b_missing[i] for i in op_indices]
 
     for i in range(len(op_indices)):
         op_idx = op_indices[i]
-        output_str, adj = fix(output_str, ops_missing[i], op_idx)
+        output_str, adj1, adj2 = fix(output_str, ops_missing[i], op_idx)
         ops_missing[i] = [False,False,False,False]
+        op_indices[i]+=adj1
         for j in range(i+1,len(op_indices)):
-            op_indices[j]+=adj
+            op_indices[j]+=(adj1+adj2)
     return output_str
 
 def fix(input_str, b_missing, op_idx):
@@ -301,11 +301,6 @@ def fix(input_str, b_missing, op_idx):
     output_str = input_str
     
     if output_str[op_idx] == '^':
-        '''end_part = output_str[op_idx+1:]
-        new_str = output_str[:op_idx+1]
-        if b_missing[0]: new_str += '{'
-        else: end_part = end_part[1:]
-        new_str += add_close_brack(end_part)'''
         
         start_part = output_str[:op_idx]
         end_part = output_str[op_idx+1:]
@@ -318,7 +313,7 @@ def fix(input_str, b_missing, op_idx):
         new_end_part = add_close_brack(end_part) if b_missing[1] else end_part
 
         new_str = start_part+'^{'+new_end_part
-        return new_str, 0
+        return new_str, 0, b_missing[0]+b_missing[1]
         
     elif output_str[op_idx] == '/':
         
@@ -339,9 +334,9 @@ def fix(input_str, b_missing, op_idx):
         new_end_part = add_close_brack(end_part) if b_missing[3] else end_part
             
         new_str = new_start_part+'}/{'+new_end_part
-        return new_str, b_missing[0]+b_missing[1]
+        return new_str, b_missing[0]+b_missing[1], b_missing[2]+b_missing[3]
     
-    return output_str
+    return output_str, 0, 0
 
 def process_string(input_str):
     output_str = input_str
