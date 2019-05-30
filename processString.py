@@ -160,14 +160,14 @@ def process_brackets(input_str):
             #Check for right-adjacent bracket
             if i+1 < len(output_str) and output_str[i+1] == '{': # Checks for right-adjacent bracket
                 if b_ref[i+1] == 0:
-                    b_ref[i+1] == id
+                    b_ref[i+1] = id
                 else:
                     b_crct = False
                     b_missing[i][0] = True
                     b_missing[i][1] = True
             elif i+2 < len(output_str) and output_str[i+1] == '|' and output_str[i+2] == '{':
                 if b_ref[i+2] == 0:
-                    b_ref[i+2] == id
+                    b_ref[i+2] = id
                 else:
                     b_crct = False
                     b_missing[i][0] = True
@@ -202,14 +202,14 @@ def process_brackets(input_str):
             # Check if adjacent brackets are missing
             if i-1 >= 0 and output_str[i-1] == '}': # Checks for left-adjacent bracket
                 if b_ref[i-1] == 0:
-                    b_ref[i-1] == id
+                    b_ref[i-1] = id
                 else:
                     b_crct = False
                     b_missing[i][0] = True
                     b_missing[i][1] = True
             elif i-2 >=0 and output_str[i-1] == '|' and output_str[i-2] == '}':
                 if b_ref[i-2] == 0:
-                    b_ref[i-2] == id
+                    b_ref[i-2] = id
                 else:
                     b_crct = False
                     b_missing[i][0] = True
@@ -220,14 +220,14 @@ def process_brackets(input_str):
             
             if i+1 < len(output_str) and output_str[i+1] == '{': # Checks for right-adjacent bracket
                 if b_ref[i+1] == 0:
-                    b_ref[i+1] == id
+                    b_ref[i+1] = id
                 else:
                     b_crct = False
                     b_missing[i][2] = True
                     b_missing[i][3] = True
             elif i+2 < len(output_str) and output_str[i+1] == '|' and output_str[i+2] == '{':
                 if b_ref[i+2] == 0:
-                    b_ref[i+2] == id
+                    b_ref[i+2] = id
                 else:
                     b_crct = False
                     b_missing[i][2] = True
@@ -284,9 +284,15 @@ def process_brackets(input_str):
                         if output_str[i+b_shift] == '{':
                             b_depth += -1
                         b_shift += 1
-    print(b_ref)
+    untracked = [i for i in range(len(output_str)) if b_ref[i]==0 and output_str[i] in ('{','}')]
+    bad_char = u'\u0192'
+    if len(untracked)>0:
+        output_list = list(output_str)
+        for i in untracked:
+            output_list[i] = bad_char
+        output_str = ''.join(output_list)
+        return process_brackets(output_str.replace(bad_char,''))
     ops_missing = [b_missing[i] for i in op_indices]
-    print(ops_missing)
 
     for i in range(len(op_indices)):
         op_idx = op_indices[i]
