@@ -370,7 +370,7 @@ class uiMaster:
                     if uiMaster.uiEx1.is_active:
                         if event.key == pygame.K_EQUALS:
                             if not(pygame.key.get_mods() & pygame.KMOD_SHIFT):
-                                if(contOrCommand):
+                                if True: #you know i don't feel like unindenting
                                     newleft = uiExpression((0,0))
                                     newleft.text = uiMaster.uiEx1.text
                                     uiMaster.currenty+= uiMaster.ychange
@@ -424,15 +424,6 @@ class uiMaster:
                                     newEQ = uiEquation(uiMaster.uiEx1,rightsideui,(500,100))
                                 '''
 
-
-
-
-                if event.unicode == "`":
-                    saver.saveCM("testfile",uiMaster,uiEquation)
-                if event.unicode == "'":
-                    saver.openCM("testfile",uiMaster,uiEquation)
-
-                    print("text:", uiMaster.uiEx1.text)
 
 
         uiMaster.uiEx1.handle_events(events,mouse_absolute)
