@@ -65,7 +65,7 @@ ERR_OP = op.Operator("ERROR", mkstr_error)
 tokens = (
     'VAR', 'NUMBER',
     '1L1R_OP_L0', '1L1R_OP_L1', '1L1R_OP_R2',
-    'LPAREN','RPAREN', 'ULPAREN', 'URPAREN', 'LBRACK', 'RBRACK', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'LPRN_CURSOR', 'RPRN_CURSOR', 'LBRK_CURSOR', 'RBRK_CURSOR'
+    'LPAREN','RPAREN', 'ULPAREN', 'URPAREN', 'LBRACK', 'RBRACK', 'NUM_CURSOR', 'VAR_CURSOR', 'UNF_CURSOR', 'LPRN_CURSOR', 'RPRN_CURSOR', 'ULPRN_CURSOR', 'URPRN_CURSOR', 'LBRK_CURSOR', 'RBRK_CURSOR'
     )
 
 # Tokens
@@ -77,10 +77,12 @@ t_URPAREN = r'\u2986'
 t_LBRACK  = r'\{'
 t_RBRACK  = r'\}'
 #t_NAME    = r'[a-zA-Z_][a-zA-Z0-9_]*'
-t_UNF_CURSOR  = r'((?<=[^a-zA-Z\d\)\}])|(?<=^))\|(?=[^a-zA-Z\d\(\{]|$)'
+t_UNF_CURSOR  = r'((?<=[^a-zA-Z\d\)\u2986\}])|(?<=^))\|(?=[^a-zA-Z\d\(\u2985\{]|$)'
 #t_PRN_CURSOR = r'\|(?=\()|(?<=\))\|'
 t_LPRN_CURSOR = r'\|(?=\()'
 t_RPRN_CURSOR = r'(?<=\))\|'
+t_ULPRN_CURSOR = r'\|(?=\u2985)'
+t_URPRN_CURSOR = r'(?<=\u2986)\|'
 t_LBRK_CURSOR = r'\|(?=\{)'
 t_RBRK_CURSOR = r'(?<=\})\|'
 
@@ -199,6 +201,10 @@ def p_exp3_culparens(p):
     'exp3 : LPRN_CURSOR LPAREN exp0 URPAREN'
     p[0] = xp.Expression(LPRN_OP, [p[3]]).addCursor(0)
 
+def p_exp3_cluparens(p):
+    'exp3 : ULPRN_CURSOR ULPAREN exp0 RPAREN'
+    p[0] = xp.Expression(RPRN_OP, [p[3]]).addCursor(0)
+
 def p_exp3_urparens(p):
     'exp3 : ULPAREN exp0 RPAREN'
     p[0] = xp.Expression(RPRN_OP, [p[2]])
@@ -206,6 +212,10 @@ def p_exp3_urparens(p):
 def p_exp3_curparens(p):
     'exp3 : ULPAREN exp0 RPAREN RPRN_CURSOR'
     p[0] = xp.Expression(RPRN_OP, [p[2]]).addCursor(1)	
+
+def p_exp3_cruparens(p):
+    'exp3 : LPAREN exp0 URPAREN URPRN_CURSOR'
+    p[0] = xp.Expression(LPRN_OP, [p[2]]).addCursor(1)	
 
 def p_exp3_bracks(p):
     'exp3 : LBRACK exp0 RBRACK'
@@ -284,7 +294,9 @@ error=False
 def get_exp(inputStr):
     global error
     error=False
+    #print('processing',inputStr.replace('\u2986','$').replace('\u2985','#'))
     inputStr = preprocess(inputStr)
+    #print('got',inputStr.replace('\u2986','$').replace('\u2985','#'))
     resultingExpression = parser.parse(inputStr)
     if error:
         raise ValueError("Expression could not parse correctly.")

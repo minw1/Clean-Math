@@ -197,7 +197,18 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
         if keydown == pygame.K_BACKSPACE and self.index>0:
             while self.index>0 and self.text[self.index-1] in ('{','}'):
                 self.index-=1
-            self.text = self.text[:self.index-1] + self.text[self.index:]
+            if self.text[self.index-1] in ('(','\u2985'):
+                before=self.text[:self.index-1]
+                after=self.text[self.index:]
+                new_after = proc.del_close_paren(after)
+                self.text = before+new_after
+            elif self.text[self.index-1] in (')','\u2986'):
+                before=self.text[:self.index-1]
+                after=self.text[self.index:]
+                new_before = proc.del_close_paren_reverse(before)
+                self.text = new_before+after
+            else:
+                self.text = self.text[:self.index-1] + self.text[self.index:]
             self.index-=1
         elif keydown == pygame.K_SPACE:
             self.text = self.text[:self.index]+" "+self.text[self.index:]
@@ -209,15 +220,13 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
                 self.index -= 2
             else:
                 self.index=max(self.index-1,0)
-            self.index=max(self.index-1,0)
         elif keydown == pygame.K_RIGHT or keydown==pygame.K_DOWN:
-            if self.text[self.index+1:self.index+4]=='}/{':
+            if self.text[self.index:self.index+3]=='}/{':
                 self.index += 3
-            elif self.text[self.index+1:self.index+3]=='^{':
+            elif self.text[self.index:self.index+2]=='^{':
                 self.index += 2
             else:
                 self.index=min(self.index+1,len(self.text))
-            self.index=min(self.index+1,len(self.text))
         else:
             return False #some other symbol
 
@@ -226,8 +235,21 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
             ui.feed_keydown(keydown)
 
     def feedAllowedSymbol(self, symbol):
-        self.text=self.text[:self.index]+symbol+self.text[self.index:]
-        self.index+=1
+        if symbol == '(':
+            if self.index <= len(self.text)-1 and self.text[self.index]=='\u2985': #realize open paren
+                self.text=self.text[:self.index]+'('+self.text[self.index+1:]
+            else:
+                self.text=self.text[:self.index]+'('+proc.add_close_shadow_paren(self.text[self.index:])
+                self.index+=1
+        elif symbol == ')':
+            if self.index <= len(self.text)-1 and self.text[self.index]=='\u2986': #realize close paren
+                self.text=self.text[:self.index]+')'+self.text[self.index+1:]
+            else:
+                self.text=proc.add_close_shadow_paren_reverse(self.text[:self.index])+')'+self.text[self.index:]
+                self.index+=1
+        else:
+            self.text=self.text[:self.index]+symbol+self.text[self.index:]
+            self.index+=1
 
     def static_feedAllowedSymbol(symbol):
         for ui in uiExpression.allUiExpressions:

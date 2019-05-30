@@ -4,7 +4,7 @@ admissible = [str(i) for i in range(10)]+list(string.ascii_lowercase)+list(strin
 
 def process_shadow_parens(input_str):
     output_str = input_str
-    #Remove superfluous shadow parens and close unclosed parentheses (with shadow parens)
+    '''#Remove superfluous shadow parens and close unclosed parentheses (with shadow parens)
     # Find shadow-paren edges of string
     l_idx = 0
     l_add = True
@@ -69,11 +69,24 @@ def process_shadow_parens(input_str):
                 extr_lprns += 1
     # Add new shadow parens
     output_str = extr_lprns * "\u2985" + output_str + "\u2986" * extr_rprns
+    
+    
+    for i in range(len(op_indices)):
+        op_idx = op_indices[i]
+        output_str, adj1, adj2 = fix(output_str, ops_missing[i], op_idx)
+        ops_missing[i] = [False,False,False,False]
+        op_indices[i]+=adj1
+        for j in range(i+1,len(op_indices)):
+            op_indices[j]+=(adj1+adj2)
+    return output_str
     # Add cursor back in
     if c_dist[0] == 'L':
         output_str = output_str[:c_dist[1]] + '|' + output_str[c_dist[1]:]
     elif c_dist[0] == 'R':
-        output_str = output_str[:len(output_str)-c_dist[1]] + '|' + output_str[len(output_str)-c_dist[1]:]
+        output_str = output_str[:len(output_str)-c_dist[1]] + '|' + output_str[len(output_str)-c_dist[1]:]'''
+
+    
+    
     
     return output_str
 
@@ -97,6 +110,23 @@ def place_bracket(input_str, b_ref, b_missing, op_indices, i, id, idx, add_idx, 
                 b_ref[j] += 1
     return (output_str, b_ref, b_missing, op_indices)
 
+def del_close_paren(input_str):
+    '''deletes a close paren if it exists'''
+    p_depth = 0
+    i = 0
+    while i<len(input_str):
+        if input_str[i] in ('(','\u2985'):
+            p_depth += 1
+        if input_str[i] in (')','\u2986'):
+            p_depth -= 1
+        if p_depth <= -1:
+            break
+        i+=1
+    if i==len(input_str):
+        return input_str
+    else:
+        return input_str[:i]+input_str[i+1:]
+
 def add_close_brack(input_str, b_depth=0, p_depth=0):
     '''takes a string without an opening bracket and adds a closing bracket at the first place it should be'''
     if len(input_str) == 0:
@@ -118,9 +148,34 @@ def add_close_brack(input_str, b_depth=0, p_depth=0):
             return '}'+input_str
         else:
             return first_char+add_close_brack(input_str[1:],b_depth-1,p_depth)
-    if first_char in admissible:
+    if first_char in admissible or b_depth >=1 or p_depth >= 1:
         return first_char+add_close_brack(input_str[1:],b_depth,p_depth)
     return '}'+input_str
+
+def add_close_shadow_paren(input_str, b_depth=0, p_depth=0):
+    '''takes a string without an opening paren and adds a closing shadow paren at the first place it should be'''
+    if len(input_str) == 0:
+        return '\u2986'
+    first_char = input_str[0]
+    if first_char == '{':
+        return first_char+add_close_shadow_paren(input_str[1:],b_depth+1,p_depth)
+    if first_char == '}':
+        if b_depth == 1:
+            return first_char+'\u2986'+input_str[1:]
+        elif b_depth == 0:
+            return '\u2986'+input_str
+        else:
+            return first_char+add_close_shadow_paren(input_str[1:],b_depth-1,p_depth)
+    if first_char in ('(', '\u2985'):
+        return first_char+add_close_shadow_paren(input_str[1:],b_depth,p_depth+1)
+    if first_char in (')', '\u2986'):
+        if p_depth == 0:
+            return '\u2986'+input_str
+        else:
+            return first_char+add_close_shadow_paren(input_str[1:],b_depth,p_depth-1)
+    if first_char in admissible or b_depth >=1 or p_depth >= 1:
+        return first_char+add_close_shadow_paren(input_str[1:],b_depth,p_depth)
+    return '\u2986'+input_str
 
 def robust_reverse(input_str):
     rev = input_str[::-1]
@@ -139,10 +194,20 @@ def add_close_brack_reverse(input_str, b_depth=0, p_depth=0):
     rev = robust_reverse(input_str)
     bracked = add_close_brack(rev, b_depth, p_depth)
     return robust_reverse(bracked)
+
+def add_close_shadow_paren_reverse(input_str, b_depth=0, p_depth=0):
+    rev = robust_reverse(input_str)
+    bracked = add_close_shadow_paren(rev, b_depth, p_depth)
+    return robust_reverse(bracked)
+
+def del_close_paren_reverse(input_str):
+    rev = robust_reverse(input_str)
+    bracked = del_close_paren(rev)
+    return robust_reverse(bracked)
     
     
 def process_brackets(input_str):
-    #print('input_str to pbrack',input_str)
+    
     output_str = input_str
 
     # Determine if brackets are correct
@@ -152,6 +217,10 @@ def process_brackets(input_str):
     op_indices = []
     for m in re.finditer('\^|\/', output_str):
         op_indices.append(m.start())
+    brack_depth = [0] #list of length len(output_str)+1
+    for i in range(len(output_str)):
+        brack_depth.append(brack_depth[-1]+(1 if output_str[i]=='{' else (-1 if output_str[i]=='}' else 0)))
+    op_indices.sort(key=lambda x:-brack_depth[x]) #make the best guess as to what's most significant
     
     #  Search for missing brackets
     for i in op_indices:
@@ -178,21 +247,20 @@ def process_brackets(input_str):
 
             if not b_missing[i][0]:
                 b_found = False
-                b_shift = 1
+                b_shift = 2
                 b_depth = -1
                 while not b_found:
-                    
                     if i+b_shift >= len(output_str):
                         b_found = True
                         b_crct = False
                         b_missing[i][0] = True
                     elif output_str[i+b_shift] == '}':
-                        if b_depth == -1:
+                        if b_depth == -1 and b_ref[i+b_shift] == 0:
                             b_found = True
-                            if b_ref[i+b_shift] == 0:
-                                b_ref[i+b_shift] = id
+                            b_ref[i+b_shift] = id
                         else:
                             b_depth += 1
+                            b_shift += 1
                     else:
                         if output_str[i+b_shift] == '{':
                             b_depth += -1
@@ -247,15 +315,12 @@ def process_brackets(input_str):
                         b_crct = False
                         b_missing[i][0] = True
                     elif output_str[i+b_shift] == '{':
-                        if b_depth == -1:
+                        if b_depth == -1 and b_ref[i+b_shift] == 0:
                             b_found = True
-                            if b_ref[i+b_shift] == 0:
-                                b_ref[i+b_shift] = id
-                            else:
-                                b_crct = False
-                                b_missing[i][0] = True
+                            b_ref[i+b_shift] = id
                         else:
                             b_depth += 1
+                            b_shift -= 1
                     else:
                         if output_str[i+b_shift] == '}':
                             b_depth += -1
@@ -271,19 +336,17 @@ def process_brackets(input_str):
                         b_crct = False
                         b_missing[i][3] = True
                     elif output_str[i+b_shift] == '}':
-                        if b_depth == -1:
+                        if b_depth == -1 and b_ref[i+b_shift] == 0:
                             b_found = True
-                            if b_ref[i+b_shift] == 0:
-                                b_ref[i+b_shift] = id
-                            else:
-                                b_crct = False
-                                b_missing[i][3] = True
+                            b_ref[i+b_shift] = id
                         else:
                             b_depth += 1
+                            b_shift += 1
                     else:
                         if output_str[i+b_shift] == '{':
                             b_depth += -1
                         b_shift += 1
+
     untracked = [i for i in range(len(output_str)) if b_ref[i]==0 and output_str[i] in ('{','}')]
     bad_char = u'\u0192'
     if len(untracked)>0:

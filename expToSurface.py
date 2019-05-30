@@ -116,6 +116,10 @@ class smartSurface:
         self.y_top = 0
         self.y_mid = 0
         cursor_char = '|' if cursor_show else '\u0192'
+
+        cursor = exp.cursor
+        cursor_idx = exp.cursor_idx if cursor else None
+        
         self.surface = pygame.Surface((0,0))
 
         if exp == silentExp: silent = True
@@ -130,17 +134,28 @@ class smartSurface:
         font = get_font(font_size)
         self.font = font
         
+        try: #this'll see if there are any silent brackets whose cursors need to be added
+            first = exp.expList[0]
+            second = exp.expList[1]
+            if first.op.strRep == "{}" and first.cursor:
+                cursor = True
+                cursor_idx = 0
+            if second.op.strRep == "{}" and second.cursor:
+                cursor = True
+                cursor_idx = 1
+        except: pass #if not, no big deal
+        
         if type(exp) == xp.NoOpExpression:
             string = exp.strRep
-            if exp.cursor:
-                string = string[:exp.cursor_idx]+cursor_char+string[exp.cursor_idx:]
+            if cursor:
+                string = string[:cursor_idx]+cursor_char+string[cursor_idx:]
             self.surface, rect = font.render(string,self.color,COLORKEY)
             ymin,ymax = get_height_offset_str(string, fontXML)
             self.y_bot, self.y_top = get_altitudes(ymin,ymax,self.surface.get_size()[1])
             self.y_mid = (self.y_bot+self.y_top)//2
 
             self.hitboxes.append(([self.surface.get_rect(), self.surface.get_rect()], self.exp, op_depth))
-        elif exp.op.strRep in ["()","(",")"]: #parens are irrevocably broken
+        elif exp.op.strRep in ["()","(",")"]:
             avg_color = [(self.color[i]+st.backgroundColor[i])//2 for i in range(3)]
             left_color = self.color if "(" in exp.op.strRep else avg_color
             right_color = self.color if ")" in exp.op.strRep else avg_color
@@ -151,10 +166,10 @@ class smartSurface:
             old_bot = firstSurface.y_bot
             old_mid = firstSurface.y_mid
             internal_height = old_bot-old_top
-            newFontSize=round(internal_height*PAREN_SCALE) #FIX THIS
+            newFontSize=round(internal_height*PAREN_SCALE)
             newFont = get_font(newFontSize)
-            left, rect = newFont.render("(",left_color,COLORKEY)
-            right, rect = newFont.render(")",right_color,COLORKEY)
+            left, rect = newFont.render(("|" if cursor and cursor_idx == 0 else "")+"(",left_color,COLORKEY)
+            right, rect = newFont.render(")"+("|" if cursor and cursor_idx == 1 else ""),right_color,COLORKEY)
             left_width, left_height = left.get_size()
             right_width, right_height = right.get_size()
             
@@ -191,7 +206,7 @@ class smartSurface:
             self.hitboxes = self.hitboxes+firstSurface.translateHitboxes(expLoc)
             self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
         elif exp.op.strRep in self.simpleOps:
-            string = (cursor_char if exp.cursor_idx == 0 else '')+exp.op.strRep+(cursor_char if exp.cursor_idx == 0 else '')
+            string = (cursor_char if cursor_idx == 0 else '')+exp.op.strRep+(cursor_char if cursor_idx == 0 else '')
             use_spacing = exp.op.strRep != "*"
             
             firstSurface = smartSurface(exp.expList[0], frac_depth, script_depth, op_depth+1, cursor_show, silent, silentExp)
@@ -279,6 +294,45 @@ class smartSurface:
                 
             self.hitboxes = self.hitboxes + firstSurface.translateHitboxes(firstLoc) + secondSurface.translateHitboxes(secondLoc)
             self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
+
+            if cursor:
+                cursorSurf, rect = font.render(cursor_char,self.color,COLORKEY)
+                cuWidth, cuHeight = cursorSurf.get_size()
+                ymin,ymax = get_height_offset_str(cursor_char, fontXML)
+                cu_bot, cu_top = get_altitudes(ymin,ymax,cuHeight)
+                cu_mid = (cu_bot+cu_top)//2
+                oldSurface = self.surface
+                oldWidth, oldHeight = finalWidth, finalHeight
+                oldHitboxes = self.hitboxes
+                old_mid = self.y_mid
+                old_bot = self.y_bot
+                old_top = self.y_top
+                oldBelow = oldHeight-old_mid
+                cuBelow = cuHeight-cu_mid
+
+                newAbove = max(old_mid, cu_mid)
+                newBelow = max(oldBelow, cuBelow)
+
+                self.y_mid = newAbove
+                self.y_bot = self.y_mid-min(cu_mid-cu_bot,old_mid-old_bot)
+                self.y_top = self.y_mid+min(cu_top-cu_mid, old_top-old_mid)
+
+                newWidth = cuWidth+self.spacing+oldWidth
+                newHeight = newAbove+newBelow
+                self.surface = pygame.Surface((newWidth, newHeight))
+                self.surface.fill((COLORKEY))
+                if cursor_idx == 0:
+                    cuLoc = (0, newAbove-cu_mid)
+                    oldLoc = (newWidth-oldWidth, newAbove-old_mid)
+                    self.surface.blit(oldSurface, oldLoc)
+                    self.surface.blit(cursorSurf, cuLoc)
+                    self.hitboxes = self.translateHitboxes(oldLoc)
+                elif cursor_idx == 1:
+                    cuLoc = (newWidth-cuWidth, newAbove-cu_mid)
+                    oldLoc = (0, newAbove-old_mid)
+                    self.surface.blit(oldSurface, oldLoc)
+                    self.surface.blit(cursorSurf, cuLoc)
+                    self.hitboxes = self.translateHitboxes(oldLoc)
             
         elif exp.op.strRep == "frac" or exp.op.strRep == "/":
             
@@ -318,11 +372,11 @@ class smartSurface:
             self.hitboxes.append(([vincRect,self.surface.get_rect()],self.exp,op_depth))
             self.hitboxes.append(([self.surface.get_rect(),self.surface.get_rect()],self.exp,op_depth))
 
-            if exp.cursor:
+            if cursor:
                 cursorSurf, rect = font.render(cursor_char,self.color,COLORKEY)
-                cuWidth, chHeight = cursorSurf.get_size()
+                cuWidth, cuHeight = cursorSurf.get_size()
                 ymin,ymax = get_height_offset_str(cursor_char, fontXML)
-                cu_bot = get_altitudes(ymin,ymax,chHeight[1])
+                cu_bot, cu_top = get_altitudes(ymin,ymax,cuHeight)
                 cu_mid = (cu_bot+cu_top)//2
                 oldSurface = self.surface
                 oldWidth, oldHeight = finalWidth, finalHeight
@@ -344,13 +398,13 @@ class smartSurface:
                 newHeight = newAbove+newBelow
                 self.surface = pygame.Surface((newWidth, newHeight))
                 self.surface.fill((COLORKEY))
-                if exp.cursor_idx == 0:
+                if cursor_idx == 0:
                     cuLoc = (0, newAbove-cu_mid)
                     oldLoc = (newWidth-oldWidth, newAbove-old_mid)
                     self.surface.blit(oldSurface, oldLoc)
                     self.surface.blit(cursorSurf, cuLoc)
                     self.hitboxes = self.translateHitboxes(oldLoc)
-                elif exp.cursor_idx == 1:
+                elif cursor_idx == 1:
                     cuLoc = (newWidth-cuWidth, newAbove-cu_mid)
                     oldLoc = (0, newAbove-old_mid)
                     self.surface.blit(oldSurface, oldLoc)
