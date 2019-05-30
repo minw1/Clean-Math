@@ -132,7 +132,7 @@ def add_close_brack(input_str, b_depth=0, p_depth=0):
     if len(input_str) == 0:
         return '}'
     first_char = input_str[0]
-    if first_char in ('(','\u2985') and (p_depth or b_depth):
+    if first_char in ('(','\u2985'):# and (p_depth or b_depth):
         return first_char+add_close_brack(input_str[1:],b_depth,p_depth+1)
     if first_char in (')','\u2986'):
         if p_depth == 1:
