@@ -287,7 +287,7 @@ parser = yacc.yacc()
 def preprocess(inputStr):
     output_str = inputStr	
     #Insert implicit multiplication
-    output_str = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', output_str)
+    output_str = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\{)|(?<=\})(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', output_str)
     return output_str
 
 error=False
