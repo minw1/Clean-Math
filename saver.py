@@ -22,7 +22,7 @@ import ui
 
 
 def saveCM(filename, uim, uiq):
-	xdata = {'typing_first_expression':uim.typing_first_expression, 'uiEx1': uim.uiEx1.text}
+	xdata = {'typing_first_expression':uim.typing_first_expression, 'uiEx1': uim.uiEx1.text, 'loc': uim.uiEx1.midleft}
 	qdata = []
 	for q in uiq.alluiEquations:
 		qdict = {'leftside':q.leftside.text, 'rightside':q.rightside.text,'eqmid': q.eqmid}
@@ -41,22 +41,23 @@ def saveCM(filename, uim, uiq):
 def openCM(filename,uim,uiq):
 	try:
 
-		print(id(uim))
+		#print(id(uim))
 
 
 		file = open(filename + '.cm',"r")
 		fdata = json.loads(file.readline())
 
-		print(fdata)
+		#print(fdata)
 		#reading and setting xdata
 		uim.typing_first_expression = fdata['xdata']['typing_first_expression']
 		uim.uiEx1.text = fdata['xdata']['uiEx1']
+		uim.uiEx1.midleft = fdata['xdata']['loc']
 
 
 
 		#reatding and setting qdata
-		newAllUiEquations = []
-		uiq.alluiEquations =[]
+
+		uiq.alluiEquations = []
 
 		for q in fdata['qdata']:
 			leftside = ui.uiExpression((0,0))
@@ -65,9 +66,9 @@ def openCM(filename,uim,uiq):
 			leftside.text = q['leftside']
 			rightside.text = q['rightside']
 			neq = ui.uiEquation(leftside,rightside,q['eqmid'])
-			newallUiEquations += [neq]
+			uiq.alluiEquations += [neq]
+			uim.uiEx1.is_active = True
 
-		uiq.alluiEquations = newAllUiEquations
 
 	except Exception as inst:
 		print(inst)
