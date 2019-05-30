@@ -103,7 +103,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
         except:
             print("Failed Processing: ",curstring)
 
-        print("to getexp:", finalstring)
+        #print("to getexp:", finalstring)
         self.exp = pprs.get_exp(finalstring)
 
 
