@@ -193,17 +193,30 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
     def static_feed_mouseup(mouse_absolute):
         return False
 
-
     def feed_keydown(self, keydown):
         if keydown == pygame.K_BACKSPACE and self.index>0:
+            while self.index>0 and self.text[self.index-1] in ('{','}'):
+                self.index-=1
             self.text = self.text[:self.index-1] + self.text[self.index:]
             self.index-=1
         elif keydown == pygame.K_SPACE:
             self.text = self.text[:self.index]+" "+self.text[self.index:]
             self.index+=1
         elif keydown == pygame.K_LEFT or keydown==pygame.K_UP:
+            if self.index>=3 and self.text[self.index-3:self.index]=='}/{':
+                self.index -= 3
+            elif self.index>=2 and self.text[self.index-2:self.index]=='^{':
+                self.index -= 2
+            else:
+                self.index=max(self.index-1,0)
             self.index=max(self.index-1,0)
         elif keydown == pygame.K_RIGHT or keydown==pygame.K_DOWN:
+            if self.text[self.index+1:self.index+4]=='}/{':
+                self.index += 3
+            elif self.text[self.index+1:self.index+3]=='^{':
+                self.index += 2
+            else:
+                self.index=min(self.index+1,len(self.text))
             self.index=min(self.index+1,len(self.text))
         else:
             return False #some other symbol
@@ -218,7 +231,7 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
 
     def static_feedAllowedSymbol(symbol):
         for ui in uiExpression.allUiExpressions:
-            ui.feed_AllowedSymbol(symbol)
+            ui.feedAllowedSymbol(symbol)
 
     def handle_events(self, events, mouse_absolute):
         for event in events:

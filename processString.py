@@ -284,8 +284,9 @@ def process_brackets(input_str):
                         if output_str[i+b_shift] == '{':
                             b_depth += -1
                         b_shift += 1
-
+    print(b_ref)
     ops_missing = [b_missing[i] for i in op_indices]
+    print(ops_missing)
 
     for i in range(len(op_indices)):
         op_idx = op_indices[i]
