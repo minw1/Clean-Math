@@ -135,9 +135,7 @@ def add_close_brack(input_str, b_depth=0, p_depth=0):
     if first_char in ('(','\u2985'):# and (p_depth or b_depth):
         return first_char+add_close_brack(input_str[1:],b_depth,p_depth+1)
     if first_char in (')','\u2986'):
-        if p_depth == 1:
-            return first_char+'}'+input_str[1:]
-        elif p_depth == 0:
+        if p_depth == 0:
             return '}'+input_str
         else:
             return first_char+add_close_brack(input_str[1:],b_depth,p_depth-1)
@@ -160,9 +158,7 @@ def add_close_shadow_paren(input_str, b_depth=0, p_depth=0):
     if first_char == '{':
         return first_char+add_close_shadow_paren(input_str[1:],b_depth+1,p_depth)
     if first_char == '}':
-        if b_depth == 1:
-            return first_char+'\u2986'+input_str[1:]
-        elif b_depth == 0:
+        if b_depth == 0:
             return '\u2986'+input_str
         else:
             return first_char+add_close_shadow_paren(input_str[1:],b_depth-1,p_depth)

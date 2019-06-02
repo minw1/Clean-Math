@@ -287,16 +287,17 @@ parser = yacc.yacc()
 def preprocess(inputStr):
     output_str = inputStr	
     #Insert implicit multiplication
-    output_str = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\{)|(?<=\})(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', output_str)
+    output_str = re.sub('(?<=\w|\))(?=\|?\()|(?<=\))(?=\|?\w)', '*', output_str)
+    output_str = re.sub('(?<=\w|\})(?=\|?\{)|(?<=\})(?=\|?\w)|(?<=\d|[a-zA-Z])(?=\|?[a-zA-Z])|(?<=[a-zA-Z])(?=\|?\d)', '*', output_str)
     return output_str
 
 error=False
 def get_exp(inputStr):
     global error
     error=False
-    #print('processing',inputStr.replace('\u2986','$').replace('\u2985','#'))
+    print('processing',inputStr.replace('\u2986','$').replace('\u2985','#'))
     inputStr = preprocess(inputStr)
-    #print('got',inputStr.replace('\u2986','$').replace('\u2985','#'))
+    print('got',inputStr.replace('\u2986','$').replace('\u2985','#'))
     resultingExpression = parser.parse(inputStr)
     if error:
         raise ValueError("Expression could not parse correctly.")

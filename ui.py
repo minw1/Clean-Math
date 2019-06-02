@@ -240,13 +240,13 @@ class uiExpression: #static methods operate on the whole list of created uiExpre
                 self.text=self.text[:self.index]+'('+self.text[self.index+1:]
             else:
                 self.text=self.text[:self.index]+'('+proc.add_close_shadow_paren(self.text[self.index:])
-                self.index+=1
+            self.index+=1
         elif symbol == ')':
             if self.index <= len(self.text)-1 and self.text[self.index]=='\u2986': #realize close paren
                 self.text=self.text[:self.index]+')'+self.text[self.index+1:]
             else:
                 self.text=proc.add_close_shadow_paren_reverse(self.text[:self.index])+')'+self.text[self.index:]
-                self.index+=1
+            self.index+=1
         else:
             self.text=self.text[:self.index]+symbol+self.text[self.index:]
             self.index+=1
