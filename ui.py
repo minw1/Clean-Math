@@ -382,7 +382,7 @@ class uiMaster:
         uiMaster.uiEx1.is_active = True
 
 
-    def handle_events(events,mouse_absolute):
+    def handle_events(events,mouse_absolute,scrollblock,screen,xscroll,yscroll):
         
         for event in events:
 
@@ -401,6 +401,12 @@ class uiMaster:
 
                                     rightsideui = uiExpression((0,0))
                                     rightsideui.is_active = True
+                                    rightsideui.text = "loading"
+                                    newEQ = uiEquation(newleft,rightsideui,(uiMaster.xoffset,uiMaster.currenty-uiMaster.ychange))
+                                    scrollblock.fill((255,255,255))
+                                    uiMaster.draw(scrollblock, True)
+                                    screen.blit(scrollblock, (-xscroll,-yscroll))
+                                    pygame.display.flip()
         
                                     cut = uiMaster.uiEx1.get_finalstring().replace("|","")
 
@@ -427,6 +433,7 @@ class uiMaster:
                                     
                                     uiMaster.uiEx1.text = ""
                                     rightsideui.text = toget
+                                    has_changed = True
                                     rightsideui.is_active = False
 
                                     print("CCC",toget)
@@ -447,12 +454,13 @@ class uiMaster:
                                 '''
 
 
-
+        
         uiMaster.uiEx1.handle_events(events,mouse_absolute)
         uiEquation.static_handle_events(events,mouse_absolute)
 
-    def draw(screen):
+    def draw(screen, inEq=False):
         if uiMaster.typing_first_expression:
-            uiMaster.uiEx1.update()
-            uiMaster.uiEx1.draw(screen)
+            if not inEq:
+                uiMaster.uiEx1.update()
+                uiMaster.uiEx1.draw(screen)
             uiEquation.static_draw(screen)

@@ -129,7 +129,8 @@ while st.programIsRunning:
         ui.handle_events(events,mousePos)
     '''
     if not getting_input_flag:
-        ui.uiMaster.handle_events(events,(mousePos[0]+xscroll,mousePos[1]+yscroll))
+        ui.uiMaster.handle_events(events,(mousePos[0]+xscroll,mousePos[1]+yscroll),scrollblock,screen,xscroll,yscroll)
+        
 
     screen.fill((255,255,255))
     scrollblock.fill((255,255,255))

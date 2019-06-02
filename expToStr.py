@@ -50,10 +50,10 @@ def expToStr(exp):
 		return wrapBrack(expToStr(exp.expList[0]), True)
 
 	if(exp.op.strRep == "("):
-		return "(" + expToStr(exp.expList[0])
+		return "(" + expToStr(exp.expList[0]) + "\u2986"
 
 	if(exp.op.strRep == ")"):
-		return expToStr(exp.expList[0]) + ")"
+		return "\u2985" + expToStr(exp.expList[0]) + ")"
 
 	elif exp.op.strRep in precedents:
 		firstLower = pre(exp.expList[0].op)<pre(exp.op)#is first op lower precedence than the exp op?

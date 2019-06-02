@@ -106,7 +106,7 @@ class smartSurface:
     simpleOps = {'+','-','*',u'\u00B7'}
     mathrmOps = {'sin','cos','tan','cot','sec','csc','sinh','cosh','tanh','coth','sech','csch',
                  'arcsin','arccos','arctan','arccot','arcsec','arccsc','arcsinh','arccosh','arctanh','arccoth','arcsech','arccsch',
-                 'log','exp','gcd','lcm','ord'}
+                 'log','exp','gcd','lcm','ord','loading...'}
     spacing = 10
     smallSpacing = 5
 
@@ -421,15 +421,15 @@ class smartSurface:
             self.y_mid = otherSurf.y_mid
         elif exp.op.strRep in self.mathrmOps:
             opFont = get_rm_font(self.font_size)
-            opSurface, rect = font.render(exp.op.strRep,self.color,COLORKEY)
+            opSurface, rect = opFont.render(exp.op.strRep,self.color,COLORKEY)
             ymin,ymax = get_height_offset_str(exp.op.strRep, rmFontXML)
             opWidth, opHeight = opSurface.get_size()
             op_bot, op_top = get_altitudes(ymin,ymax,opHeight)
-            op_mid = (op_bot,op_top)//2
+            op_mid = (op_bot+op_top)//2
 
             encSurface = smartSurface(exp.expList[0], frac_depth, script_depth, op_depth+1, cursor_show, silent, silentExp)
             encWidth, encHeight = encSurface.get_size()
-            en_ybot, en_ymid, en_ytop = encSurface.y_bot, encSurface.y_mid, encSurface.y_top
+            enc_bot, enc_mid, enc_top = encSurface.y_bot, encSurface.y_mid, encSurface.y_top
 
             finalWidth = opWidth+self.spacing+encWidth
             encBelow = encHeight - enc_mid
@@ -442,7 +442,7 @@ class smartSurface:
             self.surface = pygame.Surface((finalWidth, finalHeight))
             self.surface.fill((COLORKEY))
             
-            encLod = (opWidth+self.spacing, finalAbove - enc_mid)
+            encLoc = (opWidth+self.spacing, finalAbove - enc_mid)
             opLoc = (0, finalAbove - op_mid)
             opRect = pygame.Rect(opLoc[0],opLoc[1],opWidth,opHeight)
 

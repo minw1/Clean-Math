@@ -293,6 +293,8 @@ def preprocess(inputStr):
 
 error=False
 def get_exp(inputStr):
+    if inputStr[1:]=='loading':
+        return xp.Expression(op.Operator('loading...',lambda x:''),[xp.NoOpExpression("")])
     global error
     error=False
     print('processing',inputStr.replace('\u2986','$').replace('\u2985','#'))
