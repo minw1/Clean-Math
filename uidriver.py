@@ -158,7 +158,7 @@ while st.programIsRunning:
         prompt = DEFAULT_FONT.render("What would you like to save your file as?",(0,0,255))[0]
 
     if getting_input_flag == 2:
-        prompt = DEFAULT_FONT.render("What is the name of the file you would like to open?",(0,0,255))[0]
+        prompt = DEFAULT_FONT.render("What is the name of the file you would like to open? Entering an invalid filename will do nothing",(0,0,255))[0]
 
     if getting_input_flag>0:
         textf = DEFAULT_FONT.render(filename,(0,0,255))[0]

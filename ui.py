@@ -62,7 +62,11 @@ def distPointRect(point,rect): #squared distance of point and rectangle. We don'
 
     return (xoffset**2 + yoffset**2)
 
-allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(",")","."]+list(string.ascii_lowercase)+list(string.ascii_uppercase)
+allowed_symbols = ["0","1","2","3","4","5","6","7","8","9","+","-","=","*","/","^","(",")",]+list(string.ascii_lowercase)+list(string.ascii_uppercase)
+digits = ["0","1","2","3","4","5","6","7","8","9"]
+def WASTRINGS(stri):
+    return "{" + stri.replace(" ", "}{") + "}"
+
 
 
 
@@ -380,19 +384,30 @@ class uiMaster:
     
     def init():
         uiMaster.uiEx1.is_active = True
+    def turnoffselect():
+        for i in uiEquation.alluiEquations:
+            i.leftside.is_active = False
+            i.rightside.is_active = False
 
 
     def handle_events(events,mouse_absolute,scrollblock,screen,xscroll,yscroll):
         
+        updateDependents = True
+
         for event in events:
 
             contOrCommand = (pygame.key.get_pressed()[310] or pygame.key.get_mods() & pygame.KMOD_LCTRL)
             if event.type == pygame.KEYDOWN:
+                if event.unicode == "n" and contOrCommand:
+                    updateDependents = False
+                    uiMaster.turnoffselect()
+                    uiMaster.uiEx1.is_active = True
+
                 if uiMaster.typing_first_expression:
                     if uiMaster.uiEx1.is_active:
                         if event.key == pygame.K_EQUALS:
                             if not(pygame.key.get_mods() & pygame.KMOD_SHIFT):
-                                if True: #you know i don't feel like unindenting
+                                if contOrCommand:
                                     newleft = uiExpression((0,0))
                                     newleft.text = uiMaster.uiEx1.text
                                     uiMaster.currenty+= uiMaster.ychange
@@ -401,7 +416,6 @@ class uiMaster:
 
                                     rightsideui = uiExpression((0,0))
                                     rightsideui.is_active = True
-                                    rightsideui.text = "loading"
                                     newEQ = uiEquation(newleft,rightsideui,(uiMaster.xoffset,uiMaster.currenty-uiMaster.ychange))
                                     scrollblock.fill((255,255,255))
                                     uiMaster.draw(scrollblock, True)
@@ -417,18 +431,34 @@ class uiMaster:
 
                                     try:
                                         for pod in res.pods:
-                                            if pod.title == "Alternate forms":
-                                                toget = pod.text
+                                            print(pod.title)
                                             if pod.title == "Expanded form":
                                                 toget = pod.text
-                                        if toget == "":
-                                            toget = next(res.results).text
-                                        toget = toget.replace(" ","")
-                                    except:
-                                        print("no results found")
+                                            if pod.title == "Result":
+                                                toget = pod.text
+                                                print("mango",toget)
+
+
+                                    except Exception as a:
+                                        print(a)
                                         toget == "error"
 
-                                    toget = toget.replace("{","").replace("}","")
+
+                                    print("cucumber", toget)
+                                    if toget == "":
+                                        for pod in res.pods:
+                                            if pod.title == "Alternate forms":
+                                                for subpod in pod.subpods:
+                                                    print("coconut",subpod.plaintext)
+                                                    toget = subpod.plaintext
+                                    if toget == "":
+                                        toget = newleft.text
+                                        print("couldn't find")
+                                    print("blueberry", toget)
+
+
+
+                                    toget = WASTRINGS(toget)
 
                                     
                                     uiMaster.uiEx1.text = ""
@@ -436,14 +466,13 @@ class uiMaster:
                                     has_changed = True
                                     rightsideui.is_active = False
 
-                                    print("CCC",toget)
+
 
                                     
 
 
                                     newEQ = uiEquation(newleft,rightsideui,(uiMaster.xoffset,uiMaster.currenty-uiMaster.ychange))
-                                    print(uiMaster.currenty-uiMaster.ychange)
-                                    print("BBB", uiMaster.uiEx1.midleft)
+
                                 '''
                                 else:
                                     uiMaster.typing_first_expression = False
@@ -454,9 +483,9 @@ class uiMaster:
                                 '''
 
 
-        
-        uiMaster.uiEx1.handle_events(events,mouse_absolute)
-        uiEquation.static_handle_events(events,mouse_absolute)
+        if updateDependents:
+            uiMaster.uiEx1.handle_events(events,mouse_absolute)
+            uiEquation.static_handle_events(events,mouse_absolute)
 
     def draw(screen, inEq=False):
         if uiMaster.typing_first_expression:
